@@ -1,0 +1,99 @@
+import { NextRequest, NextResponse } from "next/server";
+import { loginSchema } from "@/lib/validations";
+import { hashPassword, logActivity, readDb, sanitizeProfile, writeDb } from "@/lib/db";
+import { createSignedToken, SESSION_COOKIE_NAME } from "@/lib/auth";
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const parsed = loginSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid login credentials." },
+        { status: 400 }
+      );
+    }
+
+    const { email, password } = parsed.data;
+    const isAdminPortal = Boolean(body.adminPortal);
+
+    const db = readDb();
+    const profile = db.profiles.find(
+      (p) => p.email.toLowerCase() === email.toLowerCase() && !p.deleted_at
+    );
+
+    if (!profile || profile.password_hash !== hashPassword(password)) {
+      return NextResponse.json(
+        { error: "Invalid email or password. Please check your credentials." },
+        { status: 401 }
+      );
+    }
+
+    if (profile.status === "suspended") {
+      return NextResponse.json(
+        { error: "Your account has been suspended by the platform administrator." },
+        { status: 403 }
+      );
+    }
+
+    if (profile.status === "inactive") {
+      return NextResponse.json(
+        { error: "Your account is currently deactivated. Please contact support." },
+        { status: 403 }
+      );
+    }
+
+    if (isAdminPortal && profile.role !== "admin") {
+      return NextResponse.json(
+        { error: "Unauthorized: Only authorized administrators can sign in through the Admin Portal." },
+        { status: 403 }
+      );
+    }
+
+    logActivity(db, {
+      actor_profile_id: profile.id,
+      actor_name: profile.full_name,
+      actor_role: profile.role,
+      action: "User Login",
+      entity_type: "profiles",
+      entity_id: profile.id,
+      details: `${profile.full_name} (${profile.role}) signed in.`,
+    });
+    writeDb(db);
+
+    const token = createSignedToken(profile.id, profile.role);
+    let redirectUrl = "/dashboard/student";
+    if (profile.role === "admin") {
+      redirectUrl = "/admin";
+    } else if (profile.role === "scholar") {
+      redirectUrl = profile.onboarding_completed
+        ? "/dashboard/scholar"
+        : "/onboarding/scholar";
+    } else {
+      redirectUrl = profile.onboarding_completed
+        ? "/dashboard/student"
+        : "/onboarding/student";
+    }
+
+    const res = NextResponse.json({
+      user: sanitizeProfile(profile),
+      redirectUrl,
+    });
+
+    res.cookies.set(SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return res;
+  } catch (err) {
+    console.error("Login error:", err);
+    return NextResponse.json(
+      { error: "An unexpected server error occurred during login." },
+      { status: 500 }
+    );
+  }
+}
+

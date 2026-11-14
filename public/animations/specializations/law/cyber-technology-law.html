@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber and Technology Law Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #090A17; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    let t = 0;
+
+    function init(w, h) {}
+    function onResize(w, h) {}
+
+    function update(dt) {
+      t += dt * 1.5;
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+
+      // Legal Firewall Shield
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 50);
+      ctx.lineTo(cx + 45, cy - 30);
+      ctx.lineTo(cx + 45, cy + 15);
+      ctx.quadraticCurveTo(cx + 45, cy + 50, cx, cy + 60);
+      ctx.quadraticCurveTo(cx - 45, cy + 50, cx - 45, cy + 15);
+      ctx.lineTo(cx - 45, cy - 30);
+      ctx.closePath();
+      ctx.strokeStyle = "#EF4444";
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+
+      // GDPR / Privacy Data Inspection Radar Sweep
+      ctx.beginPath();
+      ctx.arc(cx, cy + 5, 25, t, t + 0.6);
+      ctx.strokeStyle = "#00F0FF";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robotics and Automation Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0F1118; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    let t = 0;
+
+    function init(w, h) {}
+    function onResize(w, h) {}
+
+    function update(dt) {
+      t += dt * 1.2;
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+
+      // Conveyor belt at the bottom
+      const beltY = h * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(0, beltY);
+      ctx.lineTo(w, beltY);
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Conveyor rollers
+      for (let x = 20; x < w; x += 35) {
+        ctx.beginPath();
+        ctx.arc(x, beltY + 8, 5, 0, Math.PI * 2);
+        ctx.strokeStyle = "#64748B";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Articulated 3-DOF Robotic Arm
+      const baseX = w * 0.35;
+      const baseY = beltY;
+
+      // Base pedestal
+      ctx.fillStyle = "#334155";
+      ctx.fillRect(baseX - 25, baseY - 12, 50, 12);
+
+      // Arm kinematic joint angles
+      const l1 = 70;
+      const l2 = 60;
+      const a1 = -Math.PI * 0.45 + Math.sin(t) * 0.35;
+      const a2 = Math.PI * 0.5 + Math.cos(t * 0.8) * 0.45;
+
+      const j1X = baseX;
+      const j1Y = baseY - 12;
+      const j2X = j1X + Math.cos(a1) * l1;
+      const j2Y = j1Y + Math.sin(a1) * l1;
+      const effX = j2X + Math.cos(a1 + a2) * l2;
+      const effY = j2Y + Math.sin(a1 + a2) * l2;
+
+      // Arm Segment 1
+      ctx.beginPath();
+      ctx.moveTo(j1X, j1Y);
+      ctx.lineTo(j2X, j2Y);
+      ctx.strokeStyle = "#94A3B8";
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      // Arm Segment 2
+      ctx.beginPath();
+      ctx.moveTo(j2X, j2Y);
+      ctx.lineTo(effX, effY);
+      ctx.strokeStyle = "#F97316";
+      ctx.lineWidth = 4.5;
+      ctx.stroke();
+
+      // Joints
+      ctx.beginPath();
+      ctx.arc(j1X, j1Y, 6, 0, Math.PI * 2);
+      ctx.arc(j2X, j2Y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#CBD5E1";
+      ctx.fill();
+
+      // Optical Laser Sensor Beam from end-effector
+      ctx.beginPath();
+      ctx.moveTo(effX, effY);
+      ctx.lineTo(effX, beltY);
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Laser impact spot on conveyor
+      ctx.beginPath();
+      ctx.arc(effX, beltY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#38BDF8";
+      ctx.shadowColor = "#38BDF8";
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

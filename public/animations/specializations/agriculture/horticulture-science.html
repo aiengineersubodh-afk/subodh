@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horticulture Science Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #06170E; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    let growT = 0;
+
+    function init(w, h) {}
+    function onResize(w, h) {}
+
+    function update(dt) {
+      growT += dt * 0.8;
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      const cx = w * 0.5;
+      const baseY = h * 0.82;
+
+      // Smart Greenhouse structural apex framework
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.2, baseY);
+      ctx.lineTo(w * 0.2, h * 0.35);
+      ctx.lineTo(cx, h * 0.18);
+      ctx.lineTo(w * 0.8, h * 0.35);
+      ctx.lineTo(w * 0.8, baseY);
+      ctx.stroke();
+
+      // PAR (Photosynthetically Active Radiation) light spectrum rays from roof
+      ctx.strokeStyle = "rgba(217, 70, 239, 0.25)";
+      ctx.lineWidth = 1.8;
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + i * 20, h * 0.22);
+        ctx.lineTo(cx + i * 35, baseY - 20);
+        ctx.stroke();
+      }
+
+      // Plant phototropism stem growing toward light
+      ctx.beginPath();
+      ctx.moveTo(cx, baseY);
+      const stemH = 65 + Math.sin(growT) * 10;
+      ctx.quadraticCurveTo(cx - 15, baseY - stemH * 0.5, cx, baseY - stemH);
+      ctx.strokeStyle = "#22C55E";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Leaves
+      ctx.fillStyle = "#84CC16";
+      ctx.beginPath();
+      ctx.ellipse(cx - 12, baseY - stemH * 0.5, 12, 6, -Math.PI / 4, 0, Math.PI * 2);
+      ctx.ellipse(cx + 12, baseY - stemH * 0.6, 12, 6, Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

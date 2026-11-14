@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum Information Science Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #060817; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    let t = 0;
+
+    function init(w, h) {}
+    function onResize(w, h) {}
+
+    function update(dt) {
+      t += dt * 1.2;
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const r = 60;
+
+      // Bloch Sphere (Geometrical representation of qubit state space)
+      // Sphere outline
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(139, 92, 246, 0.3)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Equator ellipse
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r, r * 0.35, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Z-axis (North Pole |0>, South Pole |1>)
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - r - 10);
+      ctx.lineTo(cx, cy + r + 10);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Qubit State Vector |psi> in Superposition
+      const theta = Math.PI * 0.35 + Math.sin(t) * 0.25;
+      const phi = t * 1.5;
+
+      const vx = cx + Math.sin(theta) * Math.cos(phi) * r;
+      const vy = cy - Math.cos(theta) * r + Math.sin(theta) * Math.sin(phi) * (r * 0.35);
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(vx, vy);
+      ctx.strokeStyle = "#00F0FF";
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+
+      // Qubit state point
+      ctx.beginPath();
+      ctx.arc(vx, vy, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#FBBF24";
+      ctx.shadowColor = "#FBBF24";
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accounting and Auditing Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0A0F17; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    let balanceT = 0;
+
+    function init(w, h) {}
+    function onResize(w, h) {}
+
+    function update(dt) {
+      balanceT += dt * 1.2;
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      const cx = w * 0.5;
+      const cy = h * 0.45;
+
+      // Balancing Golden Scales of Double-Entry Bookkeeping (Debit vs Credit)
+      // Fulcrum Stand
+      ctx.strokeStyle = "#94A3B8";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 25); ctx.lineTo(cx, cy + 50);
+      ctx.moveTo(cx - 30, cy + 50); ctx.lineTo(cx + 30, cy + 50);
+      ctx.stroke();
+
+      // Lever Beam oscillating slightly in equilibrium
+      const tilt = Math.sin(balanceT) * 0.08;
+      const beamL = 75;
+      const leftX = cx - Math.cos(tilt) * beamL;
+      const leftY = cy - 25 - Math.sin(tilt) * beamL;
+      const rightX = cx + Math.cos(tilt) * beamL;
+      const rightY = cy - 25 + Math.sin(tilt) * beamL;
+
+      ctx.beginPath();
+      ctx.moveTo(leftX, leftY);
+      ctx.lineTo(rightX, rightY);
+      ctx.strokeStyle = "#EAB308";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Scale Pans
+      ctx.strokeStyle = "rgba(234, 179, 8, 0.6)";
+      ctx.lineWidth = 1.5;
+      // Left Pan (Debit)
+      ctx.beginPath();
+      ctx.moveTo(leftX, leftY); ctx.lineTo(leftX - 15, leftY + 30);
+      ctx.moveTo(leftX, leftY); ctx.lineTo(leftX + 15, leftY + 30);
+      ctx.moveTo(leftX - 20, leftY + 30); ctx.lineTo(leftX + 20, leftY + 30);
+      ctx.stroke();
+
+      // Right Pan (Credit)
+      ctx.beginPath();
+      ctx.moveTo(rightX, rightY); ctx.lineTo(rightX - 15, rightY + 30);
+      ctx.moveTo(rightX, rightY); ctx.lineTo(rightX + 15, rightY + 30);
+      ctx.moveTo(rightX - 20, rightY + 30); ctx.lineTo(rightX + 20, rightY + 30);
+      ctx.stroke();
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biotechnology Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #061A18; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    let rot = 0;
+
+    function init(w, h) {}
+    function onResize(w, h) {}
+
+    function update(dt) {
+      rot += dt * 1.5;
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      const cx = w * 0.5;
+      const count = 28;
+      const stepY = (h * 0.8) / count;
+      const startY = h * 0.1;
+      const radius = Math.min(w * 0.28, 80);
+
+      // Rotating 3D DNA Double Helix
+      for (let i = 0; i < count; i++) {
+        const y = startY + i * stepY;
+        const a1 = rot + i * 0.28;
+        const a2 = a1 + Math.PI;
+
+        const x1 = cx + Math.sin(a1) * radius;
+        const z1 = Math.cos(a1);
+
+        const x2 = cx + Math.sin(a2) * radius;
+        const z2 = Math.cos(a2);
+
+        // Base pair hydrogen rung
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.strokeStyle = "rgba(45, 212, 191, 0.35)";
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+
+        // Strand 1 node (Adenine / Thymine: Emerald)
+        ctx.beginPath();
+        ctx.arc(x1, y, 3.5 + z1 * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = z1 > 0 ? "#10B981" : "#047857";
+        ctx.fill();
+
+        // Strand 2 node (Guanine / Cytosine: Violet)
+        ctx.beginPath();
+        ctx.arc(x2, y, 3.5 + z2 * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = z2 > 0 ? "#A78BFA" : "#6D28D9";
+        ctx.fill();
+      }
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #100A1A; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    const leads = [];
+    let spawnTimer = 0;
+
+    function init(w, h) { leads.length = 0; }
+    function onResize(w, h) { leads.length = 0; }
+
+    function update(dt) {
+      spawnTimer += dt;
+      if (spawnTimer > 0.12) {
+        spawnTimer = 0;
+        leads.push({ x: w * 0.2 + Math.random() * (w * 0.6), y: h * 0.2, t: 0, speed: 0.6 + Math.random() * 0.6 });
+      }
+
+      for (let i = leads.length - 1; i >= 0; i--) {
+        const l = leads[i];
+        l.t += dt * l.speed;
+        l.y = h * 0.2 + l.t * (h * 0.6);
+        // Funnel narrowing effect
+        const widthAtY = (w * 0.6) * (1 - l.t * 0.7);
+        const minX = w * 0.5 - widthAtY * 0.5;
+        const maxX = w * 0.5 + widthAtY * 0.5;
+        if (l.x < minX || l.x > maxX || l.y > h * 0.8) {
+          leads.splice(i, 1);
+        }
+      }
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+
+      // Conversion Funnel Outline
+      ctx.beginPath();
+      ctx.moveTo(w * 0.2, h * 0.2);
+      ctx.lineTo(w * 0.8, h * 0.2);
+      ctx.lineTo(w * 0.55, h * 0.78);
+      ctx.lineTo(w * 0.45, h * 0.78);
+      ctx.closePath();
+      ctx.strokeStyle = "rgba(217, 70, 239, 0.4)";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Falling consumer lead particles
+      for (const l of leads) {
+        ctx.beginPath();
+        ctx.arc(l.x, l.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = l.t > 0.6 ? "#D946EF" : "#8B5CF6";
+        ctx.fill();
+      }
+
+      // Funnel stages divider lines
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      for (let s = 1; s <= 2; s++) {
+        const y = h * 0.2 + s * (h * 0.2);
+        ctx.beginPath(); ctx.moveTo(w * 0.25, y); ctx.lineTo(w * 0.75, y); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

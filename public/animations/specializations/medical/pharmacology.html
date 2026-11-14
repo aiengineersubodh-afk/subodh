@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacology Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0B0817; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    const ligands = [];
+    let bindProgress = 0;
+
+    function init(w, h) {
+      ligands.length = 0;
+      for (let i = 0; i < 18; i++) {
+        ligands.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 25,
+          vy: (Math.random() - 0.5) * 25,
+          size: 4 + Math.random() * 3
+        });
+      }
+    }
+
+    function onResize(w, h) { init(w, h); }
+
+    function update(dt) {
+      bindProgress = (bindProgress + dt * 0.6) % 1;
+      for (const l of ligands) {
+        l.x += l.vx * dt;
+        l.y += l.vy * dt;
+        if (l.x < 10 || l.x > w - 10) l.vx *= -1;
+        if (l.y < 10 || l.y > h - 10) l.vy *= -1;
+      }
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      const cx = w * 0.45;
+      const cy = h * 0.5;
+
+      // Receptor active catalytic binding pocket (Lock-and-Key Model)
+      ctx.beginPath();
+      ctx.arc(cx, cy, 65, Math.PI * 0.3, Math.PI * 1.7);
+      // Indented binding cleft
+      ctx.arc(cx + 35, cy, 32, Math.PI * 0.8, Math.PI * 1.2, true);
+      ctx.strokeStyle = "#8B5CF6";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Docking ligand molecule entering cleft
+      const dockX = cx + 20 + Math.sin(bindProgress * Math.PI * 2) * 25;
+      const dockY = cy;
+
+      ctx.beginPath();
+      ctx.arc(dockX, dockY, 14, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(6, 182, 212, 0.85)";
+      ctx.shadowColor = "#06B6D4";
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Free diffusing ligand molecules
+      for (const l of ligands) {
+        ctx.beginPath();
+        ctx.arc(l.x, l.y, l.size, 0, Math.PI * 2);
+        ctx.fillStyle = "#A78BFA";
+        ctx.fill();
+      }
+
+      // Pharmacokinetic plasma concentration curve at bottom (C_max, T_max)
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.75)";
+      ctx.lineWidth = 1.8;
+      const startX = w * 0.1;
+      const baseY = h * 0.88;
+      for (let x = 0; x < w * 0.8; x += 5) {
+        const tVal = x * 0.03;
+        const cVal = Math.exp(-tVal * 0.6) * Math.sin(tVal * 0.8) * 45;
+        const curY = baseY - Math.max(0, cVal);
+        if (x === 0) ctx.moveTo(startX + x, curY); else ctx.lineTo(startX + x, curY);
+      }
+      ctx.stroke();
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

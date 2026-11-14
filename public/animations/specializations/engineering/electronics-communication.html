@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electronics and Communication Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #060E1A; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    const traces = [];
+    let signalT = 0;
+
+    function init(w, h) {
+      traces.length = 0;
+      const count = 12;
+      for (let i = 0; i < count; i++) {
+        const y = (h / (count + 1)) * (i + 1);
+        const segs = [
+          { x: 0, y: y },
+          { x: w * 0.25, y: y },
+          { x: w * 0.35, y: y + (i % 2 === 0 ? 25 : -25) },
+          { x: w * 0.7, y: y + (i % 2 === 0 ? 25 : -25) },
+          { x: w * 0.8, y: y },
+          { x: w, y: y }
+        ];
+        traces.push({ segs, speed: 0.8 + Math.random() * 0.8, t: Math.random() });
+      }
+    }
+
+    function onResize(w, h) { init(w, h); }
+
+    function update(dt) {
+      signalT += dt * 2.5;
+      for (const tr of traces) {
+        tr.t = (tr.t + tr.speed * dt * 0.5) % 1;
+      }
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+
+      // PCB Copper Traces
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(37, 99, 235, 0.25)";
+      for (const tr of traces) {
+        ctx.beginPath();
+        for (let i = 0; i < tr.segs.length; i++) {
+          const pt = tr.segs[i];
+          if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+
+        // Pulsing electron current along trace
+        const idx = Math.min(Math.floor(tr.t * (tr.segs.length - 1)), tr.segs.length - 2);
+        const subT = (tr.t * (tr.segs.length - 1)) - idx;
+        const p1 = tr.segs[idx];
+        const p2 = tr.segs[idx + 1];
+        const curX = p1.x + (p2.x - p1.x) * subT;
+        const curY = p1.y + (p2.y - p1.y) * subT;
+
+        ctx.beginPath();
+        ctx.arc(curX, curY, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#00F0FF";
+        ctx.shadowColor = "#00F0FF";
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      // RF Wave Propagation from Antenna
+      const antX = w * 0.15;
+      const antY = h * 0.5;
+      for (let r = 15; r < 140; r += 25) {
+        const curR = (r + signalT * 18) % 140;
+        ctx.beginPath();
+        ctx.arc(antX, antY, curR, -Math.PI * 0.45, Math.PI * 0.45);
+        ctx.strokeStyle = "rgba(0, 240, 255, " + Math.max(0, (1 - curR / 140) * 0.5) + ")";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      // Oscilloscope modulated waveform along bottom
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.7)";
+      ctx.lineWidth = 1.5;
+      const oscY = h * 0.85;
+      for (let x = 0; x < w; x += 3) {
+        const carrier = Math.sin(x * 0.08 + signalT * 4);
+        const mod = (Math.sin(x * 0.015 + signalT) + 1) * 0.5;
+        const y = oscY + carrier * mod * 22;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

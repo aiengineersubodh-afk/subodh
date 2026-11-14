@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biomedical Engineering Systems Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #07101B; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    let t = 0;
+
+    function init(w, h) {}
+    function onResize(w, h) {}
+
+    function update(dt) {
+      t += dt * 1.5;
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+
+      // Brain-Machine Interface (BMI) Neural Spikes to Bionic Signal
+      // Neural cortical spike burst on left
+      ctx.strokeStyle = "#00F0FF";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      for (let x = w * 0.1; x < w * 0.45; x += 3) {
+        const spike = (Math.sin(x * 0.2 + t * 4) > 0.8) ? (Math.random() * -30) : 0;
+        const y = cy + spike;
+        if (x === w * 0.1) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Decoder Microchip Filter in center
+      ctx.fillStyle = "#0F1E36";
+      ctx.fillRect(cx - 18, cy - 18, 36, 36);
+      ctx.strokeStyle = "#2563EB";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(cx - 18, cy - 18, 36, 36);
+
+      // Decoded Smooth Bionic Actuator Kinematic Waveform on right
+      ctx.strokeStyle = "#10B981";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      for (let x = cx + 18; x < w * 0.9; x += 4) {
+        const y = cy + Math.sin((x - cx) * 0.04 + t * 2) * 22;
+        if (x === cx + 18) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>

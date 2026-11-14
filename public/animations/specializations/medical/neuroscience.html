@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neuroscience Animation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #070C1A; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    (function() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let isPaused = false;
+      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        if (typeof onResize === 'function') onResize(w, h);
+      }
+      window.addEventListener('resize', resize);
+
+      window.addEventListener('message', (e) => {
+        if (e.data === 'pause') isPaused = true;
+        if (e.data === 'play') {
+          if (isPaused) {
+            isPaused = false;
+            lastTime = performance.now();
+            requestAnimationFrame(renderLoop);
+          }
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+        if (!isPaused) {
+          lastTime = performance.now();
+          requestAnimationFrame(renderLoop);
+        }
+      });
+
+      
+    const dendrites = [];
+    let pulseT = 0;
+
+    function init(w, h) {
+      dendrites.length = 0;
+      const cx = w * 0.35;
+      const cy = h * 0.5;
+
+      // 6 main dendrite branches radiating from soma
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI * 2 / 6) * i;
+        const len = 45 + Math.random() * 30;
+        const x2 = cx + Math.cos(angle) * len;
+        const y2 = cy + Math.sin(angle) * len;
+        dendrites.push({ x1: cx, y1: cy, x2, y2 });
+      }
+    }
+
+    function onResize(w, h) { init(w, h); }
+
+    function update(dt) {
+      pulseT = (pulseT + dt * 1.8) % 1;
+    }
+
+    function draw(ctx, w, h) {
+      ctx.clearRect(0, 0, w, h);
+      const somaX = w * 0.35;
+      const somaY = h * 0.5;
+      const axonEndX = w * 0.85;
+      const axonEndY = h * 0.5;
+
+      // Dendrite arborization branches
+      ctx.strokeStyle = "rgba(139, 92, 246, 0.4)";
+      ctx.lineWidth = 1.6;
+      for (const d of dendrites) {
+        ctx.beginPath();
+        ctx.moveTo(d.x1, d.y1);
+        ctx.lineTo(d.x2, d.y2);
+        ctx.stroke();
+      }
+
+      // Axon trunk
+      ctx.beginPath();
+      ctx.moveTo(somaX, somaY);
+      ctx.lineTo(axonEndX, axonEndY);
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.5)";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Action potential electric pulse firing down the axon
+      const pulseX = somaX + (axonEndX - somaX) * pulseT;
+      ctx.beginPath();
+      ctx.arc(pulseX, somaY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#00F0FF";
+      ctx.shadowColor = "#00F0FF";
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Soma (Cell Body)
+      ctx.beginPath();
+      ctx.arc(somaX, somaY, 15, 0, Math.PI * 2);
+      ctx.fillStyle = "#8B5CF6";
+      ctx.shadowColor = "#8B5CF6";
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Nucleus
+      ctx.beginPath();
+      ctx.arc(somaX, somaY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#FDE047";
+      ctx.fill();
+    }
+    
+
+      let lastTime = performance.now();
+      function renderLoop(now) {
+        if (isPaused) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+        if (typeof update === 'function') update(dt);
+        if (typeof draw === 'function') draw(ctx, w, h);
+        if (!prefersReducedMotion) {
+          requestAnimationFrame(renderLoop);
+        }
+      }
+
+      if (typeof init === 'function') init(w, h);
+      requestAnimationFrame(renderLoop);
+    })();
+  </script>
+</body>
+</html>
