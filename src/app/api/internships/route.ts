@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getSessionContext } from "@/lib/auth";
-import { internshipSchema } from "@/lib/validations";
+import {
+  internshipSchema,
+  validateAcademicDomainAndSpecialization,
+} from "@/lib/validations";
 import { createNotification, logActivity, readDb, writeDb } from "@/lib/db";
 import { Internship } from "@/types/database";
 
@@ -38,6 +41,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Automatically derive & validate Academic Domain and Specialization from verified scholar profile
+    if (!scholar.domain_id || !scholar.specialization_id) {
+      return NextResponse.json(
+        {
+          error:
+            "Your PhD Scholar profile is missing required academic domain and specialization details. Please complete your academic profile first.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const acadValidation = validateAcademicDomainAndSpecialization(
+      db.academic_domains,
+      db.specializations,
+      scholar.domain_id,
+      scholar.specialization_id,
+      true
+    );
+    if (!acadValidation.valid) {
+      return NextResponse.json(
+        { error: acadValidation.error || "Academic domain or specialization is invalid." },
+        { status: 400 }
+      );
+    }
+
+    const domain = acadValidation.domain!;
+    const specialization = acadValidation.specialization!;
+
     const body = await req.json();
     const parsed = internshipSchema.safeParse(body);
     if (!parsed.success) {
@@ -50,11 +81,12 @@ export async function POST(req: NextRequest) {
     const data = parsed.data;
     const now = new Date().toISOString();
 
+    // Server-enforced classification: always bound to the verified scholar's profile
     const newInternship: Internship = {
       id: `int-${crypto.randomUUID().slice(0, 8)}`,
       scholar_profile_id: scholar.id,
-      domain_id: data.domain_id,
-      specialization_id: data.specialization_id,
+      domain_id: scholar.domain_id,
+      specialization_id: scholar.specialization_id,
       title: data.title.trim(),
       description: data.description.trim(),
       required_skills: data.required_skills,
@@ -78,7 +110,7 @@ export async function POST(req: NextRequest) {
       createNotification(db, {
         recipient_profile_id: admin.id,
         title: "New Research Internship Created",
-        message: `${session.user.full_name} posted '${newInternship.title}'.`,
+        message: `${session.user.full_name} posted '${newInternship.title}' under ${domain.name} → ${specialization.name}.`,
         type: "info",
         link_url: "/admin/internships",
       });
@@ -91,7 +123,7 @@ export async function POST(req: NextRequest) {
       action: "Created Research Internship",
       entity_type: "internships",
       entity_id: newInternship.id,
-      details: `Published '${newInternship.title}' (${newInternship.mode}).`,
+      details: `Published '${newInternship.title}' under ${domain.name} → ${specialization.name} (${newInternship.mode}).`,
     });
 
     writeDb(db);
@@ -99,6 +131,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       internship: newInternship,
+      domain,
+      specialization,
+      scholar: {
+        id: scholar.id,
+        research_field: scholar.research_field,
+        specialization: scholar.specialization,
+        university_institution: scholar.university_institution,
+        department: scholar.department,
+      },
     });
   } catch {
     return NextResponse.json(
@@ -139,9 +180,11 @@ export async function PATCH(req: NextRequest) {
 
     if (updates.title !== undefined) internship.title = String(updates.title);
     if (updates.description !== undefined) internship.description = String(updates.description);
-    if (updates.domain_id !== undefined) internship.domain_id = String(updates.domain_id);
-    if (updates.specialization_id !== undefined)
-      internship.specialization_id = String(updates.specialization_id);
+    if (session.user.role === "admin") {
+      if (updates.domain_id !== undefined) internship.domain_id = String(updates.domain_id);
+      if (updates.specialization_id !== undefined)
+        internship.specialization_id = String(updates.specialization_id);
+    }
     if (Array.isArray(updates.required_skills))
       internship.required_skills = updates.required_skills;
     if (updates.eligibility_criteria !== undefined)

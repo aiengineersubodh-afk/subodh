@@ -13,6 +13,8 @@ interface SpecializationCardProps {
   };
   domainName: string;
   scholarCount: number;
+  internshipCount?: number;
+  ctaLabel?: string;
   onClick: () => void;
 }
 
@@ -20,6 +22,8 @@ export function SpecializationCardWithAnimation({
   spec,
   domainName,
   scholarCount,
+  internshipCount,
+  ctaLabel,
   onClick,
 }: SpecializationCardProps) {
   const [isInView, setIsInView] = useState(false);
@@ -105,9 +109,16 @@ export function SpecializationCardWithAnimation({
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#93C5FD]">
               {domainName}
             </span>
-            <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/15 text-[11px] font-semibold text-white backdrop-blur-sm shrink-0">
-              {scholarCount} {scholarCount === 1 ? "Scholar" : "Scholars"}
-            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {internshipCount !== undefined && internshipCount > 0 && (
+                <span className="px-2.5 py-1 rounded-md bg-[#2563EB]/40 border border-[#3B82F6]/60 text-[11px] font-bold text-[#93C5FD] backdrop-blur-sm">
+                  {internshipCount} {internshipCount === 1 ? "Internship" : "Internships"}
+                </span>
+              )}
+              <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/15 text-[11px] font-semibold text-white backdrop-blur-sm">
+                {scholarCount} {scholarCount === 1 ? "Scholar" : "Scholars"}
+              </span>
+            </div>
           </div>
 
           <h3 className="text-xl md:text-2xl font-bold text-white mt-3 group-hover:text-[#60A5FA] transition-colors leading-snug">
@@ -121,7 +132,7 @@ export function SpecializationCardWithAnimation({
 
         {/* Bottom CTA Row */}
         <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs md:text-sm font-semibold text-[#60A5FA] group-hover:text-white transition-colors">
-          <span>Browse Scholars in {spec.name}</span>
+          <span>{ctaLabel || `Browse Scholars in ${spec.name}`}</span>
           <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
         </div>
       </div>

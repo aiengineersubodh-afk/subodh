@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AcademicDomain, Specialization } from "@/types/database";
 
 export function getGraduationYearRange(savedYear?: number): number[] {
   const currentYear = new Date().getFullYear();
@@ -75,6 +76,10 @@ export const studentOnboardingSchema = z.object({
   college_university: z.string().min(2, "College/University is required."),
   degree: z.string().min(2, "Degree is required."),
   department: z.string().min(2, "Department is required."),
+  domain_id: z.string().optional(),
+  specialization_id: z.string().optional(),
+  academic_domain_id: z.string().optional(),
+  specialization: z.string().optional(),
   current_year_semester: z.string().min(1, "Current year/semester is required."),
   graduation_year: z.coerce
     .number()
@@ -144,8 +149,8 @@ export const scholarOnboardingSchema = z.object({
 
 export const internshipSchema = z.object({
   title: z.string().min(5, "Internship title must be at least 5 characters."),
-  domain_id: z.string().min(1, "Academic domain is required."),
-  specialization_id: z.string().min(1, "Specialization is required."),
+  domain_id: z.string().optional(),
+  specialization_id: z.string().optional(),
   description: z.string().min(20, "Please provide a detailed research project description."),
   required_skills: z.array(z.string()).min(1, "Specify at least one required student skill."),
   eligibility_criteria: z.string().min(5, "Eligibility criteria are required."),
@@ -187,3 +192,55 @@ export const contactMessageSchema = z.object({
   subject: z.string().min(3, "Subject is required."),
   message: z.string().min(10, "Message must be at least 10 characters."),
 });
+
+/**
+ * Validates that an academic domain and specialization exist, are active,
+ * and that the specialization actually belongs to the parent domain.
+ */
+export function validateAcademicDomainAndSpecialization(
+  domains: AcademicDomain[],
+  specializations: Specialization[],
+  domainId?: string,
+  specializationId?: string,
+  required = true
+): { valid: boolean; error?: string; domain?: AcademicDomain; specialization?: Specialization } {
+  if (!domainId && !specializationId) {
+    if (required) {
+      return { valid: false, error: "Academic domain and specialization are required." };
+    }
+    return { valid: true };
+  }
+
+  if (!domainId) {
+    return { valid: false, error: "Parent academic domain is required." };
+  }
+
+  const domain = domains.find((d) => d.id === domainId);
+  if (!domain) {
+    return { valid: false, error: "Selected academic domain was not found in the STARSKY taxonomy." };
+  }
+  if (!domain.is_active) {
+    return { valid: false, error: `The academic domain "${domain.name}" is currently deactivated.` };
+  }
+
+  if (!specializationId) {
+    return { valid: false, error: `Please select a specialization under "${domain.name}".` };
+  }
+
+  const specialization = specializations.find((s) => s.id === specializationId);
+  if (!specialization) {
+    return { valid: false, error: "Selected specialization was not found in the STARSKY taxonomy." };
+  }
+  if (!specialization.is_active) {
+    return { valid: false, error: `The specialization "${specialization.name}" is currently deactivated.` };
+  }
+  if (specialization.domain_id !== domainId) {
+    return {
+      valid: false,
+      error: `Specialization "${specialization.name}" does not belong to the selected domain "${domain.name}".`,
+    };
+  }
+
+  return { valid: true, domain, specialization };
+}
+

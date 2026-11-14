@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getSessionContext } from "@/lib/auth";
+import { validateAcademicDomainAndSpecialization } from "@/lib/validations";
 import {
   createNotification,
   getActiveStudentSubscription,
@@ -562,6 +563,8 @@ export async function POST(req: NextRequest) {
           title,
           stipend,
           duration,
+          domain_id,
+          specialization_id,
         } = payload;
         const internship = db.internships.find((i) => i.id === internshipId);
         if (!internship) {
@@ -569,6 +572,25 @@ export async function POST(req: NextRequest) {
             { error: "Internship not found." },
             { status: 404 }
           );
+        }
+        if (domain_id || specialization_id) {
+          const targetDomId = domain_id ? String(domain_id) : internship.domain_id;
+          const targetSpecId = specialization_id ? String(specialization_id) : internship.specialization_id;
+          const v = validateAcademicDomainAndSpecialization(
+            db.academic_domains,
+            db.specializations,
+            targetDomId,
+            targetSpecId,
+            true
+          );
+          if (!v.valid) {
+            return NextResponse.json(
+              { error: v.error || "Invalid domain or specialization for reclassification." },
+              { status: 400 }
+            );
+          }
+          internship.domain_id = targetDomId;
+          internship.specialization_id = targetSpecId;
         }
         if (moderation_status) internship.moderation_status = moderation_status;
         if (status) internship.status = status;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hashPassword, logActivity, readDb, writeDb } from "@/lib/db";
 import { getSessionContext } from "@/lib/auth";
+import { getSupabaseServiceClient, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +37,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 1. Supabase Auth sync
+    if (isSupabaseConfigured()) {
+      const supabaseAdmin = getSupabaseServiceClient();
+      if (supabaseAdmin) {
+        try {
+          const { data: userList } = await supabaseAdmin.auth.admin.listUsers();
+          const authUser = userList?.users?.find(
+            (u) => u.email?.toLowerCase() === profile.email.toLowerCase()
+          );
+          if (authUser) {
+            await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
+              password: newPassword,
+            });
+          }
+        } catch (supaErr) {
+          console.warn("Supabase auth password update error, local fallback active:", supaErr);
+        }
+      }
+    }
+
+    // 2. Local store update
     profile.password_hash = hashPassword(newPassword);
     profile.updated_at = new Date().toISOString();
 

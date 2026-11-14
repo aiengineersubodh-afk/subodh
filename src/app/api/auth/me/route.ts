@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionContext } from "@/lib/auth";
 import { readDb } from "@/lib/db";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { checkSupabaseHealth, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET() {
   const session = await getSessionContext();
@@ -10,11 +10,16 @@ export async function GET() {
     ? db.notifications.filter((n) => n.recipient_profile_id === session.user.id)
     : [];
 
+  const health = await checkSupabaseHealth();
+
   return NextResponse.json({
     session,
     notifications,
-    supabaseConnected: isSupabaseConfigured(),
+    supabaseConnected: health.tablesReady,
+    supabaseConfigured: isSupabaseConfigured(),
+    supabaseHealth: health,
     settings: db.website_settings,
   });
 }
+
 

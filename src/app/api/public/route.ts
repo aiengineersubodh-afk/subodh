@@ -45,8 +45,13 @@ export async function GET(req: NextRequest) {
         { status: 404 }
       );
     }
+    const scholarDetails = enrichedInternship.scholar?.id
+      ? getEnrichedScholarById(enrichedInternship.scholar.id, false)
+      : null;
+
     return NextResponse.json({
       internship: enrichedInternship,
+      scholarDetails,
       studentApplication: studentApplications[internshipId] || null,
       studentApplications,
       isPremiumUnlocked,
@@ -63,9 +68,17 @@ export async function GET(req: NextRequest) {
       session?.user.role === "scholar" &&
       session.scholarProfile?.id === scholarId;
 
+    const hasActiveOpenInternships = db.internships.some(
+      (i) =>
+        i.scholar_profile_id === scholarId &&
+        i.status === "Open" &&
+        i.moderation_status === "approved"
+    );
+
     if (
       !isPremiumUnlocked &&
       !isOwnScholarProfile &&
+      !hasActiveOpenInternships &&
       !freeVisibleIds.has(scholarId)
     ) {
       const targetItem = allApprovedScholars.find(

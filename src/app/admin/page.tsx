@@ -845,25 +845,31 @@ function AdminPanelContent() {
                 </div>
 
                 <div className="space-y-4">
-                  {data.internships.map(({ internship, scholar, scholarUser }) => (
+                  {data.internships.map(({ internship, scholar, scholarUser, domain, specialization }) => (
                     <div
                       key={internship.id}
                       className="p-5 rounded-xl bg-[#F7F8FA] border border-[#E5E7EB] flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="px-2 py-0.5 rounded bg-white border border-[#E5E7EB] text-[10px] font-bold">
                             {internship.status}
                           </span>
                           <span className="px-2 py-0.5 rounded bg-[#EFF6FF] text-[#2563EB] text-[10px] font-bold uppercase">
                             Moderation: {internship.moderation_status}
                           </span>
+                          <span className="px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-blue-200 text-[10px] font-semibold">
+                            {domain?.name || "Domain"}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold">
+                            {specialization?.name || "Specialization"}
+                          </span>
                           <span className="text-xs text-[#666666]">{internship.mode}</span>
                         </div>
                         <h3 className="text-sm font-bold text-[#202124]">{internship.title}</h3>
                         <p className="text-xs text-[#666666]">
                           Scholar: <strong>{scholarUser.full_name}</strong> (
-                          {scholar.university_institution})
+                          {scholar.university_institution} • {scholar.department})
                         </p>
                       </div>
 

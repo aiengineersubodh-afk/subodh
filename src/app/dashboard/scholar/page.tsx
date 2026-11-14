@@ -4,8 +4,11 @@ import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  ArrowUpRight,
   BookOpen,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Edit3,
   Eye,
@@ -56,6 +59,8 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
   const [selectedApp, setSelectedApp] = useState<EnrichedApplication | null>(null);
   const [privateNotes, setPrivateNotes] = useState("");
   const [updatingApp, setUpdatingApp] = useState(false);
+  const [expandedApplicantsIntId, setExpandedApplicantsIntId] = useState<string | null>(null);
+  const [selectedInternshipFilter, setSelectedInternshipFilter] = useState<string | null>(null);
 
   // Create / Edit Internship Modal State
   const [internshipModalOpen, setInternshipModalOpen] = useState(false);
@@ -88,6 +93,11 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
       ["overview", "profile", "internships", "students", "applications", "settings"].includes(t)
     ) {
       setActiveTab(t);
+    }
+    const intParam = searchParams.get("internshipId");
+    if (intParam) {
+      setSelectedInternshipFilter(intParam);
+      setExpandedApplicantsIntId(intParam);
     }
   }, [searchParams]);
 
@@ -772,7 +782,28 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
                               </h3>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedApplicantsIntId(
+                                    expandedApplicantsIntId === int.id ? null : int.id
+                                  )
+                                }
+                                className={`px-3 py-1.5 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors ${
+                                  expandedApplicantsIntId === int.id
+                                    ? "bg-[#2563EB] text-white border-[#2563EB]"
+                                    : "bg-white border-[#E5E7EB] text-[#2563EB] hover:border-[#2563EB]"
+                                }`}
+                              >
+                                <Users className="w-3.5 h-3.5" />
+                                <span>View Applicants ({appCount})</span>
+                                {expandedApplicantsIntId === int.id ? (
+                                  <ChevronUp className="w-3 h-3" />
+                                ) : (
+                                  <ChevronDown className="w-3 h-3" />
+                                )}
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => openEditInternshipModal(int)}
@@ -812,6 +843,169 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
                               </span>
                             ))}
                           </div>
+
+                          {/* EXPANDABLE INLINE APPLICANTS PANEL FOR THIS INTERNSHIP */}
+                          {expandedApplicantsIntId === int.id && (
+                            <div className="mt-4 pt-4 border-t border-[#E5E7EB] space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white p-3 rounded-lg border border-[#E5E7EB]">
+                                <div>
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#2563EB] block">
+                                    Applicants Review
+                                  </span>
+                                  <h4 className="text-sm font-bold text-[#202124]">
+                                    {int.title} • {appCount} {appCount === 1 ? "Application" : "Applications"}
+                                  </h4>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedInternshipFilter(int.id);
+                                    setActiveTab("applications");
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-[#EFF6FF] text-[#2563EB] text-xs font-semibold hover:bg-[#2563EB] hover:text-white inline-flex items-center gap-1 transition-colors self-start sm:self-auto"
+                                >
+                                  <span>Open in Applications Manager</span>
+                                  <ArrowUpRight className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              {appCount === 0 ? (
+                                <div className="p-8 text-center bg-white rounded-xl border border-[#E5E7EB] space-y-1">
+                                  <Users className="w-6 h-6 text-[#999999] mx-auto" />
+                                  <p className="text-xs font-semibold text-[#202124]">
+                                    No Student Applications Received Yet
+                                  </p>
+                                  <p className="text-[11px] text-[#666666]">
+                                    Applications submitted by students will appear here in real time.
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {applications
+                                    .filter((a) => a.application.internship_id === int.id)
+                                    .map((item) => (
+                                      <div
+                                        key={item.application.id}
+                                        className="p-4 bg-white rounded-xl border border-[#E5E7EB] space-y-3"
+                                      >
+                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                          <div className="flex items-start gap-3">
+                                            <img
+                                              src={item.studentUser.avatar_url || "/avatars/default.png"}
+                                              alt={item.application.student_full_name}
+                                              className="w-11 h-11 rounded-xl object-cover border border-[#E5E7EB] shrink-0"
+                                            />
+                                            <div>
+                                              <h5 className="text-sm font-bold text-[#202124]">
+                                                {item.application.student_full_name}
+                                              </h5>
+                                              <p className="text-xs text-[#555555]">
+                                                {item.application.college_university} • {item.application.degree} ({item.application.department})
+                                              </p>
+                                              <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#666666] mt-0.5">
+                                                <span>
+                                                  Academic Year: <strong className="text-[#202124]">{item.application.current_academic_year}</strong>
+                                                </span>
+                                                <span>•</span>
+                                                <span>
+                                                  Applied: <strong className="text-[#202124]">{new Date(item.application.submitted_at).toLocaleDateString()}</strong>
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                                            <select
+                                              value={item.application.status}
+                                              onChange={(e) =>
+                                                handleUpdateApplicationStatus(
+                                                  item.application.id,
+                                                  e.target.value as ApplicationStatus
+                                                )
+                                              }
+                                              className={`px-2.5 py-1 rounded-md border text-[11px] font-semibold ${statusBadgeColor(
+                                                item.application.status
+                                              )}`}
+                                            >
+                                              <option value="Submitted">Submitted</option>
+                                              <option value="Under Review">Under Review</option>
+                                              <option value="Shortlisted">Shortlisted</option>
+                                              <option value="Accepted">Accepted</option>
+                                              <option value="Rejected">Rejected</option>
+                                              <option value="Withdrawn">Withdrawn</option>
+                                            </select>
+
+                                            <button
+                                              type="button"
+                                              onClick={() => openApplicationReviewModal(item)}
+                                              className="px-3 py-1.5 rounded-lg bg-[#202124] text-white text-xs font-semibold hover:bg-black inline-flex items-center gap-1"
+                                            >
+                                              <Eye className="w-3.5 h-3.5" />
+                                              <span>View Dossier</span>
+                                            </button>
+                                          </div>
+                                        </div>
+
+                                        {/* Research Interests & Technical Skills */}
+                                        <div className="flex flex-wrap gap-2 text-[11px] pt-1">
+                                          {item.application.research_interests?.length > 0 && (
+                                            <div className="flex flex-wrap items-center gap-1">
+                                              <span className="text-[#666666] font-medium">Interests:</span>
+                                              {item.application.research_interests.map((ri) => (
+                                                <span key={ri} className="px-2 py-0.5 rounded bg-[#F7F8FA] border border-[#E5E7EB] text-[#202124]">
+                                                  {ri}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          )}
+                                          {item.application.technical_skills?.length > 0 && (
+                                            <div className="flex flex-wrap items-center gap-1">
+                                              <span className="text-[#666666] font-medium">Skills:</span>
+                                              {item.application.technical_skills.map((sk) => (
+                                                <span key={sk} className="px-2 py-0.5 rounded bg-[#EFF6FF] text-[#2563EB] font-medium">
+                                                  {sk}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Cover Message / SOP Excerpt */}
+                                        {item.application.statement_of_purpose && (
+                                          <div className="p-3 rounded-lg bg-[#F7F8FA] border border-[#E5E7EB] text-xs text-[#444444]">
+                                            <span className="font-semibold text-[#202124] block mb-0.5">Cover Message / Motivation:</span>
+                                            <p className="line-clamp-2 leading-relaxed whitespace-pre-line">
+                                              {item.application.statement_of_purpose}
+                                            </p>
+                                          </div>
+                                        )}
+
+                                        {/* Resume / CV Link */}
+                                        {item.application.resume_url && (
+                                          <div className="flex items-center justify-between text-xs pt-1">
+                                            <a
+                                              href={item.application.resume_url}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="text-[#2563EB] font-semibold hover:underline inline-flex items-center gap-1"
+                                            >
+                                              <FileText className="w-3.5 h-3.5" />
+                                              <span>Open Uploaded Resume PDF</span>
+                                              <ArrowUpRight className="w-3 h-3" />
+                                            </a>
+                                            {item.application.scholar_private_notes && (
+                                              <span className="text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                                Has private notes
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -929,36 +1123,83 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
             )}
 
             {/* TAB 5: APPLICATIONS MANAGEMENT TABLE */}
-            {activeTab === "applications" && (
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold text-[#202124]">
-                    Application Review & Status Management
-                  </h2>
-                  <p className="text-xs text-[#666666] mt-0.5">
-                    Shortlist, accept, reject, or add private evaluation notes for applications
-                    submitted to your internships.
-                  </p>
-                </div>
+            {activeTab === "applications" && (() => {
+              const displayedApplications = selectedInternshipFilter
+                ? applications.filter(
+                    (a) => a.application.internship_id === selectedInternshipFilter
+                  )
+                : applications;
 
-                {applications.length === 0 ? (
-                  <p className="text-xs text-[#666666] py-8 text-center">
-                    No applications received yet.
-                  </p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-[#E5E7EB] text-[11px] font-bold uppercase tracking-wider text-[#666666]">
-                          <th className="py-3 px-4">Student</th>
-                          <th className="py-3 px-4">Internship</th>
-                          <th className="py-3 px-4">Submitted</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-right">Quick Decision / Review</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#E5E7EB] text-xs">
-                        {applications.map((item) => (
+              return (
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E7EB] pb-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-[#202124]">
+                        Application Review & Status Management
+                      </h2>
+                      <p className="text-xs text-[#666666] mt-0.5">
+                        Shortlist, accept, reject, or add private evaluation notes for applications
+                        submitted to your internships.
+                      </p>
+                    </div>
+
+                    {internships.length > 0 && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <label className="text-xs font-semibold text-[#666666]">
+                          Filter by Internship:
+                        </label>
+                        <select
+                          value={selectedInternshipFilter || ""}
+                          onChange={(e) => setSelectedInternshipFilter(e.target.value || null)}
+                          className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-xs bg-white text-[#202124] font-medium"
+                        >
+                          <option value="">All Published Internships ({applications.length})</option>
+                          {internships.map((int) => {
+                            const count = applications.filter(
+                              (a) => a.application.internship_id === int.id
+                            ).length;
+                            return (
+                              <option key={int.id} value={int.id}>
+                                {int.title} ({count})
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  {displayedApplications.length === 0 ? (
+                    <div className="p-12 text-center bg-[#F7F8FA] rounded-xl border border-[#E5E7EB] space-y-2">
+                      <p className="text-sm font-bold text-[#202124]">
+                        {selectedInternshipFilter
+                          ? "No Applications for This Internship Yet"
+                          : "No Applications Received Yet"}
+                      </p>
+                      {selectedInternshipFilter && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedInternshipFilter(null)}
+                          className="text-xs text-[#2563EB] font-semibold hover:underline"
+                        >
+                          View All Internships
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-[#E5E7EB] text-[11px] font-bold uppercase tracking-wider text-[#666666]">
+                            <th className="py-3 px-4">Student</th>
+                            <th className="py-3 px-4">Internship</th>
+                            <th className="py-3 px-4">Submitted</th>
+                            <th className="py-3 px-4">Status</th>
+                            <th className="py-3 px-4 text-right">Quick Decision / Review</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#E5E7EB] text-xs">
+                          {displayedApplications.map((item) => (
                           <tr key={item.application.id} className="hover:bg-[#F7F8FA]">
                             <td className="py-4 px-4">
                               <div className="font-bold text-[#202124]">
@@ -1042,7 +1283,8 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
                   </div>
                 )}
               </div>
-            )}
+            );
+          })()}
 
             {/* TAB 6: SETTINGS */}
             {activeTab === "settings" && (
@@ -1322,43 +1564,57 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#202124] mb-1">
-                    Academic Domain
-                  </label>
-                  <select
-                    value={intDomainId}
-                    onChange={(e) => {
-                      setIntDomainId(e.target.value);
-                      const first = specializations.find((s) => s.domain_id === e.target.value);
-                      if (first) setIntSpecId(first.id);
-                    }}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs bg-white"
-                  >
-                    {domains.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-[#202124]">
+                      Academic Domain
+                    </label>
+                    <span className="text-[10px] font-semibold text-[#2563EB] bg-[#EFF6FF] px-2 py-0.5 rounded border border-[#2563EB]/20">
+                      Verified Profile
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      domains.find(
+                        (d) =>
+                          d.id ===
+                          (editingInternship
+                            ? intDomainId
+                            : session?.scholarProfile?.domain_id || intDomainId)
+                      )?.name ||
+                      session?.scholarProfile?.research_field ||
+                      "Academic Domain"
+                    }
+                    className="w-full px-3.5 py-2 rounded-lg border border-[#E5E7EB] text-xs bg-[#F7F8FA] text-[#202124] font-medium cursor-default"
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#202124] mb-1">
-                    Specialization
-                  </label>
-                  <select
-                    value={intSpecId}
-                    onChange={(e) => setIntSpecId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs bg-white"
-                  >
-                    {specializations
-                      .filter((s) => s.domain_id === intDomainId)
-                      .map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-[#202124]">
+                      Specialization
+                    </label>
+                    <span className="text-[10px] font-semibold text-[#2563EB] bg-[#EFF6FF] px-2 py-0.5 rounded border border-[#2563EB]/20">
+                      Auto-Linked
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      specializations.find(
+                        (s) =>
+                          s.id ===
+                          (editingInternship
+                            ? intSpecId
+                            : session?.scholarProfile?.specialization_id || intSpecId)
+                      )?.name ||
+                      session?.scholarProfile?.specialization ||
+                      "Specialization"
+                    }
+                    className="w-full px-3.5 py-2 rounded-lg border border-[#E5E7EB] text-xs bg-[#F7F8FA] text-[#202124] font-medium cursor-default"
+                  />
                 </div>
               </div>
 

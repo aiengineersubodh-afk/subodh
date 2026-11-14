@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { loginSchema } from "@/lib/validations";
 import { hashPassword, logActivity, readDb, sanitizeProfile, writeDb } from "@/lib/db";
 import { createSignedToken, SESSION_COOKIE_NAME } from "@/lib/auth";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +23,34 @@ export async function POST(req: NextRequest) {
       (p) => p.email.toLowerCase() === email.toLowerCase() && !p.deleted_at
     );
 
-    if (!profile || profile.password_hash !== hashPassword(password)) {
+    let authPassed = false;
+
+    // 1. Try Supabase Auth verification if configured
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        try {
+          const { error: supaErr } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (!supaErr) {
+            authPassed = true;
+          }
+        } catch {
+          // fallback to local password verification
+        }
+      }
+    }
+
+    // 2. Fallback to Local Password Hash Verification
+    if (!authPassed) {
+      if (profile && profile.password_hash === hashPassword(password)) {
+        authPassed = true;
+      }
+    }
+
+    if (!profile || !authPassed) {
       return NextResponse.json(
         { error: "Invalid email or password. Please check your credentials." },
         { status: 401 }

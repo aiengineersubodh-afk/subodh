@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getSessionContext } from "@/lib/auth";
-import { studentOnboardingSchema } from "@/lib/validations";
+import {
+  studentOnboardingSchema,
+  validateAcademicDomainAndSpecialization,
+} from "@/lib/validations";
 import { getStudentProjects, logActivity, readDb, writeDb } from "@/lib/db";
 import { StudentProfile, StudentProject } from "@/types/database";
 
@@ -120,6 +123,20 @@ export async function POST(req: NextRequest) {
     const studentId = existing ? existing.id : `stu-${crypto.randomUUID().slice(0, 8)}`;
 
     if (isDraft) {
+      // Validate domain & specialization if provided in draft
+      if (body.domain_id || body.specialization_id) {
+        const val = validateAcademicDomainAndSpecialization(
+          db.academic_domains,
+          db.specializations,
+          body.domain_id ? String(body.domain_id) : undefined,
+          body.specialization_id ? String(body.specialization_id) : undefined,
+          false
+        );
+        if (!val.valid) {
+          return NextResponse.json({ error: val.error }, { status: 400 });
+        }
+      }
+
       if (body.full_name) userRecord.full_name = String(body.full_name).trim();
       if (body.phone) userRecord.phone = String(body.phone).trim();
       if (body.gender !== undefined) userRecord.gender = String(body.gender);
@@ -150,6 +167,22 @@ export async function POST(req: NextRequest) {
           body.department !== undefined
             ? String(body.department)
             : existing?.department || "",
+        domain_id:
+          body.domain_id !== undefined
+            ? String(body.domain_id)
+            : existing?.domain_id || undefined,
+        specialization_id:
+          body.specialization_id !== undefined
+            ? String(body.specialization_id)
+            : existing?.specialization_id || undefined,
+        academic_domain_id:
+          body.domain_id !== undefined
+            ? String(body.domain_id)
+            : existing?.academic_domain_id || undefined,
+        specialization:
+          body.specialization !== undefined
+            ? String(body.specialization)
+            : existing?.specialization || undefined,
         current_year_semester:
           body.current_year_semester !== undefined
             ? String(body.current_year_semester)
@@ -225,6 +258,24 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data;
 
+    // Validate cascading academic domain and specialization if provided
+    let finalDepartment = data.department;
+    if (data.domain_id || data.specialization_id) {
+      const val = validateAcademicDomainAndSpecialization(
+        db.academic_domains,
+        db.specializations,
+        data.domain_id,
+        data.specialization_id,
+        true
+      );
+      if (!val.valid) {
+        return NextResponse.json({ error: val.error }, { status: 400 });
+      }
+      if (val.domain && val.specialization) {
+        finalDepartment = `${val.domain.name} — ${val.specialization.name}`;
+      }
+    }
+
     userRecord.full_name = data.full_name;
     userRecord.phone = data.phone;
     userRecord.gender = data.gender || userRecord.gender;
@@ -245,7 +296,11 @@ export async function POST(req: NextRequest) {
       profile_id: session.user.id,
       college_university: data.college_university,
       degree: data.degree,
-      department: data.department,
+      department: finalDepartment,
+      domain_id: data.domain_id,
+      specialization_id: data.specialization_id,
+      academic_domain_id: data.domain_id,
+      specialization: data.specialization,
       current_year_semester: data.current_year_semester,
       graduation_year: data.graduation_year,
       academic_interests: data.academic_interests,

@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agricultural Economics Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #0F130B; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #FFF7E6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,44 +66,44 @@
         }
       });
 
-      
-    let cycleT = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let cycleT = 0;
 
-    function update(dt) {
-      cycleT += dt * 0.9;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Commodity Futures Market Cycles (Wheat / Corn harvest price cycles)
-      const startX = w * 0.15;
-      const baseY = h * 0.5;
-
-      // Price cycle curve
-      ctx.beginPath();
-      ctx.strokeStyle = "#EAB308";
-      ctx.lineWidth = 2.2;
-      for (let x = 0; x < w * 0.7; x += 5) {
-        const y = baseY + Math.sin(x * 0.02 + cycleT) * 35;
-        if (x === 0) ctx.moveTo(startX + x, y); else ctx.lineTo(startX + x, y);
+      function update(dt) {
+        cycleT += dt * 0.9;
       }
-      ctx.stroke();
 
-      // Yield harvest seasonality bar chart below
-      const bars = 10;
-      const bW = (w * 0.7) / bars;
-      for (let i = 0; i < bars; i++) {
-        const val = Math.sin(i * 0.6 + cycleT * 0.5) * 0.5 + 0.5;
-        const bH = val * 35;
-        ctx.fillStyle = "rgba(34, 197, 94, 0.25)";
-        ctx.fillRect(startX + i * bW, h * 0.82 - bH, bW - 4, bH);
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Commodity Futures Market Cycles (Wheat / Corn harvest price cycles)
+        const startX = w * 0.15;
+        const baseY = h * 0.5;
+
+        // Price cycle curve
+        ctx.beginPath();
+        ctx.strokeStyle = "#EAB308";
+        ctx.lineWidth = 2.2;
+        for (let x = 0; x < w * 0.7; x += 5) {
+          const y = baseY + Math.sin(x * 0.02 + cycleT) * 35;
+          if (x === 0) ctx.moveTo(startX + x, y); else ctx.lineTo(startX + x, y);
+        }
+        ctx.stroke();
+
+        // Yield harvest seasonality bar chart below
+        const bars = 10;
+        const bW = (w * 0.7) / bars;
+        for (let i = 0; i < bars; i++) {
+          const val = Math.sin(i * 0.6 + cycleT * 0.5) * 0.5 + 0.5;
+          const bH = val * 35;
+          ctx.fillStyle = "rgba(34, 197, 94, 0.25)";
+          ctx.fillRect(startX + i * bW, h * 0.82 - bH, bW - 4, bH);
+        }
       }
-    }
-    
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -103,4 +122,5 @@
     })();
   </script>
 </body>
+
 </html>

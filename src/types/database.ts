@@ -74,6 +74,10 @@ export interface StudentProfile {
   college_university: string;
   degree: string;
   department: string;
+  domain_id?: string;
+  specialization_id?: string;
+  academic_domain_id?: string;
+  specialization?: string;
   current_year_semester: string;
   graduation_year: number;
   academic_interests: string[];

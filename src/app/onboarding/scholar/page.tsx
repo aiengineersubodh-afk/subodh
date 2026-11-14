@@ -29,6 +29,7 @@ import { useAuth } from "@/context/AuthContext";
 import { TagInput } from "@/components/TagInput";
 import { FileUploadField } from "@/components/FileUploadField";
 import { AcademicDomain, Specialization } from "@/types/database";
+import { CascadingAcademicSelector } from "@/components/CascadingAcademicSelector";
 
 const STEPS = [
   {
@@ -561,7 +562,9 @@ export default function ScholarOnboardingPage() {
       if (!city.trim()) errors.city = "City is required.";
     } else if (step === 2) {
       if (!university.trim()) errors.university = "University / Institution is required.";
-      if (!department.trim()) errors.department = "Department is required.";
+      if (!domainId || !specializationId) {
+        errors.department = "Please select an Academic Domain and Specialization.";
+      }
       if (!highestQualification) errors.highestQualification = "Highest Qualification is required.";
       if (!enrollmentYear) errors.enrollmentYear = "PhD Enrollment Year is required.";
       if (!expectedCompletionYear)
@@ -569,8 +572,6 @@ export default function ScholarOnboardingPage() {
       if (Number(expectedCompletionYear) < Number(enrollmentYear)) {
         errors.expectedCompletionYear = "Completion year must be on or after enrollment year.";
       }
-      if (!domainId) errors.domainId = "Research Field is required.";
-      if (!specializationId) errors.specializationId = "Specialization is required.";
       if (!currentResearchTopic.trim())
         errors.currentResearchTopic = "Current Research Topic is required.";
     } else if (step === 3) {
@@ -1085,54 +1086,56 @@ export default function ScholarOnboardingPage() {
             {/* STEP 2: ACADEMIC INFORMATION */}
             {currentStep === 2 && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
-                      University / Institution <span className="text-[#2563EB]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={university}
-                      onChange={(e) => {
-                        setUniversity(e.target.value);
-                        if (fieldErrors.university)
-                          setFieldErrors({ ...fieldErrors, university: "" });
-                      }}
-                      placeholder="e.g., Indian Institute of Science (IISc), Bengaluru"
-                      className={`w-full px-3.5 py-2.5 rounded-lg border text-sm ${
-                        fieldErrors.university
-                          ? "border-red-500 bg-red-50/20"
-                          : "border-[#E5E7EB]"
-                      }`}
-                    />
-                    {fieldErrors.university && (
-                      <p className="text-xs text-red-600 mt-1">{fieldErrors.university}</p>
-                    )}
-                  </div>
+                {/* University / Institution */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
+                    University / Institution <span className="text-[#2563EB]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={university}
+                    onChange={(e) => {
+                      setUniversity(e.target.value);
+                      if (fieldErrors.university)
+                        setFieldErrors({ ...fieldErrors, university: "" });
+                    }}
+                    placeholder="e.g., Indian Institute of Science (IISc), Bengaluru"
+                    className={`w-full px-3.5 py-2.5 rounded-lg border text-sm ${
+                      fieldErrors.university
+                        ? "border-red-500 bg-red-50/20"
+                        : "border-[#E5E7EB]"
+                    }`}
+                  />
+                  {fieldErrors.university && (
+                    <p className="text-xs text-red-600 mt-1">{fieldErrors.university}</p>
+                  )}
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
-                      Department / Centre <span className="text-[#2563EB]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={department}
-                      onChange={(e) => {
-                        setDepartment(e.target.value);
-                        if (fieldErrors.department)
-                          setFieldErrors({ ...fieldErrors, department: "" });
-                      }}
-                      placeholder="e.g., Department of Computer Science & Automation"
-                      className={`w-full px-3.5 py-2.5 rounded-lg border text-sm ${
-                        fieldErrors.department
-                          ? "border-red-500 bg-red-50/20"
-                          : "border-[#E5E7EB]"
-                      }`}
-                    />
-                    {fieldErrors.department && (
-                      <p className="text-xs text-red-600 mt-1">{fieldErrors.department}</p>
-                    )}
-                  </div>
+                {/* Cascading Academic Domain & Specialization Selector */}
+                <div>
+                  <CascadingAcademicSelector
+                    label="Academic Domain & Research Specialization"
+                    domainId={domainId}
+                    specializationId={specializationId}
+                    currentDepartmentText={department}
+                    domains={domains}
+                    specializations={specializations}
+                    error={fieldErrors.department || fieldErrors.specializationId}
+                    onChange={(sel) => {
+                      setDomainId(sel.domainId);
+                      setSpecializationId(sel.specializationId);
+                      setDepartment(sel.formattedDepartment);
+                      if (fieldErrors.department || fieldErrors.specializationId) {
+                        setFieldErrors((prev) => {
+                          const copy = { ...prev };
+                          delete copy.department;
+                          delete copy.specializationId;
+                          return copy;
+                        });
+                      }
+                    }}
+                    helperText="Select your parent academic domain and doctoral research specialization track."
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -1197,49 +1200,6 @@ export default function ScholarOnboardingPage() {
                       <p className="text-xs text-red-600 mt-1">
                         {fieldErrors.expectedCompletionYear}
                       </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
-                      Research Field (STARSKY Domain) <span className="text-[#2563EB]">*</span>
-                    </label>
-                    <select
-                      value={domainId}
-                      onChange={(e) => handleDomainChange(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#E5E7EB] text-sm bg-white"
-                    >
-                      {domains.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
-                      Specialization <span className="text-[#2563EB]">*</span>
-                    </label>
-                    <select
-                      value={specializationId}
-                      onChange={(e) => {
-                        setSpecializationId(e.target.value);
-                        if (fieldErrors.specializationId)
-                          setFieldErrors({ ...fieldErrors, specializationId: "" });
-                      }}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-[#E5E7EB] text-sm bg-white"
-                    >
-                      {filteredSpecs.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                    {fieldErrors.specializationId && (
-                      <p className="text-xs text-red-600 mt-1">{fieldErrors.specializationId}</p>
                     )}
                   </div>
                 </div>

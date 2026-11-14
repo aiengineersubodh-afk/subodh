@@ -22,7 +22,8 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { TagInput } from "@/components/TagInput";
 import { FileUploadField } from "@/components/FileUploadField";
-import { AcademicDomain } from "@/types/database";
+import { AcademicDomain, Specialization } from "@/types/database";
+import { CascadingAcademicSelector } from "@/components/CascadingAcademicSelector";
 import { getGraduationYearRange } from "@/lib/validations";
 
 const STUDENT_STEPS = [
@@ -95,6 +96,9 @@ export default function StudentOnboardingPage() {
   const [college, setCollege] = useState("");
   const [degree, setDegree] = useState("B.Tech");
   const [department, setDepartment] = useState("");
+  const [domainId, setDomainId] = useState("");
+  const [specializationId, setSpecializationId] = useState("");
+  const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const [currentYearSemester, setCurrentYearSemester] = useState("3rd Year");
   const [graduationYear, setGraduationYear] = useState<number>(() => new Date().getFullYear() + 1);
   const [gradYearSearch, setGradYearSearch] = useState("");
@@ -127,11 +131,14 @@ export default function StudentOnboardingPage() {
     return availableGradYears.filter((yr) => String(yr).includes(gradYearSearch.trim()));
   }, [availableGradYears, gradYearSearch]);
 
-  // Load Academic Domains
+  // Load Academic Domains & Specializations
   useEffect(() => {
     fetch("/api/public")
       .then((r) => r.json())
-      .then((d) => setDomains(d.domains || []))
+      .then((d) => {
+        setDomains(d.domains || []);
+        setSpecializations(d.specializations || []);
+      })
       .catch(() => {});
   }, []);
 
@@ -167,6 +174,8 @@ export default function StudentOnboardingPage() {
           if (sp.college_university) setCollege(sp.college_university);
           if (sp.degree) setDegree(sp.degree);
           if (sp.department) setDepartment(sp.department);
+          if (sp.domain_id) setDomainId(sp.domain_id);
+          if (sp.specialization_id) setSpecializationId(sp.specialization_id);
           if (sp.current_year_semester) setCurrentYearSemester(sp.current_year_semester);
           if (sp.graduation_year) setGraduationYear(Number(sp.graduation_year));
           if (sp.academic_interests?.length) setAcademicInterests(sp.academic_interests);
@@ -219,6 +228,8 @@ export default function StudentOnboardingPage() {
             if (draft.college) setCollege(draft.college);
             if (draft.degree) setDegree(draft.degree);
             if (draft.department) setDepartment(draft.department);
+            if (draft.domainId) setDomainId(draft.domainId);
+            if (draft.specializationId) setSpecializationId(draft.specializationId);
             if (draft.currentYearSemester) setCurrentYearSemester(draft.currentYearSemester);
             if (draft.graduationYear) setGraduationYear(Number(draft.graduationYear));
             if (Array.isArray(draft.academicInterests) && draft.academicInterests.length)
@@ -261,6 +272,10 @@ export default function StudentOnboardingPage() {
     college_university: college.trim(),
     degree,
     department: department.trim(),
+    domain_id: domainId,
+    specialization_id: specializationId,
+    academic_domain_id: domainId,
+    specialization: specializations.find((s) => s.id === specializationId)?.name || "",
     current_year_semester: currentYearSemester,
     graduation_year: Number(graduationYear),
     academic_interests: academicInterests,
@@ -309,6 +324,8 @@ export default function StudentOnboardingPage() {
           college,
           degree,
           department,
+          domainId,
+          specializationId,
           currentYearSemester,
           graduationYear,
           academicInterests,
@@ -389,7 +406,9 @@ export default function StudentOnboardingPage() {
       if (!degree.trim()) {
         errs.degree = "Degree selection is required.";
       }
-      if (department.trim().length < 2) {
+      if (!domainId || !specializationId) {
+        errs.department = "Please select an Academic Domain and Specialization.";
+      } else if (department.trim().length < 2) {
         errs.department = "Department is required.";
       }
       if (!currentYearSemester.trim()) {
@@ -913,23 +932,33 @@ export default function StudentOnboardingPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
-                    Department <span className="text-[#2563EB]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="e.g., Computer Science & Engineering"
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#E5E7EB] text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                  {fieldErrors.department && (
-                    <p className="text-xs text-red-600 mt-1">{fieldErrors.department}</p>
-                  )}
-                </div>
+              {/* Cascading Academic Domain & Specialization Selector */}
+              <div>
+                <CascadingAcademicSelector
+                  label="Department / Academic Field"
+                  domainId={domainId}
+                  specializationId={specializationId}
+                  currentDepartmentText={department}
+                  domains={domains}
+                  specializations={specializations}
+                  error={fieldErrors.department}
+                  onChange={(sel) => {
+                    setDomainId(sel.domainId);
+                    setSpecializationId(sel.specializationId);
+                    setDepartment(sel.formattedDepartment);
+                    if (fieldErrors.department) {
+                      setFieldErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.department;
+                        return copy;
+                      });
+                    }
+                  }}
+                  helperText="Click to select your parent academic domain and specialized subject track."
+                />
+              </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
                     Current Year / Semester <span className="text-[#2563EB]">*</span>
@@ -1498,11 +1527,27 @@ export default function StudentOnboardingPage() {
                       <strong className="text-[#202124]">{college}</strong>
                     </div>
                     <div>
-                      <span className="text-[#666666] block">Degree & Department</span>
+                      <span className="text-[#666666] block">Degree & Academic Department</span>
                       <strong className="text-[#202124]">
                         {degree} — {department}
                       </strong>
                     </div>
+                    {domainId && (
+                      <div>
+                        <span className="text-[#666666] block">Parent Academic Domain</span>
+                        <strong className="text-[#2563EB]">
+                          {domains.find((d) => d.id === domainId)?.name || domainId}
+                        </strong>
+                      </div>
+                    )}
+                    {specializationId && (
+                      <div>
+                        <span className="text-[#666666] block">Specialization Track</span>
+                        <strong className="text-[#202124]">
+                          {specializations.find((s) => s.id === specializationId)?.name || specializationId}
+                        </strong>
+                      </div>
+                    )}
                     <div>
                       <span className="text-[#666666] block">Current Year & Graduation</span>
                       <strong className="text-[#202124]">

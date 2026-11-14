@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getSessionContext } from "@/lib/auth";
-import { scholarOnboardingSchema } from "@/lib/validations";
+import {
+  scholarOnboardingSchema,
+  validateAcademicDomainAndSpecialization,
+} from "@/lib/validations";
 import { createNotification, logActivity, readDb, writeDb } from "@/lib/db";
 import { Internship, PhdScholarProfile, Publication, ResearchProject } from "@/types/database";
 
@@ -62,6 +65,24 @@ export async function POST(req: NextRequest) {
     const scholarId = existing ? existing.id : `sch-${crypto.randomUUID().slice(0, 8)}`;
 
     if (isDraft) {
+      // Validate domain & specialization if provided in draft
+      let draftDomainName = existing?.research_field || "Engineering";
+      let draftSpecName = existing?.specialization || "";
+      if (body.domain_id || body.specialization_id) {
+        const val = validateAcademicDomainAndSpecialization(
+          db.academic_domains,
+          db.specializations,
+          body.domain_id ? String(body.domain_id) : undefined,
+          body.specialization_id ? String(body.specialization_id) : undefined,
+          false
+        );
+        if (!val.valid) {
+          return NextResponse.json({ error: val.error }, { status: 400 });
+        }
+        if (val.domain) draftDomainName = val.domain.name;
+        if (val.specialization) draftSpecName = val.specialization.name;
+      }
+
       if (body.full_name) userRecord.full_name = String(body.full_name).trim();
       if (body.phone) userRecord.phone = String(body.phone).trim();
       if (body.gender !== undefined) userRecord.gender = String(body.gender);
@@ -81,6 +102,8 @@ export async function POST(req: NextRequest) {
         department:
           body.department !== undefined
             ? String(body.department)
+            : draftDomainName && draftSpecName
+            ? `${draftDomainName} — ${draftSpecName}`
             : existing?.department || "",
         highest_qualification:
           body.highest_qualification !== undefined
@@ -89,11 +112,11 @@ export async function POST(req: NextRequest) {
         research_field:
           body.research_field !== undefined
             ? String(body.research_field)
-            : existing?.research_field || "Engineering",
+            : draftDomainName,
         specialization:
           body.specialization !== undefined
             ? String(body.specialization)
-            : existing?.specialization || "",
+            : draftSpecName,
         domain_id:
           body.domain_id !== undefined
             ? String(body.domain_id)
@@ -226,6 +249,22 @@ export async function POST(req: NextRequest) {
     }
 
     const data = parsed.data;
+
+    // Strict Backend Validation: Domain & Specialization must exist, be active, and match
+    const acadValidation = validateAcademicDomainAndSpecialization(
+      db.academic_domains,
+      db.specializations,
+      data.domain_id,
+      data.specialization_id,
+      true
+    );
+    if (!acadValidation.valid) {
+      return NextResponse.json({ error: acadValidation.error }, { status: 400 });
+    }
+
+    const domainRecord = acadValidation.domain!;
+    const specializationRecord = acadValidation.specialization!;
+
     const wasAlreadyApproved = existing?.verification_status === "approved";
 
     userRecord.full_name = data.full_name;
@@ -240,18 +279,22 @@ export async function POST(req: NextRequest) {
     userRecord.onboarding_completed = true;
     userRecord.updated_at = now;
 
+    const formattedDept = data.department && data.department.trim()
+      ? data.department.trim()
+      : `${domainRecord.name} — ${specializationRecord.name}`;
+
     const updatedScholar: PhdScholarProfile = {
       id: scholarId,
       profile_id: session.user.id,
       university_institution: data.university_institution,
-      department: data.department,
+      department: formattedDept,
       highest_qualification: body.highest_qualification
         ? String(body.highest_qualification)
         : existing?.highest_qualification || "M.Tech",
-      research_field: data.research_field,
-      specialization: data.specialization,
-      domain_id: data.domain_id,
-      specialization_id: data.specialization_id,
+      research_field: domainRecord.name,
+      specialization: specializationRecord.name,
+      domain_id: domainRecord.id,
+      specialization_id: specializationRecord.id,
       enrollment_year: data.enrollment_year,
       expected_completion_year: data.expected_completion_year,
       current_research_topic: data.current_research_topic,

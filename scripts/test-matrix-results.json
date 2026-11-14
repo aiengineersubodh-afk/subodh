@@ -1,0 +1,458 @@
+[
+  {
+    "index": 1,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Computer Science Engineering",
+    "specializationId": "spec-engineering-computer-science-engineering",
+    "status": "PASSED"
+  },
+  {
+    "index": 2,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Artificial Intelligence and Machine Learning",
+    "specializationId": "spec-engineering-artificial-intelligence-and-machine-learning",
+    "status": "PASSED"
+  },
+  {
+    "index": 3,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Data Science",
+    "specializationId": "spec-engineering-data-science",
+    "status": "PASSED"
+  },
+  {
+    "index": 4,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Cybersecurity",
+    "specializationId": "spec-engineering-cybersecurity",
+    "status": "PASSED"
+  },
+  {
+    "index": 5,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Electronics and Communication",
+    "specializationId": "spec-engineering-electronics-and-communication",
+    "status": "PASSED"
+  },
+  {
+    "index": 6,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Electrical Engineering",
+    "specializationId": "spec-engineering-electrical-engineering",
+    "status": "PASSED"
+  },
+  {
+    "index": 7,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Mechanical Engineering",
+    "specializationId": "spec-engineering-mechanical-engineering",
+    "status": "PASSED"
+  },
+  {
+    "index": 8,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Civil Engineering",
+    "specializationId": "spec-engineering-civil-engineering",
+    "status": "PASSED"
+  },
+  {
+    "index": 9,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Chemical Engineering",
+    "specializationId": "spec-engineering-chemical-engineering",
+    "status": "PASSED"
+  },
+  {
+    "index": 10,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Biotechnology",
+    "specializationId": "spec-engineering-biotechnology",
+    "status": "PASSED"
+  },
+  {
+    "index": 11,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Information Technology",
+    "specializationId": "spec-engineering-information-technology",
+    "status": "PASSED"
+  },
+  {
+    "index": 12,
+    "domain": "Engineering",
+    "domainId": "dom-engineering",
+    "specialization": "Robotics and Automation",
+    "specializationId": "spec-engineering-robotics-and-automation",
+    "status": "PASSED"
+  },
+  {
+    "index": 13,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "General Medicine",
+    "specializationId": "spec-medical-general-medicine",
+    "status": "PASSED"
+  },
+  {
+    "index": 14,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "Surgery",
+    "specializationId": "spec-medical-surgery",
+    "status": "PASSED"
+  },
+  {
+    "index": 15,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "Pharmacology",
+    "specializationId": "spec-medical-pharmacology",
+    "status": "PASSED"
+  },
+  {
+    "index": 16,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "Microbiology",
+    "specializationId": "spec-medical-microbiology",
+    "status": "PASSED"
+  },
+  {
+    "index": 17,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "Biotechnology",
+    "specializationId": "spec-medical-biotechnology",
+    "status": "PASSED"
+  },
+  {
+    "index": 18,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "Neuroscience",
+    "specializationId": "spec-medical-neuroscience",
+    "status": "PASSED"
+  },
+  {
+    "index": 19,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "Public Health",
+    "specializationId": "spec-medical-public-health",
+    "status": "PASSED"
+  },
+  {
+    "index": 20,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "Medical Imaging",
+    "specializationId": "spec-medical-medical-imaging",
+    "status": "PASSED"
+  },
+  {
+    "index": 21,
+    "domain": "Medical and Healthcare",
+    "domainId": "dom-medical",
+    "specialization": "Bioinformatics",
+    "specializationId": "spec-medical-bioinformatics",
+    "status": "PASSED"
+  },
+  {
+    "index": 22,
+    "domain": "Science",
+    "domainId": "dom-science",
+    "specialization": "Physics",
+    "specializationId": "spec-science-physics",
+    "status": "PASSED"
+  },
+  {
+    "index": 23,
+    "domain": "Science",
+    "domainId": "dom-science",
+    "specialization": "Chemistry",
+    "specializationId": "spec-science-chemistry",
+    "status": "PASSED"
+  },
+  {
+    "index": 24,
+    "domain": "Science",
+    "domainId": "dom-science",
+    "specialization": "Mathematics",
+    "specializationId": "spec-science-mathematics",
+    "status": "PASSED"
+  },
+  {
+    "index": 25,
+    "domain": "Science",
+    "domainId": "dom-science",
+    "specialization": "Biology",
+    "specializationId": "spec-science-biology",
+    "status": "PASSED"
+  },
+  {
+    "index": 26,
+    "domain": "Science",
+    "domainId": "dom-science",
+    "specialization": "Statistics",
+    "specializationId": "spec-science-statistics",
+    "status": "PASSED"
+  },
+  {
+    "index": 27,
+    "domain": "Science",
+    "domainId": "dom-science",
+    "specialization": "Environmental Science",
+    "specializationId": "spec-science-environmental-science",
+    "status": "PASSED"
+  },
+  {
+    "index": 28,
+    "domain": "Management",
+    "domainId": "dom-management",
+    "specialization": "Finance",
+    "specializationId": "spec-management-finance",
+    "status": "PASSED"
+  },
+  {
+    "index": 29,
+    "domain": "Management",
+    "domainId": "dom-management",
+    "specialization": "Marketing",
+    "specializationId": "spec-management-marketing",
+    "status": "PASSED"
+  },
+  {
+    "index": 30,
+    "domain": "Management",
+    "domainId": "dom-management",
+    "specialization": "Human Resource Management",
+    "specializationId": "spec-management-human-resource-management",
+    "status": "PASSED"
+  },
+  {
+    "index": 31,
+    "domain": "Management",
+    "domainId": "dom-management",
+    "specialization": "Operations",
+    "specializationId": "spec-management-operations",
+    "status": "PASSED"
+  },
+  {
+    "index": 32,
+    "domain": "Management",
+    "domainId": "dom-management",
+    "specialization": "Business Analytics",
+    "specializationId": "spec-management-business-analytics",
+    "status": "PASSED"
+  },
+  {
+    "index": 33,
+    "domain": "Commerce",
+    "domainId": "dom-commerce",
+    "specialization": "Accounting and Auditing",
+    "specializationId": "spec-commerce-accounting-and-auditing",
+    "status": "PASSED"
+  },
+  {
+    "index": 34,
+    "domain": "Commerce",
+    "domainId": "dom-commerce",
+    "specialization": "International Trade",
+    "specializationId": "spec-commerce-international-trade",
+    "status": "PASSED"
+  },
+  {
+    "index": 35,
+    "domain": "Commerce",
+    "domainId": "dom-commerce",
+    "specialization": "Econometrics",
+    "specializationId": "spec-commerce-econometrics",
+    "status": "PASSED"
+  },
+  {
+    "index": 36,
+    "domain": "Commerce",
+    "domainId": "dom-commerce",
+    "specialization": "Corporate Governance",
+    "specializationId": "spec-commerce-corporate-governance",
+    "status": "PASSED"
+  },
+  {
+    "index": 37,
+    "domain": "Commerce",
+    "domainId": "dom-commerce",
+    "specialization": "Banking and FinTech",
+    "specializationId": "spec-commerce-banking-and-fintech",
+    "status": "PASSED"
+  },
+  {
+    "index": 38,
+    "domain": "Arts and Humanities",
+    "domainId": "dom-arts",
+    "specialization": "Cognitive Psychology",
+    "specializationId": "spec-arts-cognitive-psychology",
+    "status": "PASSED"
+  },
+  {
+    "index": 39,
+    "domain": "Arts and Humanities",
+    "domainId": "dom-arts",
+    "specialization": "Computational Linguistics",
+    "specializationId": "spec-arts-computational-linguistics",
+    "status": "PASSED"
+  },
+  {
+    "index": 40,
+    "domain": "Arts and Humanities",
+    "domainId": "dom-arts",
+    "specialization": "Sociology and Development",
+    "specializationId": "spec-arts-sociology-and-development",
+    "status": "PASSED"
+  },
+  {
+    "index": 41,
+    "domain": "Arts and Humanities",
+    "domainId": "dom-arts",
+    "specialization": "Public Policy",
+    "specializationId": "spec-arts-public-policy",
+    "status": "PASSED"
+  },
+  {
+    "index": 42,
+    "domain": "Arts and Humanities",
+    "domainId": "dom-arts",
+    "specialization": "Modern History and Archives",
+    "specializationId": "spec-arts-modern-history-and-archives",
+    "status": "PASSED"
+  },
+  {
+    "index": 43,
+    "domain": "Law",
+    "domainId": "dom-law",
+    "specialization": "Intellectual Property Law",
+    "specializationId": "spec-law-intellectual-property-law",
+    "status": "PASSED"
+  },
+  {
+    "index": 44,
+    "domain": "Law",
+    "domainId": "dom-law",
+    "specialization": "Cyber and Technology Law",
+    "specializationId": "spec-law-cyber-and-technology-law",
+    "status": "PASSED"
+  },
+  {
+    "index": 45,
+    "domain": "Law",
+    "domainId": "dom-law",
+    "specialization": "Constitutional Law",
+    "specializationId": "spec-law-constitutional-law",
+    "status": "PASSED"
+  },
+  {
+    "index": 46,
+    "domain": "Law",
+    "domainId": "dom-law",
+    "specialization": "Environmental Law",
+    "specializationId": "spec-law-environmental-law",
+    "status": "PASSED"
+  },
+  {
+    "index": 47,
+    "domain": "Law",
+    "domainId": "dom-law",
+    "specialization": "International Arbitration",
+    "specializationId": "spec-law-international-arbitration",
+    "status": "PASSED"
+  },
+  {
+    "index": 48,
+    "domain": "Agriculture",
+    "domainId": "dom-agriculture",
+    "specialization": "Precision Agronomy",
+    "specializationId": "spec-agriculture-precision-agronomy",
+    "status": "PASSED"
+  },
+  {
+    "index": 49,
+    "domain": "Agriculture",
+    "domainId": "dom-agriculture",
+    "specialization": "Plant Breeding and Genetics",
+    "specializationId": "spec-agriculture-plant-breeding-and-genetics",
+    "status": "PASSED"
+  },
+  {
+    "index": 50,
+    "domain": "Agriculture",
+    "domainId": "dom-agriculture",
+    "specialization": "Soil and Water Engineering",
+    "specializationId": "spec-agriculture-soil-and-water-engineering",
+    "status": "PASSED"
+  },
+  {
+    "index": 51,
+    "domain": "Agriculture",
+    "domainId": "dom-agriculture",
+    "specialization": "Horticulture Science",
+    "specializationId": "spec-agriculture-horticulture-science",
+    "status": "PASSED"
+  },
+  {
+    "index": 52,
+    "domain": "Agriculture",
+    "domainId": "dom-agriculture",
+    "specialization": "Agricultural Economics",
+    "specializationId": "spec-agriculture-agricultural-economics",
+    "status": "PASSED"
+  },
+  {
+    "index": 53,
+    "domain": "Interdisciplinary Research",
+    "domainId": "dom-interdisciplinary",
+    "specialization": "Climate Systems and Sustainability",
+    "specializationId": "spec-interdisciplinary-climate-systems-and-sustainability",
+    "status": "PASSED"
+  },
+  {
+    "index": 54,
+    "domain": "Interdisciplinary Research",
+    "domainId": "dom-interdisciplinary",
+    "specialization": "Quantum Information Science",
+    "specializationId": "spec-interdisciplinary-quantum-information-science",
+    "status": "PASSED"
+  },
+  {
+    "index": 55,
+    "domain": "Interdisciplinary Research",
+    "domainId": "dom-interdisciplinary",
+    "specialization": "Computational Social Science",
+    "specializationId": "spec-interdisciplinary-computational-social-science",
+    "status": "PASSED"
+  },
+  {
+    "index": 56,
+    "domain": "Interdisciplinary Research",
+    "domainId": "dom-interdisciplinary",
+    "specialization": "Biomedical Engineering Systems",
+    "specializationId": "spec-interdisciplinary-biomedical-engineering-systems",
+    "status": "PASSED"
+  },
+  {
+    "index": 57,
+    "domain": "Interdisciplinary Research",
+    "domainId": "dom-interdisciplinary",
+    "specialization": "AI Ethics and Governance",
+    "specializationId": "spec-interdisciplinary-ai-ethics-and-governance",
+    "status": "PASSED"
+  }
+]

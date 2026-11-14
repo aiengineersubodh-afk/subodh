@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import { getSessionContext } from "@/lib/auth";
+import { getSupabaseServiceClient, isSupabaseConfigured } from "@/lib/supabase";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const ALLOWED_DOC_TYPES = ["application/pdf"];
@@ -55,19 +56,77 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const safeExt = path.extname(file.name).replace(/[^a-zA-Z0-9.]/g, "") || (category === "avatar" ? ".jpg" : ".pdf");
-    const fileName = `${category}-${session.user.id}-${crypto.randomUUID().slice(0, 8)}${safeExt}`;
+    const safeExt =
+      path.extname(file.name).replace(/[^a-zA-Z0-9.]/g, "") ||
+      (category === "avatar" ? ".jpg" : ".pdf");
+    const uniqueId = crypto.randomUUID().slice(0, 8);
+    const fileName = `${category}-${session.user.id}-${uniqueId}${safeExt}`;
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // 1. Attempt Supabase Storage Upload if configured
+    if (isSupabaseConfigured()) {
+      const supabaseAdmin = getSupabaseServiceClient();
+      if (supabaseAdmin) {
+        try {
+          const bucketName = category === "avatar" ? "avatars" : "documents";
+          const storagePath = `${session.user.id}/${fileName}`;
+
+          const { error: uploadError } = await supabaseAdmin.storage
+            .from(bucketName)
+            .upload(storagePath, buffer, {
+              contentType: file.type,
+              upsert: true,
+            });
+
+          if (!uploadError) {
+            if (bucketName === "avatars") {
+              const { data: publicUrlData } = supabaseAdmin.storage
+                .from(bucketName)
+                .getPublicUrl(storagePath);
+
+              return NextResponse.json({
+                success: true,
+                url: publicUrlData.publicUrl,
+                storageProvider: "supabase",
+                bucket: bucketName,
+                path: storagePath,
+                fileName: file.name,
+              });
+            } else {
+              // Confidential document: generate signed URL (valid 24h)
+              const { data: signedData } = await supabaseAdmin.storage
+                .from(bucketName)
+                .createSignedUrl(storagePath, 60 * 60 * 24);
+
+              return NextResponse.json({
+                success: true,
+                url: signedData?.signedUrl || `/uploads/${fileName}`,
+                storageProvider: "supabase-private",
+                bucket: bucketName,
+                path: storagePath,
+                fileName: file.name,
+              });
+            }
+          }
+        } catch (supabaseErr) {
+          console.warn("Supabase storage upload encountered error, falling back to local store:", supabaseErr);
+        }
+      }
+    }
+
+    // 2. Resilient Fallback to Local Persistent File Storage
     const uploadDir = path.join(process.cwd(), "public", "uploads");
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    fs.writeFileSync(path.join(uploadDir, fileName), Buffer.from(arrayBuffer));
+    fs.writeFileSync(path.join(uploadDir, fileName), buffer);
 
     return NextResponse.json({
       success: true,
       url: `/uploads/${fileName}`,
+      storageProvider: "local",
       fileName: file.name,
     });
   } catch (err) {
@@ -75,4 +134,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "File upload failed." }, { status: 500 });
   }
 }
+
 
