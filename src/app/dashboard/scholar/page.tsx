@@ -46,7 +46,7 @@ type ScholarTab =
 function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: ScholarTab }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { session, loading: authLoading, logout } = useAuth();
+  const { session, loading: authLoading, logout, refreshSession } = useAuth();
 
   const [activeTab, setActiveTab] = useState<ScholarTab>(initialTab);
   const [internships, setInternships] = useState<Internship[]>([]);
@@ -93,13 +93,47 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
       ["overview", "profile", "internships", "students", "applications", "settings"].includes(t)
     ) {
       setActiveTab(t);
+    } else if (!t) {
+      setActiveTab("overview");
     }
     const intParam = searchParams.get("internshipId");
     if (intParam) {
       setSelectedInternshipFilter(intParam);
       setExpandedApplicantsIntId(intParam);
+    } else {
+      setSelectedInternshipFilter(null);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const sp = new URLSearchParams(window.location.search);
+      const t = sp.get("tab") as ScholarTab | null;
+      if (t && ["overview", "profile", "internships", "students", "applications", "settings"].includes(t)) {
+        setActiveTab(t);
+      } else {
+        setActiveTab("overview");
+      }
+      const intParam = sp.get("internshipId");
+      if (intParam) {
+        setSelectedInternshipFilter(intParam);
+        setExpandedApplicantsIntId(intParam);
+      } else {
+        setSelectedInternshipFilter(null);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleTabClick = (t: ScholarTab) => {
+    setActiveTab(t);
+    const targetUrl = t === "overview" ? "/dashboard/scholar" : `/dashboard/scholar?tab=${t}`;
+    const currentUrl = typeof window !== "undefined" ? window.location.pathname + window.location.search : "";
+    if (targetUrl !== currentUrl) {
+      router.push(targetUrl, { scroll: false });
+    }
+  };
 
   const loadScholarData = async () => {
     setLoadingData(true);
@@ -108,6 +142,7 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
         fetch("/api/internships"),
         fetch("/api/applications"),
         fetch("/api/public"),
+        refreshSession(),
       ]);
       const intJson = await intRes.json();
       const appJson = await appRes.json();
@@ -359,7 +394,7 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
               <nav className="space-y-1">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("overview")}
+                  onClick={() => handleTabClick("overview")}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "overview"
                       ? "bg-[#202124] text-white"
@@ -372,7 +407,7 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("profile")}
+                  onClick={() => handleTabClick("profile")}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "profile"
                       ? "bg-[#202124] text-white"
@@ -385,7 +420,8 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("internships")}
+                  data-tab="internships"
+                  onClick={() => handleTabClick("internships")}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "internships"
                       ? "bg-[#202124] text-white"
@@ -403,7 +439,7 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("students")}
+                  onClick={() => handleTabClick("students")}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "students"
                       ? "bg-[#202124] text-white"
@@ -421,7 +457,7 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("applications")}
+                  onClick={() => handleTabClick("applications")}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "applications"
                       ? "bg-[#202124] text-white"
@@ -441,7 +477,7 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("settings")}
+                  onClick={() => handleTabClick("settings")}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "settings"
                       ? "bg-[#202124] text-white"
@@ -477,8 +513,16 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
                       <span className="text-xs font-bold uppercase tracking-wider text-[#2563EB]">
                         PhD Scholar Command Center
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-green-50 border border-green-200 text-[10px] font-bold uppercase text-green-700">
-                        {scholarProfile?.verification_status || "Approved"}
+                      <span
+                        className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${
+                          scholarProfile?.verification_status === "approved"
+                            ? "bg-green-50 border-green-200 text-green-700"
+                            : "bg-amber-50 border-amber-200 text-amber-700"
+                        }`}
+                      >
+                        {scholarProfile?.verification_status === "approved"
+                          ? "Approved"
+                          : "Pending Institutional Verification"}
                       </span>
                     </div>
                     <h1 className="text-2xl font-extrabold text-[#202124] mt-1">
@@ -487,6 +531,14 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
                     <p className="text-xs text-[#666666]">
                       {scholarProfile?.university_institution} • {scholarProfile?.specialization}
                     </p>
+                    {scholarProfile?.verification_status !== "approved" && (
+                      <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-2.5">
+                        <Clock className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-amber-800 leading-relaxed">
+                          <strong>Institutional Verification Pending:</strong> Your PhD profile is under review by administration. Your published internships are active and saved in your dashboard, and will automatically appear in <strong>Open Internships → {scholarProfile?.research_field || "Engineering"} → {scholarProfile?.specialization || "Specialization"}</strong> once your institutional credentials are verified.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap gap-2.5">
@@ -694,7 +746,18 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
                           {scholarProfile.expected_completion_year}
                         </p>
                         <p className="text-[#202124]">
-                          <strong>Verification:</strong> {scholarProfile.verification_status}
+                          <strong>Verification:</strong>{" "}
+                          <span
+                            className={
+                              scholarProfile.verification_status === "approved"
+                                ? "text-green-600 font-semibold"
+                                : "text-amber-600 font-semibold"
+                            }
+                          >
+                            {scholarProfile.verification_status === "approved"
+                              ? "Approved"
+                              : "Pending Institutional Verification"}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -770,6 +833,14 @@ function ScholarDashboardContent({ initialTab = "overview" }: { initialTab?: Sch
                                 >
                                   {int.status}
                                 </span>
+                                {scholarProfile?.verification_status !== "approved" && (
+                                  <span
+                                    className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
+                                    title="This internship is saved in your dashboard and will automatically be discoverable in Open Internships once your institutional scholar verification is approved."
+                                  >
+                                    Pending Admin Verification
+                                  </span>
+                                )}
                                 <span className="px-2.5 py-0.5 rounded bg-white border border-[#E5E7EB] text-[11px] font-semibold text-[#202124]">
                                   {int.mode} • {int.duration}
                                 </span>

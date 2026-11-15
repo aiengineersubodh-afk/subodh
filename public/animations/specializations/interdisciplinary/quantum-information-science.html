@@ -1,131 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quantum Information Science Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #060817; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #343A40
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let w, h, dpr, time = 0, last = performance.now(), paused = false;
+      let particles = [], stars = [];
+      const TAU = Math.PI * 2;
+      const C = {
+        bg: "#343A40",
+        dark: "#20262D",
+        silver: "#D8E0E8",
+        white: "#F5F8FC",
+        cyan: "#55E8FF",
+        violet: "#B69AFF",
+        gold: "#FFD68A",
+        blue: "#8CB9F5"
+      };
+      const rand = (a, b) => Math.random() * (b - a) + a;
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        w = innerWidth; h = innerHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        canvas.style.width = w + "px"; canvas.style.height = h + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        particles = Array.from({ length: Math.min(100, Math.floor(w * h / 8500)) }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(1, 2.5),
+          speed: rand(7, 20), phase: rand(0, TAU),
+          color: Math.random() > .5 ? C.cyan : C.violet
+        }));
+        stars = Array.from({ length: 55 }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(.5, 1.5), phase: rand(0, TAU)
+        }));
       }
-      window.addEventListener('resize', resize);
+      function glow(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur }
+      function noGlow() { ctx.shadowBlur = 0 }
+      function line(x1, y1, x2, y2, color, width = 1) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+      }
+      function background() {
+        ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+        const g = ctx.createRadialGradient(w * .5, h * .48, 20, w * .5, h * .5, Math.max(w, h) * .8);
+        g.addColorStop(0, "rgba(210,225,240,.09)");
+        g.addColorStop(.55, "rgba(20,25,35,.05)");
+        g.addColorStop(1, "rgba(12,16,23,.35)");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
-          }
+        // Scientific grid
+        ctx.strokeStyle = "rgba(216,224,232,.055)";
+        ctx.lineWidth = .7;
+        for (let x = 0; x < w; x += 48)line(x, 0, x, h, "rgba(216,224,232,.05)");
+        for (let y = 0; y < h; y += 48)line(0, y, w, y, "rgba(216,224,232,.05)");
+
+        for (const s of stars) {
+          ctx.globalAlpha = .12 + .22 * (.5 + .5 * Math.sin(time + s.phase));
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU);
+          ctx.fillStyle = C.white; ctx.fill();
         }
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
+        ctx.globalAlpha = 1;
+      }
+      function orbitalRings(cx, cy, r) {
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r * (1.4 + i * .17), r * (.7 + i * .13), -.25, 0, TAU);
+          ctx.strokeStyle = `rgba(182,154,255,${.2 - i * .027})`;
+          ctx.lineWidth = 1;
+          ctx.setLineDash(i % 2 ? [4, 9] : []);
+          ctx.lineDashOffset = -time * (8 + i * 3);
+          ctx.stroke();
         }
-      });
+        ctx.setLineDash([]);
+      }
+      function drawBlochSphere(cx, cy, r) {
+        const halo = ctx.createRadialGradient(cx, cy, r * .5, cx, cy, r * 1.8);
+        halo.addColorStop(0, "rgba(85,232,255,.18)");
+        halo.addColorStop(1, "rgba(85,232,255,0)");
+        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, r * 1.8, 0, TAU); ctx.fill();
 
-      
-    let t = 0;
+        // Sphere surface
+        const sphere = ctx.createRadialGradient(cx - r * .4, cy - r * .4, r * .05, cx, cy, r);
+        sphere.addColorStop(0, "rgba(190,210,235,.27)");
+        sphere.addColorStop(.65, "rgba(105,130,165,.13)");
+        sphere.addColorStop(1, "rgba(35,48,65,.35)");
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU);
+        ctx.fillStyle = sphere; ctx.fill();
+        ctx.strokeStyle = C.silver; ctx.lineWidth = 1.8;
+        glow(C.silver, 13); ctx.stroke(); noGlow();
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+        // Longitude curves
+        for (let i = 0; i < 4; i++) {
+          const angle = time * .22 + i * Math.PI / 4;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r * Math.abs(Math.cos(angle)),
+            r, 0, 0, TAU);
+          ctx.strokeStyle = "rgba(85,232,255,.3)";
+          ctx.lineWidth = 1; ctx.stroke();
+        }
 
-    function update(dt) {
-      t += dt * 1.2;
-    }
+        // Latitude curves
+        for (let i = -2; i <= 2; i++) {
+          const y = cy + i * r * .27;
+          const rx = r * Math.sqrt(1 - Math.pow(i * .27, 2));
+          ctx.beginPath();
+          ctx.ellipse(cx, y, rx, rx * .25, 0, 0, TAU);
+          ctx.strokeStyle = "rgba(182,154,255,.32)";
+          ctx.lineWidth = 1; ctx.stroke();
+        }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      const r = 60;
+        // Equator
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r, r * .35, time * .1, 0, TAU);
+        ctx.strokeStyle = "rgba(85,232,255,.65)";
+        ctx.lineWidth = 1.5;
+        glow(C.cyan, 9); ctx.stroke(); noGlow();
 
-      // Bloch Sphere (Geometrical representation of qubit state space)
-      // Sphere outline
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(139, 92, 246, 0.3)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+        // Vertical axis
+        line(cx, cy - r * 1.2, cx, cy + r * 1.2, "rgba(245,248,252,.5)", 1.2);
+        line(cx - r * 1.2, cy, cx + r * 1.2, cy, "rgba(245,248,252,.35)", 1);
+      }
+      function drawStateVector(cx, cy, r) {
+        const theta = Math.PI * .34 + Math.sin(time * .8) * .22;
+        const phi = time * .85;
+        const vx = cx + Math.sin(theta) * Math.cos(phi) * r;
+        const vy = cy - Math.cos(theta) * r +
+          Math.sin(theta) * Math.sin(phi) * r * .35;
 
-      // Equator ellipse
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, r, r * 0.35, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(0, 240, 255, 0.25)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
+        // Projection
+        ctx.beginPath(); ctx.moveTo(cx, cy);
+        ctx.lineTo(vx, vy);
+        ctx.strokeStyle = C.cyan; ctx.lineWidth = 2.5;
+        glow(C.cyan, 15); ctx.stroke(); noGlow();
 
-      // Z-axis (North Pole |0>, South Pole |1>)
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - r - 10);
-      ctx.lineTo(cx, cy + r + 10);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
+        // Projection point
+        ctx.beginPath(); ctx.arc(vx, vy, 5, 0, TAU);
+        ctx.fillStyle = C.gold; glow(C.gold, 16); ctx.fill(); noGlow();
 
-      // Qubit State Vector |psi> in Superposition
-      const theta = Math.PI * 0.35 + Math.sin(t) * 0.25;
-      const phi = t * 1.5;
+        // Point halo
+        ctx.beginPath(); ctx.arc(vx, vy, 11 + Math.sin(time * 3) * 2, 0, TAU);
+        ctx.strokeStyle = "rgba(255,214,138,.45)";
+        ctx.lineWidth = 1; ctx.stroke();
 
-      const vx = cx + Math.sin(theta) * Math.cos(phi) * r;
-      const vy = cy - Math.cos(theta) * r + Math.sin(theta) * Math.sin(phi) * (r * 0.35);
-
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(vx, vy);
-      ctx.strokeStyle = "#00F0FF";
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-
-      // Qubit state point
-      ctx.beginPath();
-      ctx.arc(vx, vy, 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = "#FBBF24";
-      ctx.shadowColor = "#FBBF24";
-      ctx.shadowBlur = 10;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-    
-
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
-        lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+        // Projection trail
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * .65, -phi, -phi + .6);
+        ctx.strokeStyle = "rgba(85,232,255,.3)";
+        ctx.lineWidth = 2; ctx.stroke();
+      }
+      function drawQuantumWaves(cx, cy, r) {
+        for (let i = 0; i < 4; i++) {
+          const p = (time * .18 + i * .25) % 1;
+          const radius = r * (1.25 + p * 1.5);
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, radius, radius * .42, time * .12, 0, TAU);
+          ctx.strokeStyle = `rgba(85,232,255,${(1 - p) * .3})`;
+          ctx.lineWidth = 1.2; ctx.stroke();
         }
       }
+      function drawEntanglement(cx, cy, r) {
+        const left = { x: cx - r * 2.2, y: cy - r * .8 };
+        const right = { x: cx + r * 2.2, y: cy + r * .8 };
+        const mid = { x: cx, y: cy };
+        ctx.beginPath();
+        ctx.moveTo(left.x, left.y);
+        ctx.bezierCurveTo(cx - r, cy - r * 1.5, cx + r, cy + r * 1.5, right.x, right.y);
+        ctx.strokeStyle = "rgba(182,154,255,.5)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 7]);
+        ctx.lineDashOffset = -time * 10;
+        ctx.stroke(); ctx.setLineDash([]);
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+        // Entangled endpoints
+        for (const p of [left, right]) {
+          ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, TAU);
+          ctx.fillStyle = C.violet; glow(C.violet, 15); ctx.fill(); noGlow();
+          ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, TAU);
+          ctx.strokeStyle = "rgba(182,154,255,.4)"; ctx.stroke();
+        }
+        // Traveling quantum pulses
+        for (let i = 0; i < 3; i++) {
+          const p = (time * .2 + i / 3) % 1;
+          const x = left.x + (right.x - left.x) * p;
+          const y = left.y + (right.y - left.y) * p +
+            Math.sin(p * Math.PI) * r * .15;
+          ctx.beginPath(); ctx.arc(x, y, 3, 0, TAU);
+          ctx.fillStyle = C.gold; glow(C.gold, 12); ctx.fill(); noGlow();
+        }
+      }
+      function drawPhoton(cx, cy, r) {
+        for (let i = 0; i < 3; i++) {
+          const a = time * .35 + i * TAU / 3;
+          const x = cx + Math.cos(a) * r * 1.6;
+          const y = cy + Math.sin(a) * r * .8;
+          ctx.beginPath(); ctx.arc(x, y, 3.5, 0, TAU);
+          ctx.fillStyle = i % 2 ? C.cyan : C.gold;
+          glow(i % 2 ? C.cyan : C.gold, 12); ctx.fill(); noGlow();
+        }
+      }
+      function drawParticles(dt) {
+        for (const p of particles) {
+          p.y -= p.speed * dt;
+          p.x += Math.sin(time + p.phase) * 7 * dt;
+          if (p.y < -10) { p.y = h + 10; p.x = rand(0, w) }
+          ctx.globalAlpha = .2 + .42 * (.5 + .5 * Math.sin(time * 1.4 + p.phase));
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU);
+          ctx.fillStyle = p.color; glow(p.color, 8); ctx.fill(); noGlow();
+          ctx.globalAlpha = 1;
+        }
+      }
+      function draw(dt) {
+        background();
+        const cx = w * .5, cy = h * .49;
+        const scale = Math.min(w / 1050, h / 760, 1.1);
+        const r = Math.min(70 * scale, 85);
+        orbitalRings(cx, cy, r);
+        drawQuantumWaves(cx, cy, r);
+        drawEntanglement(cx, cy, r);
+        drawPhoton(cx, cy, r);
+        drawBlochSphere(cx, cy, r);
+        drawStateVector(cx, cy, r);
+        drawParticles(dt);
+      }
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function render(now) {
+        if (paused) return;
+        const dt = Math.min((now - last) / 1000, .05);
+        last = now; time += dt; draw(dt);
+        if (!reduced) requestAnimationFrame(render);
+      }
+      function start() { if (paused) return; last = performance.now(); requestAnimationFrame(render) }
+      addEventListener("resize", resize);
+      addEventListener("message", e => {
+        if (e.data === "pause") paused = true;
+        if (e.data === "play" && paused) { paused = false; start() }
+      });
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden; if (!paused) start();
+      });
+      resize(); start();
     })();
   </script>
 </body>
+
 </html>

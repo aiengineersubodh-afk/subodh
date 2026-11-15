@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Medical Imaging Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #070B12; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #b43ea8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,56 +66,56 @@
         }
       });
 
-      
-    let scanY = 0;
 
-    function init(w, h) { scanY = h * 0.2; }
-    function onResize(w, h) { scanY = h * 0.2; }
+      let scanY = 0;
 
-    function update(dt) {
-      scanY += dt * 65;
-      if (scanY > h * 0.8) scanY = h * 0.2;
-    }
+      function init(w, h) { scanY = h * 0.2; }
+      function onResize(w, h) { scanY = h * 0.2; }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Axial CT / MRI Tomographic slice aperture
-      const r = Math.min(w, h) * 0.38;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(37, 99, 235, 0.4)";
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
-
-      // Anatomical density contours
-      for (let i = 1; i <= 3; i++) {
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, r * (i * 0.28), r * (i * 0.22), 0, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(56, 189, 248, 0.2)";
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
+      function update(dt) {
+        scanY += dt * 65;
+        if (scanY > h * 0.8) scanY = h * 0.2;
       }
 
-      // Active radiological laser scanning line
-      ctx.beginPath();
-      ctx.moveTo(cx - r, scanY);
-      ctx.lineTo(cx + r, scanY);
-      ctx.strokeStyle = "#00F0FF";
-      ctx.lineWidth = 2;
-      ctx.shadowColor = "#00F0FF";
-      ctx.shadowBlur = 10;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const cx = w * 0.5;
+        const cy = h * 0.5;
 
-      // DICOM coordinates overlay
-      ctx.font = "10px monospace";
-      ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
-      ctx.fillText("SLICE: 48/120  VOXEL: 0.5mm", 20, 25);
-    }
-    
+        // Axial CT / MRI Tomographic slice aperture
+        const r = Math.min(w, h) * 0.38;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(37, 99, 235, 0.4)";
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        // Anatomical density contours
+        for (let i = 1; i <= 3; i++) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r * (i * 0.28), r * (i * 0.22), 0, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.2)";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        }
+
+        // Active radiological laser scanning line
+        ctx.beginPath();
+        ctx.moveTo(cx - r, scanY);
+        ctx.lineTo(cx + r, scanY);
+        ctx.strokeStyle = "#00F0FF";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "#00F0FF";
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // DICOM coordinates overlay
+        ctx.font = "10px monospace";
+        ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
+        ctx.fillText("SLICE: 48/120  VOXEL: 0.5mm", 20, 25);
+      }
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -115,4 +134,5 @@
     })();
   </script>
 </body>
+
 </html>

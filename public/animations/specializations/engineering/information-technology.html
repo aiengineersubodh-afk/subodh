@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Information Technology Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #071224; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #ca4049;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,104 +66,104 @@
         }
       });
 
-      
-    const clusters = [];
-    const packets = [];
-    let dispatchTimer = 0;
 
-    function init(w, h) {
-      clusters.length = 0;
-      packets.length = 0;
-      // Load balancer in center-top
-      clusters.push({ id: 0, x: w * 0.5, y: h * 0.25, isLB: true });
-      // 4 cluster servers
-      for (let i = 0; i < 4; i++) {
-        clusters.push({
-          id: i + 1,
-          x: (w / 5) * (i + 1),
-          y: h * 0.65,
-          isLB: false,
-          load: 0.2 + Math.random() * 0.6
-        });
-      }
-    }
+      const clusters = [];
+      const packets = [];
+      let dispatchTimer = 0;
 
-    function onResize(w, h) { init(w, h); }
-
-    function update(dt) {
-      dispatchTimer += dt;
-      if (dispatchTimer > 0.35) {
-        dispatchTimer = 0;
-        const target = 1 + Math.floor(Math.random() * 4);
-        packets.push({
-          srcX: clusters[0].x,
-          srcY: clusters[0].y,
-          dstX: clusters[target].x,
-          dstY: clusters[target].y,
-          t: 0,
-          speed: 1.5
-        });
-      }
-
-      for (let i = packets.length - 1; i >= 0; i--) {
-        const p = packets[i];
-        p.t += p.speed * dt;
-        if (p.t >= 1) packets.splice(i, 1);
-      }
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Connecting network bus lines
-      ctx.strokeStyle = "rgba(59, 130, 246, 0.25)";
-      ctx.lineWidth = 1.2;
-      for (let i = 1; i <= 4; i++) {
-        ctx.beginPath();
-        ctx.moveTo(clusters[0].x, clusters[0].y);
-        ctx.lineTo(clusters[i].x, clusters[i].y);
-        ctx.stroke();
-      }
-
-      // Flying data packets
-      for (const p of packets) {
-        const px = p.srcX + (p.dstX - p.srcX) * p.t;
-        const py = p.srcY + (p.dstY - p.srcY) * p.t;
-        ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "#00F0FF";
-        ctx.shadowColor = "#00F0FF";
-        ctx.shadowBlur = 8;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-
-      // Draw Load Balancer
-      ctx.fillStyle = "#2563EB";
-      ctx.fillRect(clusters[0].x - 24, clusters[0].y - 14, 48, 28);
-      ctx.strokeStyle = "#60A5FA";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(clusters[0].x - 24, clusters[0].y - 14, 48, 28);
-
-      // Draw Server Racks
-      for (let i = 1; i <= 4; i++) {
-        const c = clusters[i];
-        ctx.fillStyle = "#0F1E36";
-        ctx.fillRect(c.x - 22, c.y - 25, 44, 50);
-        ctx.strokeStyle = "#3B82F6";
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(c.x - 22, c.y - 25, 44, 50);
-
-        // Blinking LED status lights
-        for (let l = 0; l < 3; l++) {
-          ctx.beginPath();
-          ctx.arc(c.x - 12 + l * 12, c.y + 12, 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = (Math.sin(Date.now() * 0.005 + i + l) > 0) ? "#10B981" : "#06B6D4";
-          ctx.fill();
+      function init(w, h) {
+        clusters.length = 0;
+        packets.length = 0;
+        // Load balancer in center-top
+        clusters.push({ id: 0, x: w * 0.5, y: h * 0.25, isLB: true });
+        // 4 cluster servers
+        for (let i = 0; i < 4; i++) {
+          clusters.push({
+            id: i + 1,
+            x: (w / 5) * (i + 1),
+            y: h * 0.65,
+            isLB: false,
+            load: 0.2 + Math.random() * 0.6
+          });
         }
       }
-    }
-    
+
+      function onResize(w, h) { init(w, h); }
+
+      function update(dt) {
+        dispatchTimer += dt;
+        if (dispatchTimer > 0.35) {
+          dispatchTimer = 0;
+          const target = 1 + Math.floor(Math.random() * 4);
+          packets.push({
+            srcX: clusters[0].x,
+            srcY: clusters[0].y,
+            dstX: clusters[target].x,
+            dstY: clusters[target].y,
+            t: 0,
+            speed: 1.5
+          });
+        }
+
+        for (let i = packets.length - 1; i >= 0; i--) {
+          const p = packets[i];
+          p.t += p.speed * dt;
+          if (p.t >= 1) packets.splice(i, 1);
+        }
+      }
+
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Connecting network bus lines
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.25)";
+        ctx.lineWidth = 1.2;
+        for (let i = 1; i <= 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(clusters[0].x, clusters[0].y);
+          ctx.lineTo(clusters[i].x, clusters[i].y);
+          ctx.stroke();
+        }
+
+        // Flying data packets
+        for (const p of packets) {
+          const px = p.srcX + (p.dstX - p.srcX) * p.t;
+          const py = p.srcY + (p.dstY - p.srcY) * p.t;
+          ctx.beginPath();
+          ctx.arc(px, py, 3, 0, Math.PI * 2);
+          ctx.fillStyle = "#00F0FF";
+          ctx.shadowColor = "#00F0FF";
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        // Draw Load Balancer
+        ctx.fillStyle = "#2563EB";
+        ctx.fillRect(clusters[0].x - 24, clusters[0].y - 14, 48, 28);
+        ctx.strokeStyle = "#60A5FA";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(clusters[0].x - 24, clusters[0].y - 14, 48, 28);
+
+        // Draw Server Racks
+        for (let i = 1; i <= 4; i++) {
+          const c = clusters[i];
+          ctx.fillStyle = "#0F1E36";
+          ctx.fillRect(c.x - 22, c.y - 25, 44, 50);
+          ctx.strokeStyle = "#3B82F6";
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(c.x - 22, c.y - 25, 44, 50);
+
+          // Blinking LED status lights
+          for (let l = 0; l < 3; l++) {
+            ctx.beginPath();
+            ctx.arc(c.x - 12 + l * 12, c.y + 12, 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = (Math.sin(Date.now() * 0.005 + i + l) > 0) ? "#10B981" : "#06B6D4";
+            ctx.fill();
+          }
+        }
+      }
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -163,4 +182,5 @@
     })();
   </script>
 </body>
+
 </html>

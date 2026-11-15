@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bioinformatics Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #08101E; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: orange;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,55 +66,55 @@
         }
       });
 
-      
-    const seqA = "ATGCGATCGATCGGCTA";
-    const seqB = "ATGCG--CGATCCGCTA";
-    let alignT = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      const seqA = "ATGCGATCGATCGGCTA";
+      const seqB = "ATGCG--CGATCCGCTA";
+      let alignT = 0;
 
-    function update(dt) {
-      alignT = (alignT + dt * 0.8) % seqA.length;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Sequence Alignment Matrix Grid
-      ctx.font = "bold 13px monospace";
-      const startX = w * 0.12;
-      const charW = (w * 0.76) / seqA.length;
-
-      for (let i = 0; i < seqA.length; i++) {
-        const x = startX + i * charW;
-        const curIdx = Math.floor(alignT);
-        const isMatch = seqA[i] === seqB[i];
-
-        // Sequence A (Top)
-        ctx.fillStyle = i === curIdx ? "#00F0FF" : "#10B981";
-        ctx.fillText(seqA[i], x, h * 0.38);
-
-        // Alignment match bar
-        ctx.fillStyle = isMatch ? "#10B981" : "#EF4444";
-        ctx.fillRect(x + 2, h * 0.44, 4, isMatch ? 8 : 2);
-
-        // Sequence B (Bottom)
-        ctx.fillStyle = i === curIdx ? "#00F0FF" : "#8B5CF6";
-        ctx.fillText(seqB[i], x, h * 0.58);
+      function update(dt) {
+        alignT = (alignT + dt * 0.8) % seqA.length;
       }
 
-      // Rooted phylogenetic tree cladogram at bottom
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
-      ctx.lineWidth = 1.4;
-      const treeY = h * 0.78;
-      ctx.beginPath();
-      ctx.moveTo(w * 0.2, treeY); ctx.lineTo(w * 0.4, treeY);
-      ctx.lineTo(w * 0.4, treeY - 20); ctx.lineTo(w * 0.6, treeY - 20);
-      ctx.moveTo(w * 0.4, treeY); ctx.lineTo(w * 0.4, treeY + 20); ctx.lineTo(w * 0.7, treeY + 20);
-      ctx.stroke();
-    }
-    
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Sequence Alignment Matrix Grid
+        ctx.font = "bold 13px monospace";
+        const startX = w * 0.12;
+        const charW = (w * 0.76) / seqA.length;
+
+        for (let i = 0; i < seqA.length; i++) {
+          const x = startX + i * charW;
+          const curIdx = Math.floor(alignT);
+          const isMatch = seqA[i] === seqB[i];
+
+          // Sequence A (Top)
+          ctx.fillStyle = i === curIdx ? "#00F0FF" : "#10B981";
+          ctx.fillText(seqA[i], x, h * 0.38);
+
+          // Alignment match bar
+          ctx.fillStyle = isMatch ? "#10B981" : "#EF4444";
+          ctx.fillRect(x + 2, h * 0.44, 4, isMatch ? 8 : 2);
+
+          // Sequence B (Bottom)
+          ctx.fillStyle = i === curIdx ? "#00F0FF" : "#8B5CF6";
+          ctx.fillText(seqB[i], x, h * 0.58);
+        }
+
+        // Rooted phylogenetic tree cladogram at bottom
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+        ctx.lineWidth = 1.4;
+        const treeY = h * 0.78;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.2, treeY); ctx.lineTo(w * 0.4, treeY);
+        ctx.lineTo(w * 0.4, treeY - 20); ctx.lineTo(w * 0.6, treeY - 20);
+        ctx.moveTo(w * 0.4, treeY); ctx.lineTo(w * 0.4, treeY + 20); ctx.lineTo(w * 0.7, treeY + 20);
+        ctx.stroke();
+      }
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -114,4 +133,5 @@
     })();
   </script>
 </body>
+
 </html>

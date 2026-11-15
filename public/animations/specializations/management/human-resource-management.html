@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Human Resource Management Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #070F1E; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: palevioletred;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,54 +66,54 @@
         }
       });
 
-      
-    const tree = [];
 
-    function init(w, h) {
-      tree.length = 0;
-      // Top level
-      tree.push({ x: w * 0.5, y: h * 0.25, lvl: 0 });
-      // Mid level (3 nodes)
-      for (let i = 0; i < 3; i++) {
-        tree.push({ x: (w / 4) * (i + 1), y: h * 0.5, lvl: 1, parent: 0 });
-      }
-      // Low level (6 nodes)
-      for (let i = 0; i < 6; i++) {
-        const parentIdx = 1 + Math.floor(i / 2);
-        tree.push({ x: (w / 7) * (i + 1), y: h * 0.75, lvl: 2, parent: parentIdx });
-      }
-    }
+      const tree = [];
 
-    function onResize(w, h) { init(w, h); }
-    function update(dt) {}
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Organizational hierarchy links
-      ctx.strokeStyle = "rgba(59, 130, 246, 0.35)";
-      ctx.lineWidth = 1.5;
-      for (let i = 1; i < tree.length; i++) {
-        const node = tree[i];
-        const p = tree[node.parent];
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(node.x, node.y);
-        ctx.stroke();
+      function init(w, h) {
+        tree.length = 0;
+        // Top level
+        tree.push({ x: w * 0.5, y: h * 0.25, lvl: 0 });
+        // Mid level (3 nodes)
+        for (let i = 0; i < 3; i++) {
+          tree.push({ x: (w / 4) * (i + 1), y: h * 0.5, lvl: 1, parent: 0 });
+        }
+        // Low level (6 nodes)
+        for (let i = 0; i < 6; i++) {
+          const parentIdx = 1 + Math.floor(i / 2);
+          tree.push({ x: (w / 7) * (i + 1), y: h * 0.75, lvl: 2, parent: parentIdx });
+        }
       }
 
-      // Talent Nodes
-      for (const n of tree) {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.lvl === 0 ? 8 : 6, 0, Math.PI * 2);
-        ctx.fillStyle = n.lvl === 0 ? "#F59E0B" : (n.lvl === 1 ? "#2563EB" : "#14B8A6");
-        ctx.fill();
-        ctx.strokeStyle = "#FFFFFF";
+      function onResize(w, h) { init(w, h); }
+      function update(dt) { }
+
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Organizational hierarchy links
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.35)";
         ctx.lineWidth = 1.5;
-        ctx.stroke();
+        for (let i = 1; i < tree.length; i++) {
+          const node = tree[i];
+          const p = tree[node.parent];
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(node.x, node.y);
+          ctx.stroke();
+        }
+
+        // Talent Nodes
+        for (const n of tree) {
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.lvl === 0 ? 8 : 6, 0, Math.PI * 2);
+          ctx.fillStyle = n.lvl === 0 ? "#F59E0B" : (n.lvl === 1 ? "#2563EB" : "#14B8A6");
+          ctx.fill();
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
       }
-    }
-    
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -113,4 +132,5 @@
     })();
   </script>
 </body>
+
 </html>

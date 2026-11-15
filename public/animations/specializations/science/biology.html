@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Biology Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #061610; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #b89033;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,63 +66,63 @@
         }
       });
 
-      
-    let t = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let t = 0;
 
-    function update(dt) {
-      t += dt * 1.0;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Eukaryotic Cellular Mitosis (Metaphase / Anaphase Separation)
-      // Cell membrane cleavage furrow
-      ctx.beginPath();
-      const pinch = Math.sin(t) * 15;
-      ctx.ellipse(cx, cy, 95, 60 - pinch, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = "#10B981";
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-
-      // Centriole Spindle Poles
-      const pole1X = cx - 65;
-      const pole2X = cx + 65;
-      ctx.fillStyle = "#F59E0B";
-      ctx.fillRect(pole1X - 3, cy - 3, 6, 6);
-      ctx.fillRect(pole2X - 3, cy - 3, 6, 6);
-
-      // Microtubule spindle fibers pulling chromosomes
-      ctx.strokeStyle = "rgba(45, 212, 191, 0.3)";
-      ctx.lineWidth = 1;
-      const chromoSeparation = Math.sin(t) * 20;
-
-      for (let i = -3; i <= 3; i++) {
-        const midY = cy + i * 12;
-        // Fiber 1 to left chromatid
-        ctx.beginPath();
-        ctx.moveTo(pole1X, cy);
-        ctx.lineTo(cx - chromoSeparation, midY);
-        ctx.stroke();
-
-        // Fiber 2 to right chromatid
-        ctx.beginPath();
-        ctx.moveTo(pole2X, cy);
-        ctx.lineTo(cx + chromoSeparation, midY);
-        ctx.stroke();
-
-        // Chromosome sister chromatids (X-shape)
-        ctx.fillStyle = "#A78BFA";
-        ctx.fillRect(cx - chromoSeparation - 4, midY - 3, 8, 6);
-        ctx.fillRect(cx + chromoSeparation - 4, midY - 3, 8, 6);
+      function update(dt) {
+        t += dt * 1.0;
       }
-    }
-    
+
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+
+        // Eukaryotic Cellular Mitosis (Metaphase / Anaphase Separation)
+        // Cell membrane cleavage furrow
+        ctx.beginPath();
+        const pinch = Math.sin(t) * 15;
+        ctx.ellipse(cx, cy, 95, 60 - pinch, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = "#10B981";
+        ctx.lineWidth = 2.2;
+        ctx.stroke();
+
+        // Centriole Spindle Poles
+        const pole1X = cx - 65;
+        const pole2X = cx + 65;
+        ctx.fillStyle = "#F59E0B";
+        ctx.fillRect(pole1X - 3, cy - 3, 6, 6);
+        ctx.fillRect(pole2X - 3, cy - 3, 6, 6);
+
+        // Microtubule spindle fibers pulling chromosomes
+        ctx.strokeStyle = "rgba(45, 212, 191, 0.3)";
+        ctx.lineWidth = 1;
+        const chromoSeparation = Math.sin(t) * 20;
+
+        for (let i = -3; i <= 3; i++) {
+          const midY = cy + i * 12;
+          // Fiber 1 to left chromatid
+          ctx.beginPath();
+          ctx.moveTo(pole1X, cy);
+          ctx.lineTo(cx - chromoSeparation, midY);
+          ctx.stroke();
+
+          // Fiber 2 to right chromatid
+          ctx.beginPath();
+          ctx.moveTo(pole2X, cy);
+          ctx.lineTo(cx + chromoSeparation, midY);
+          ctx.stroke();
+
+          // Chromosome sister chromatids (X-shape)
+          ctx.fillStyle = "#A78BFA";
+          ctx.fillRect(cx - chromoSeparation - 4, midY - 3, 8, 6);
+          ctx.fillRect(cx + chromoSeparation - 4, midY - 3, 8, 6);
+        }
+      }
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -122,4 +141,5 @@
     })();
   </script>
 </body>
+
 </html>

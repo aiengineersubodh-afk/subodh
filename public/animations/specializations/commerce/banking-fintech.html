@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Banking and FinTech Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #070D1A; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #b8b440;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,56 +66,56 @@
         }
       });
 
-      
-    const blocks = [];
-    let blockT = 0;
 
-    function init(w, h) {
-      blocks.length = 0;
-      for (let i = 0; i < 4; i++) {
-        blocks.push({
-          x: (w / 5) * (i + 1),
-          y: h * 0.5,
-          hash: "0x" + Math.floor(Math.random() * 0xFFFFFF).toString(16)
-        });
-      }
-    }
+      const blocks = [];
+      let blockT = 0;
 
-    function onResize(w, h) { init(w, h); }
-
-    function update(dt) {
-      blockT += dt * 1.5;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Cryptographic chain links between blocks
-      ctx.strokeStyle = "#00F0FF";
-      ctx.lineWidth = 2;
-      for (let i = 0; i < blocks.length - 1; i++) {
-        ctx.beginPath();
-        ctx.moveTo(blocks[i].x + 24, blocks[i].y);
-        ctx.lineTo(blocks[i + 1].x - 24, blocks[i + 1].y);
-        ctx.stroke();
+      function init(w, h) {
+        blocks.length = 0;
+        for (let i = 0; i < 4; i++) {
+          blocks.push({
+            x: (w / 5) * (i + 1),
+            y: h * 0.5,
+            hash: "0x" + Math.floor(Math.random() * 0xFFFFFF).toString(16)
+          });
+        }
       }
 
-      // Distributed Ledger Blocks
-      for (const b of blocks) {
-        ctx.fillStyle = "#0F1E36";
-        ctx.fillRect(b.x - 24, b.y - 18, 48, 36);
-        ctx.strokeStyle = "#F59E0B";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(b.x - 24, b.y - 18, 48, 36);
+      function onResize(w, h) { init(w, h); }
 
-        // Verification indicator
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "#10B981";
-        ctx.fill();
+      function update(dt) {
+        blockT += dt * 1.5;
       }
-    }
-    
+
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Cryptographic chain links between blocks
+        ctx.strokeStyle = "#00F0FF";
+        ctx.lineWidth = 2;
+        for (let i = 0; i < blocks.length - 1; i++) {
+          ctx.beginPath();
+          ctx.moveTo(blocks[i].x + 24, blocks[i].y);
+          ctx.lineTo(blocks[i + 1].x - 24, blocks[i + 1].y);
+          ctx.stroke();
+        }
+
+        // Distributed Ledger Blocks
+        for (const b of blocks) {
+          ctx.fillStyle = "#0F1E36";
+          ctx.fillRect(b.x - 24, b.y - 18, 48, 36);
+          ctx.strokeStyle = "#F59E0B";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(b.x - 24, b.y - 18, 48, 36);
+
+          // Verification indicator
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = "#10B981";
+          ctx.fill();
+        }
+      }
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -115,4 +134,5 @@
     })();
   </script>
 </body>
+
 </html>

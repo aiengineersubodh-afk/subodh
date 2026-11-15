@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mathematics Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #060A14; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #e0e5e3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,45 +66,45 @@
         }
       });
 
-      
-    let t = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let t = 0;
 
-    function update(dt) {
-      t += dt * 0.6;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Golden Ratio Logarithmic Spiral (Fibonacci Spiral)
-      ctx.beginPath();
-      ctx.strokeStyle = "rgba(245, 158, 11, 0.65)";
-      ctx.lineWidth = 1.8;
-      for (let a = 0; a < Math.PI * 8; a += 0.08) {
-        const r = 3 * Math.exp(0.12 * a);
-        const x = cx + r * Math.cos(a + t);
-        const y = cy + r * Math.sin(a + t);
-        if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      function update(dt) {
+        t += dt * 0.6;
       }
-      ctx.stroke();
 
-      // Parametric Lissajous / Harmonic curves in background
-      ctx.beginPath();
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.2)";
-      ctx.lineWidth = 1.2;
-      for (let th = 0; th < Math.PI * 2; th += 0.02) {
-        const x = cx + Math.sin(th * 3 + t) * (w * 0.35);
-        const y = cy + Math.sin(th * 2) * (h * 0.3);
-        if (th === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+
+        // Golden Ratio Logarithmic Spiral (Fibonacci Spiral)
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(245, 158, 11, 0.65)";
+        ctx.lineWidth = 1.8;
+        for (let a = 0; a < Math.PI * 8; a += 0.08) {
+          const r = 3 * Math.exp(0.12 * a);
+          const x = cx + r * Math.cos(a + t);
+          const y = cy + r * Math.sin(a + t);
+          if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Parametric Lissajous / Harmonic curves in background
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.2)";
+        ctx.lineWidth = 1.2;
+        for (let th = 0; th < Math.PI * 2; th += 0.02) {
+          const x = cx + Math.sin(th * 3 + t) * (w * 0.35);
+          const y = cy + Math.sin(th * 2) * (h * 0.3);
+          if (th === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
-    }
-    
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -104,4 +123,5 @@
     })();
   </script>
 </body>
+
 </html>

@@ -1,111 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Environmental Law Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #051410; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #D54C4C
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let w, h, dpr, time = 0, last = performance.now(), paused = false;
+      let particles = [], leaves = [], nodes = [];
+      const TAU = Math.PI * 2;
+      const C = {
+        bg: "#D54C4C",
+        red: "#D54C4C",
+        forest: "#173B32",
+        green: "#397B58",
+        lime: "#A9C982",
+        teal: "#65C8B7",
+        gold: "#F4C978",
+        cream: "#FFF0D5",
+        white: "#FFF9EC"
+      };
+      const rand = (a, b) => Math.random() * (b - a) + a;
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        w = innerWidth; h = innerHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        canvas.style.width = w + "px"; canvas.style.height = h + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        particles = Array.from({ length: Math.min(110, Math.floor(w * h / 8500)) }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(1, 3),
+          speed: rand(8, 24), phase: rand(0, TAU),
+          color: Math.random() > .5 ? C.cream : C.gold
+        }));
+        leaves = Array.from({ length: 12 }, (_, i) => ({
+          a: i * TAU / 12, orbit: rand(150, 220), size: rand(7, 12),
+          speed: rand(.09, .18), phase: rand(0, TAU)
+        }));
+        nodes = Array.from({ length: 8 }, (_, i) => ({
+          a: i * TAU / 8, r: rand(1, 1.15), phase: rand(0, TAU)
+        }));
       }
-      window.addEventListener('resize', resize);
+      function glow(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur }
+      function noGlow() { ctx.shadowBlur = 0 }
+      function line(x1, y1, x2, y2, color, width = 1) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+      }
+      function background() {
+        ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+        const v = ctx.createRadialGradient(w * .5, h * .48, 30, w * .5, h * .5, Math.max(w, h) * .8);
+        v.addColorStop(0, "rgba(255,190,145,0.08)");
+        v.addColorStop(.65, "rgba(95,20,30,0.04)");
+        v.addColorStop(1, "rgba(55,12,25,0.25)");
+        ctx.fillStyle = v; ctx.fillRect(0, 0, w, h);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
-          }
-        }
-      });
+        // Fine geometric grid
+        ctx.strokeStyle = "rgba(255,239,213,0.075)";
+        ctx.lineWidth = .7;
+        for (let x = 0; x < w; x += 55)line(x, 0, x, h, "rgba(255,239,213,0.055)");
+        for (let y = 0; y < h; y += 55)line(0, y, w, y, "rgba(255,239,213,0.055)");
 
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
-
-      
-    let pulse = 0;
-
-    function init(w, h) {}
-    function onResize(w, h) {}
-
-    function update(dt) {
-      pulse = (pulse + dt * 1.2) % (Math.PI * 2);
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Ecological Treaty Perimeter Shield
-      const r = 55 + Math.sin(pulse) * 4;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.strokeStyle = "#10B981";
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-
-      // Inner protected biosphere leaf contour
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 35);
-      ctx.quadraticCurveTo(cx + 35, cy, cx, cy + 35);
-      ctx.quadraticCurveTo(cx - 35, cy, cx, cy - 35);
-      ctx.strokeStyle = "#0EA5E9";
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
-
-      // Carbon cap-and-trade quota balance line
-      ctx.beginPath();
-      ctx.moveTo(cx - 45, cy);
-      ctx.lineTo(cx + 45, cy);
-      ctx.strokeStyle = "#F59E0B";
-      ctx.lineWidth = 1.4;
-      ctx.setLineDash([4, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    
-
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
-        lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+        // Soft atmospheric arcs
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.ellipse(w * .5, h * .5, Math.min(w, h) * (.28 + i * .09),
+            Math.min(w, h) * (.12 + i * .055), -.2, 0, TAU);
+          ctx.strokeStyle = `rgba(255,235,205,${.07 - i * .009})`;
+          ctx.lineWidth = 1; ctx.stroke();
         }
       }
+      function drawEarth(cx, cy, r) {
+        const halo = ctx.createRadialGradient(cx, cy, r * .6, cx, cy, r * 1.9);
+        halo.addColorStop(0, "rgba(101,200,183,.3)");
+        halo.addColorStop(1, "rgba(101,200,183,0)");
+        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, r * 1.9, 0, TAU); ctx.fill();
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+        const g = ctx.createRadialGradient(cx - r * .4, cy - r * .45, r * .05, cx, cy, r);
+        g.addColorStop(0, "#65B99A");
+        g.addColorStop(.55, "#28694F");
+        g.addColorStop(1, "#102E2A");
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fillStyle = g; ctx.fill();
+
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.clip();
+
+        // Ocean current lines
+        for (let i = 0; i < 6; i++) {
+          ctx.beginPath();
+          ctx.ellipse(cx + Math.sin(time * .5 + i) * 5, cy - r * .65 + i * r * .26,
+            r * .88, r * .10, Math.sin(time * .2) * .1, 0, TAU);
+          ctx.strokeStyle = "rgba(145,225,200,.24)";
+          ctx.lineWidth = 1; ctx.stroke();
+        }
+
+        // Continents
+        ctx.fillStyle = "#B6D79B";
+        ctx.globalAlpha = .9;
+        ctx.beginPath();
+        ctx.moveTo(cx - r * .75, cy - r * .38);
+        ctx.quadraticCurveTo(cx - r * .55, cy - r * .9, cx - r * .13, cy - r * .59);
+        ctx.lineTo(cx + r * .05, cy - r * .3);
+        ctx.lineTo(cx - r * .13, cy - r * .05);
+        ctx.lineTo(cx - r * .43, cy + r * .05);
+        ctx.lineTo(cx - r * .57, cy + r * .52);
+        ctx.lineTo(cx - r * .78, cy + r * .2);
+        ctx.closePath(); ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + r * .1, cy - r * .67);
+        ctx.lineTo(cx + r * .48, cy - r * .56);
+        ctx.lineTo(cx + r * .75, cy - r * .2);
+        ctx.lineTo(cx + r * .5, cy + r * .04);
+        ctx.lineTo(cx + r * .61, cy + r * .38);
+        ctx.lineTo(cx + r * .27, cy + r * .7);
+        ctx.lineTo(cx + r * .04, cy + r * .33);
+        ctx.lineTo(cx - r * .03, cy - r * .1);
+        ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+
+        // Globe longitude and latitude
+        ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.clip();
+        for (let i = -2; i <= 2; i++) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r * (.95 - Math.abs(i) * .1),
+            r * (.2 + Math.abs(i) * .13), time * .09, 0, TAU);
+          ctx.strokeStyle = "rgba(255,240,215,.25)";
+          ctx.lineWidth = .8; ctx.stroke();
+        }
+        ctx.restore();
+
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU);
+        ctx.strokeStyle = C.teal; ctx.lineWidth = 2;
+        glow(C.teal, 18); ctx.stroke(); noGlow();
+      }
+      function shield(cx, cy, r) {
+        const pulse = Math.sin(time * 1.2) * 4;
+        r += pulse;
+        ctx.save();
+
+        // Shield outer aura
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r * (1.3 + i * .13), r * (1.55 + i * .13), 0, 0, TAU);
+          ctx.strokeStyle = `rgba(255,239,213,${.23 - i * .045})`;
+          ctx.lineWidth = 1;
+          ctx.setLineDash(i % 2 ? [4, 9] : []);
+          ctx.lineDashOffset = -time * 12 * (i + 1);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Shield silhouette
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r);
+        ctx.bezierCurveTo(cx + r * .85, cy - r * .82, cx + r * .95, cy - r * .3, cx + r * .8, cy + r * .22);
+        ctx.bezierCurveTo(cx + r * .7, cy + r * .82, cx + r * .22, cy + r * 1.1, cx, cy + r * 1.28);
+        ctx.bezierCurveTo(cx - r * .22, cy + r * 1.1, cx - r * .7, cy + r * .82, cx - r * .8, cy + r * .22);
+        ctx.bezierCurveTo(cx - r * .95, cy - r * .3, cx - r * .85, cy - r * .82, cx, cy - r);
+
+        const fill = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+        fill.addColorStop(0, "rgba(101,200,183,.19)");
+        fill.addColorStop(.5, "rgba(23,59,50,.13)");
+        fill.addColorStop(1, "rgba(244,201,120,.14)");
+        ctx.fillStyle = fill; ctx.fill();
+        ctx.strokeStyle = C.cream; ctx.lineWidth = 2;
+        glow(C.gold, 18); ctx.stroke(); noGlow();
+
+        // Inner shield line
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r * .83);
+        ctx.bezierCurveTo(cx + r * .66, cy - r * .65, cx + r * .72, cy - r * .22, cx + r * .63, cy + r * .2);
+        ctx.bezierCurveTo(cx + r * .53, cy + r * .72, cx + r * .16, cy + r * .94, cx, cy + r * 1.1);
+        ctx.bezierCurveTo(cx - r * .16, cy + r * .94, cx - r * .53, cy + r * .72, cx - r * .63, cy + r * .2);
+        ctx.bezierCurveTo(cx - r * .72, cy - r * .22, cx - r * .66, cy - r * .65, cx, cy - r * .83);
+        ctx.strokeStyle = "rgba(255,240,213,.3)";
+        ctx.lineWidth = 1; ctx.stroke();
+        ctx.restore();
+      }
+      function leaf(x, y, s, a, color) {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(a);
+        ctx.beginPath(); ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(s * .7, -s, s * 1.7, -s, s * 2, 0);
+        ctx.bezierCurveTo(s * 1.3, s * .9, s * .6, s * .8, 0, 0);
+        ctx.fillStyle = color; glow(color, 12); ctx.fill(); noGlow();
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(s, 0, s * 2, 0);
+        ctx.strokeStyle = "rgba(23,59,50,.8)"; ctx.lineWidth = 1; ctx.stroke();
+        ctx.restore();
+      }
+      function orbitLeaves(cx, cy) {
+        for (const l of leaves) {
+          const a = l.a + time * l.speed;
+          const x = cx + Math.cos(a) * l.orbit;
+          const y = cy + Math.sin(a) * l.orbit * .58;
+          leaf(x, y, l.size, a + Math.PI / 2, l.phase > 3 ? C.lime : C.green);
+        }
+      }
+      function ecosystem(cx, cy, r) {
+        const pts = nodes.map(n => ({
+          x: cx + Math.cos(n.a + time * .07) * r * 1.85 * n.r,
+          y: cy + Math.sin(n.a + time * .07) * r * 1.2 * n.r
+        }));
+        for (let i = 0; i < pts.length; i++) {
+          const a = pts[i], b = pts[(i + 1) % pts.length];
+          ctx.beginPath(); ctx.moveTo(a.x, a.y);
+          ctx.quadraticCurveTo(cx, cy, b.x, b.y);
+          ctx.strokeStyle = "rgba(255,239,213,.32)";
+          ctx.lineWidth = 1.2; ctx.stroke();
+
+          const p = (time * .2 + i * .16) % 1;
+          const px = a.x + (b.x - a.x) * p, py = a.y + (b.y - a.y) * p;
+          ctx.beginPath(); ctx.arc(px, py, 3, 0, TAU);
+          ctx.fillStyle = C.gold; glow(C.gold, 12); ctx.fill(); noGlow();
+        }
+        pts.forEach((p, i) => {
+          ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, TAU);
+          ctx.fillStyle = i % 2 ? C.teal : C.cream;
+          glow(i % 2 ? C.teal : C.cream, 12); ctx.fill(); noGlow();
+        });
+      }
+      function water(cx, cy, r) {
+        for (let i = 0; i < 4; i++) {
+          const p = (time * .22 + i / 4) % 1;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r * (1.45 + p * .75), r * (.5 + p * .22), 0, 0, TAU);
+          ctx.strokeStyle = `rgba(101,200,183,${(1 - p) * .32})`;
+          ctx.lineWidth = 1.2; ctx.stroke();
+        }
+      }
+      function particlesDraw(dt) {
+        for (const p of particles) {
+          p.y -= p.speed * dt;
+          p.x += Math.sin(time + p.phase) * 8 * dt;
+          if (p.y < -10) { p.y = h + 10; p.x = rand(0, w) }
+          const alpha = .25 + .45 * (.5 + .5 * Math.sin(time * 1.4 + p.phase));
+          ctx.globalAlpha = alpha;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU);
+          ctx.fillStyle = p.color; glow(p.color, 9); ctx.fill(); noGlow();
+          ctx.globalAlpha = 1;
+        }
+      }
+      function accents(cx, cy, r) {
+        for (let i = 0; i < 6; i++) {
+          const a = time * .3 + i * TAU / 6;
+          const x = cx + Math.cos(a) * r * 2.2;
+          const y = cy + Math.sin(a) * r * 1.35;
+          ctx.beginPath(); ctx.arc(x, y, 3, 0, TAU);
+          ctx.fillStyle = C.gold; glow(C.gold, 12); ctx.fill(); noGlow();
+        }
+      }
+      function draw(dt) {
+        background();
+        const cx = w * .5, cy = h * .5;
+        const scale = Math.min(w / 950, h / 700, 1.2);
+        const r = Math.min(75 * scale, 88);
+        water(cx, cy, r);
+        ecosystem(cx, cy, r);
+        accents(cx, cy, r);
+        orbitLeaves(cx, cy);
+        shield(cx, cy, r * 1.55);
+        drawEarth(cx, cy, r);
+        particlesDraw(dt);
+      }
+      function frame(now) {
+        if (paused) return;
+        const dt = Math.min((now - last) / 1000, .05);
+        last = now; time += dt; draw(dt);
+        if (!reduced) requestAnimationFrame(frame);
+      }
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function start() { if (paused) return; last = performance.now(); requestAnimationFrame(frame) }
+      addEventListener("resize", resize);
+      addEventListener("message", e => {
+        if (e.data === "pause") paused = true;
+        if (e.data === "play" && paused) { paused = false; start() }
+      });
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden; if (!paused) start();
+      });
+      resize(); start();
     })();
   </script>
 </body>
+
 </html>

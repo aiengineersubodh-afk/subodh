@@ -1,31 +1,137 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifySignedTokenAsync, SESSION_COOKIE_NAME } from "@/lib/session-token";
 
-const SESSION_COOKIE_NAME = "starsky_session_token";
+export async function middleware(req: NextRequest) {
+  const { pathname, search } = req.nextUrl;
 
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-
-  // Protect /admin routes (except /admin/login)
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
-    if (!token) {
-      const loginUrl = new URL("/admin/login", req.url);
-      return NextResponse.redirect(loginUrl);
-    }
+  // 1. Always allow public static files & assets
+  if (
+    pathname.startsWith("/_next") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname.startsWith("/images/") ||
+    pathname.startsWith("/videos/") ||
+    pathname.startsWith("/animations/") ||
+    pathname.startsWith("/uploads/") ||
+    pathname.startsWith("/sample-documents/") ||
+    pathname.startsWith("/screenshots/")
+  ) {
+    return NextResponse.next();
   }
 
-  // Protect /dashboard and /onboarding routes
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding")) {
-    if (!token) {
-      const loginUrl = new URL("/login", req.url);
-      return NextResponse.redirect(loginUrl);
+  // 2. Public API endpoints (authentication, public assets, health check)
+  if (
+    pathname.startsWith("/api/auth/login") ||
+    pathname.startsWith("/api/auth/register") ||
+    pathname.startsWith("/api/auth/logout") ||
+    pathname.startsWith("/api/auth/reset-password") ||
+    pathname.startsWith("/api/auth/me") ||
+    pathname.startsWith("/api/public") ||
+    pathname.startsWith("/api/assets")
+  ) {
+    return NextResponse.next();
+  }
+
+  // Extract session token
+  const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const payload = token ? await verifySignedTokenAsync(token) : null;
+
+  // 3. Protected Backend APIs
+  if (pathname.startsWith("/api/")) {
+    if (!payload) {
+      return NextResponse.json(
+        { error: "Unauthorized: Authentication required." },
+        { status: 401 }
+      );
     }
+    if (pathname.startsWith("/api/admin") && payload.role !== "admin") {
+      return NextResponse.json(
+        { error: "Forbidden: Administrator privileges required." },
+        { status: 403 }
+      );
+    }
+    return NextResponse.next();
+  }
+
+  // 4. Public Authentication Gateway Pages (/login, /register, /admin/login)
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/admin/login";
+
+  if (isAuthPage) {
+    if (payload) {
+      // Logged-in user opening the login/register URL -> Redirect to their existing dashboard
+      const redirectParam = req.nextUrl.searchParams.get("redirect");
+      if (
+        redirectParam &&
+        redirectParam.startsWith("/") &&
+        !redirectParam.startsWith("//") &&
+        !redirectParam.startsWith("/login") &&
+        !redirectParam.startsWith("/register")
+      ) {
+        return NextResponse.redirect(new URL(redirectParam, req.url));
+      }
+
+      let dashboardUrl = "/dashboard/student";
+      if (payload.role === "admin") {
+        dashboardUrl = "/admin";
+      } else if (payload.role === "scholar") {
+        dashboardUrl = "/dashboard/scholar";
+      }
+      return NextResponse.redirect(new URL(dashboardUrl, req.url));
+    }
+    // Visitor is unauthenticated: allow access to the Authentication Gateway
+    return NextResponse.next();
+  }
+
+  // 5. Protected Website Pages (Home, Explore, Scholars, Internships, Dashboards, Admin, etc.)
+  if (!payload) {
+    // Unauthenticated visitor -> Redirect to Authentication Gateway with destination preservation
+    const loginUrl = new URL("/login", req.url);
+    if (pathname !== "/") {
+      loginUrl.searchParams.set("redirect", `${pathname}${search}`);
+    }
+
+    const res = NextResponse.redirect(loginUrl);
+    // If a tampered or expired cookie was present, clear it cleanly
+    if (token) {
+      res.cookies.delete(SESSION_COOKIE_NAME);
+    }
+    return res;
+  }
+
+  // 6. Role-Based Route Guards for Authenticated Users
+  // Protect /admin routes from non-admin users
+  if (pathname.startsWith("/admin") && payload.role !== "admin") {
+    const userDashboard =
+      payload.role === "scholar" ? "/dashboard/scholar" : "/dashboard/student";
+    return NextResponse.redirect(new URL(userDashboard, req.url));
+  }
+
+  // Protect /dashboard/scholar from non-scholar users
+  if (pathname.startsWith("/dashboard/scholar") && payload.role !== "scholar") {
+    const userDashboard =
+      payload.role === "admin" ? "/admin" : "/dashboard/student";
+    return NextResponse.redirect(new URL(userDashboard, req.url));
+  }
+
+  // Protect /dashboard/student from non-student users
+  if (pathname.startsWith("/dashboard/student") && payload.role !== "student") {
+    const userDashboard =
+      payload.role === "admin" ? "/admin" : "/dashboard/scholar";
+    return NextResponse.redirect(new URL(userDashboard, req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/onboarding/:path*"],
+  matcher: [
+    /*
+     * Match all request paths except static files with extensions.
+     */
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };
-

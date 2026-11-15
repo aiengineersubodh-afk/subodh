@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chemistry Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #08121A; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #b64d4d;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,79 +66,79 @@
         }
       });
 
-      
-    let rot = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let rot = 0;
 
-    function update(dt) {
-      rot += dt * 0.8;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      const radius = 55;
-
-      // Rotating Benzene Ring Resonance Structure (Aromatic Hydrocarbon)
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(rot);
-
-      const vertices = [];
-      for (let i = 0; i < 6; i++) {
-        const a = (Math.PI / 3) * i;
-        vertices.push({ x: radius * Math.cos(a), y: radius * Math.sin(a) });
+      function update(dt) {
+        rot += dt * 0.8;
       }
 
-      // Outer carbon-carbon bonds
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        if (i === 0) ctx.moveTo(vertices[i].x, vertices[i].y);
-        else ctx.lineTo(vertices[i].x, vertices[i].y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = "#06B6D4";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+        const radius = 55;
 
-      // Inner aromatic delocalized pi-electron circle
-      ctx.beginPath();
-      ctx.arc(0, 0, radius * 0.65, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(16, 185, 129, 0.6)";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 6]);
-      ctx.stroke();
-      ctx.setLineDash([]);
+        // Rotating Benzene Ring Resonance Structure (Aromatic Hydrocarbon)
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rot);
 
-      // Carbon atom balls
-      for (const v of vertices) {
+        const vertices = [];
+        for (let i = 0; i < 6; i++) {
+          const a = (Math.PI / 3) * i;
+          vertices.push({ x: radius * Math.cos(a), y: radius * Math.sin(a) });
+        }
+
+        // Outer carbon-carbon bonds
         ctx.beginPath();
-        ctx.arc(v.x, v.y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#10B981";
-        ctx.fill();
+        for (let i = 0; i < 6; i++) {
+          if (i === 0) ctx.moveTo(vertices[i].x, vertices[i].y);
+          else ctx.lineTo(vertices[i].x, vertices[i].y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = "#06B6D4";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Inner aromatic delocalized pi-electron circle
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.65, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(16, 185, 129, 0.6)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Carbon atom balls
+        for (const v of vertices) {
+          ctx.beginPath();
+          ctx.arc(v.x, v.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = "#10B981";
+          ctx.fill();
+        }
+
+        ctx.restore();
+
+        // Exothermic reaction potential energy curve in corner
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(245, 158, 11, 0.6)";
+        ctx.lineWidth = 1.5;
+        const startX = w * 0.1;
+        const baseY = h * 0.85;
+        for (let x = 0; x < w * 0.8; x += 5) {
+          const tVal = x * 0.03;
+          // Activation energy barrier hump then drop (delta H < 0)
+          const hump = Math.exp(-Math.pow(tVal - 2.5, 2) / 0.8) * 35;
+          const curY = baseY - (tVal < 2.5 ? hump : hump - 15);
+          if (x === 0) ctx.moveTo(startX + x, curY); else ctx.lineTo(startX + x, curY);
+        }
+        ctx.stroke();
       }
 
-      ctx.restore();
-
-      // Exothermic reaction potential energy curve in corner
-      ctx.beginPath();
-      ctx.strokeStyle = "rgba(245, 158, 11, 0.6)";
-      ctx.lineWidth = 1.5;
-      const startX = w * 0.1;
-      const baseY = h * 0.85;
-      for (let x = 0; x < w * 0.8; x += 5) {
-        const tVal = x * 0.03;
-        // Activation energy barrier hump then drop (delta H < 0)
-        const hump = Math.exp(-Math.pow(tVal - 2.5, 2) / 0.8) * 35;
-        const curY = baseY - (tVal < 2.5 ? hump : hump - 15);
-        if (x === 0) ctx.moveTo(startX + x, curY); else ctx.lineTo(startX + x, curY);
-      }
-      ctx.stroke();
-    }
-    
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -138,4 +157,5 @@
     })();
   </script>
 </body>
+
 </html>

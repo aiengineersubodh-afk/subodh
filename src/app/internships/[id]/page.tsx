@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -36,6 +36,7 @@ import {
 
 export default function InternshipDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const internshipId = String(params.id || "");
   const { session, refreshSession } = useAuth();
 
@@ -252,6 +253,12 @@ export default function InternshipDetailsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/explore?tab=internships"
+            onClick={(e) => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                e.preventDefault();
+                router.back();
+              }
+            }}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#666666] hover:text-[#2563EB]"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Open Internships

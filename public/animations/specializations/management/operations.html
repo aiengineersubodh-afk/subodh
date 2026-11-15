@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Operations Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #0B1320; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0B1320;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,52 +66,52 @@
         }
       });
 
-      
-    const items = [];
-    let progressT = 0;
 
-    function init(w, h) {
-      items.length = 0;
-      for (let i = 0; i < 9; i++) {
-        items.push({ x: (w / 10) * (i + 1), col: i % 3 });
-      }
-    }
+      const items = [];
+      let progressT = 0;
 
-    function onResize(w, h) { init(w, h); }
-
-    function update(dt) {
-      progressT = (progressT + dt * 0.6) % 1;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Kanban 3 Work-in-Progress (WIP) columns
-      const cols = ["To Do", "In Progress", "Done"];
-      const colW = (w * 0.8) / 3;
-      const startX = w * 0.1;
-
-      for (let i = 0; i < 3; i++) {
-        const cx = startX + i * colW;
-        ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(cx, h * 0.2, colW - 10, h * 0.6);
-
-        // Header label bar
-        ctx.fillStyle = i === 1 ? "rgba(245, 158, 11, 0.15)" : "rgba(56, 189, 248, 0.08)";
-        ctx.fillRect(cx, h * 0.2, colW - 10, 22);
-
-        // Kanban Card items
-        for (let j = 0; j < 3; j++) {
-          ctx.fillStyle = "rgba(15, 23, 42, 0.8)";
-          ctx.fillRect(cx + 6, h * 0.32 + j * 32, colW - 22, 24);
-          ctx.strokeStyle = i === 2 ? "#10B981" : (i === 1 ? "#F59E0B" : "#38BDF8");
-          ctx.lineWidth = 1;
-          ctx.strokeRect(cx + 6, h * 0.32 + j * 32, colW - 22, 24);
+      function init(w, h) {
+        items.length = 0;
+        for (let i = 0; i < 9; i++) {
+          items.push({ x: (w / 10) * (i + 1), col: i % 3 });
         }
       }
-    }
-    
+
+      function onResize(w, h) { init(w, h); }
+
+      function update(dt) {
+        progressT = (progressT + dt * 0.6) % 1;
+      }
+
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Kanban 3 Work-in-Progress (WIP) columns
+        const cols = ["To Do", "In Progress", "Done"];
+        const colW = (w * 0.8) / 3;
+        const startX = w * 0.1;
+
+        for (let i = 0; i < 3; i++) {
+          const cx = startX + i * colW;
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(cx, h * 0.2, colW - 10, h * 0.6);
+
+          // Header label bar
+          ctx.fillStyle = i === 1 ? "rgba(245, 158, 11, 0.15)" : "rgba(56, 189, 248, 0.08)";
+          ctx.fillRect(cx, h * 0.2, colW - 10, 22);
+
+          // Kanban Card items
+          for (let j = 0; j < 3; j++) {
+            ctx.fillStyle = "rgba(15, 23, 42, 0.8)";
+            ctx.fillRect(cx + 6, h * 0.32 + j * 32, colW - 22, 24);
+            ctx.strokeStyle = i === 2 ? "#10B981" : (i === 1 ? "#F59E0B" : "#38BDF8");
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cx + 6, h * 0.32 + j * 32, colW - 22, 24);
+          }
+        }
+      }
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -111,4 +130,5 @@
     })();
   </script>
 </body>
+
 </html>

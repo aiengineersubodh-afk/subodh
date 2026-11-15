@@ -50,7 +50,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!profile || !authPassed) {
+    if (!profile) {
+      return NextResponse.json(
+        {
+          error:
+            "We couldn't find an account matching those details. Please check your email or create a new STARSKY account.",
+          code: "ACCOUNT_NOT_FOUND",
+          accountNotFound: true,
+        },
+        { status: 404 }
+      );
+    }
+
+    if (!authPassed) {
       return NextResponse.json(
         { error: "Invalid email or password. Please check your credentials." },
         { status: 401 }
@@ -90,18 +102,31 @@ export async function POST(req: NextRequest) {
     writeDb(db);
 
     const token = createSignedToken(profile.id, profile.role);
-    let redirectUrl = "/dashboard/student";
+    const requestedRedirect =
+      body.redirect &&
+      typeof body.redirect === "string" &&
+      body.redirect.startsWith("/") &&
+      !body.redirect.startsWith("//")
+        ? body.redirect
+        : null;
+
+    let defaultDashboardUrl = "/dashboard/student";
     if (profile.role === "admin") {
-      redirectUrl = "/admin";
+      defaultDashboardUrl = "/admin";
     } else if (profile.role === "scholar") {
-      redirectUrl = profile.onboarding_completed
+      defaultDashboardUrl = profile.onboarding_completed
         ? "/dashboard/scholar"
         : "/onboarding/scholar";
     } else {
-      redirectUrl = profile.onboarding_completed
+      defaultDashboardUrl = profile.onboarding_completed
         ? "/dashboard/student"
         : "/onboarding/student";
     }
+
+    const redirectUrl = requestedRedirect || defaultDashboardUrl;
+
+    const rememberMe = Boolean(parsed.data.remember_me);
+    const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7;
 
     const res = NextResponse.json({
       user: sanitizeProfile(profile),
@@ -112,7 +137,7 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge,
     });
 
     return res;

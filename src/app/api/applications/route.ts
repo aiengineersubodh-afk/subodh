@@ -331,8 +331,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
+    const applicationId = body.applicationId || body.id;
     const {
-      applicationId,
       status,
       scholar_private_notes,
       is_reported,

@@ -13,6 +13,18 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: [
+        "**/data/**",
+        "**/.git/**",
+        "**/public/screenshots/**",
+        "**/scripts/**",
+      ],
+    };
+    return config;
+  },
 };
 
 export default nextConfig;

@@ -1,121 +1,469 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Public Policy Animation</title>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #070F1B; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #F1F5F9;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
+
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let w, h, dpr;
+      let time = 0;
+      let paused = false;
+      let lastTime = performance.now();
+
+      const reducedMotion =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const colors = [
+        "#2563EB",
+        "#0D9488",
+        "#D97706",
+        "#7C3AED",
+        "#E05A65"
+      ];
+
+      const particles = [];
+      const stages = [];
 
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = window.innerWidth;
+        h = window.innerHeight;
+
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        init();
+        draw();
       }
-      window.addEventListener('resize', resize);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
+      function init() {
+        particles.length = 0;
+        stages.length = 0;
+
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w * 0.23, h * 0.29, 185);
+
+        for (let i = 0; i < 5; i++) {
+          const angle = -Math.PI / 2 + (Math.PI * 2 / 5) * i;
+
+          stages.push({
+            x: cx + Math.cos(angle) * radius,
+            y: cy + Math.sin(angle) * radius,
+            angle,
+            color: colors[i],
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+
+        for (let i = 0; i < 100; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            size: Math.random() * 2 + 0.5,
+            speed: Math.random() * 0.35 + 0.08,
+            alpha: Math.random() * 0.35 + 0.1,
+            drift: Math.random() * 0.5 - 0.25
+          });
+        }
+      }
+
+      function drawBackground() {
+        ctx.fillStyle = "#F1F5F9";
+        ctx.fillRect(0, 0, w, h);
+
+        const gradient = ctx.createRadialGradient(
+          w / 2, h / 2, 20,
+          w / 2, h / 2, Math.max(w, h) * 0.65
+        );
+
+        gradient.addColorStop(0, "rgba(191,219,254,0.22)");
+        gradient.addColorStop(0.6, "rgba(226,232,240,0.12)");
+        gradient.addColorStop(1, "rgba(241,245,249,0)");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle background grid
+        ctx.strokeStyle = "rgba(100,116,139,0.055)";
+        ctx.lineWidth = 1;
+
+        for (let x = 0; x < w; x += 42) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+
+        for (let y = 0; y < h; y += 42) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+      }
+
+      function drawParticles(dt) {
+        particles.forEach(p => {
+          p.y -= p.speed * dt * 60;
+          p.x += p.drift * dt * 20;
+
+          if (p.y < -5) {
+            p.y = h + 5;
+            p.x = Math.random() * w;
           }
-        }
-      });
 
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
+          if (p.x < -5) p.x = w + 5;
+          if (p.x > w + 5) p.x = -5;
 
-      
-    let cycleT = 0;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(37,99,235,${p.alpha})`;
+          ctx.fill();
+        });
+      }
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      function drawOrbit(cx, cy, radius) {
+        // Outer orbit
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius + 39, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(37,99,235,0.12)";
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-    function update(dt) {
-      cycleT += dt * 0.8;
-    }
+        // Inner circular guide
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius - 38, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(13,148,136,0.12)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      const radius = 55;
-
-      // Circular Continuous Policy Lifecycle Framework
-      // Agenda -> Formulation -> Decision -> Implementation -> Evaluation
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(37, 99, 235, 0.35)";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      // 5 Policy Stages nodes around the circle
-      for (let i = 0; i < 5; i++) {
-        const a = (Math.PI * 2 / 5) * i;
-        const x = cx + radius * Math.cos(a);
-        const y = cy + radius * Math.sin(a);
+        // Rotating orbit particle
+        const a = time * 0.00035;
+        const ox = cx + Math.cos(a) * (radius + 39);
+        const oy = cy + Math.sin(a) * (radius + 39);
 
         ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#14B8A6";
+        ctx.arc(ox, oy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#2563EB";
+        ctx.shadowColor = "#2563EB";
+        ctx.shadowBlur = 12;
         ctx.fill();
-        ctx.strokeStyle = "#FFFFFF";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+        ctx.shadowBlur = 0;
       }
 
-      // Traveling policy feedback pulse along the circle
-      const pulseA = cycleT;
-      const px = cx + radius * Math.cos(pulseA);
-      const py = cy + radius * Math.sin(pulseA);
+      function drawConnections() {
+        for (let i = 0; i < stages.length; i++) {
+          const a = stages[i];
+          const b = stages[(i + 1) % stages.length];
 
-      ctx.beginPath();
-      ctx.arc(px, py, 5, 0, Math.PI * 2);
-      ctx.fillStyle = "#F59E0B";
-      ctx.shadowColor = "#F59E0B";
-      ctx.shadowBlur = 10;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-    
+          // Curved connections
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
 
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
-        lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+
+          const cx = w / 2;
+          const cy = h / 2;
+
+          const dx = mx - cx;
+          const dy = my - cy;
+
+          ctx.quadraticCurveTo(
+            cx + dx * 0.78,
+            cy + dy * 0.78,
+            b.x,
+            b.y
+          );
+
+          ctx.strokeStyle = "rgba(71,85,105,0.23)";
+          ctx.lineWidth = 2.2;
+          ctx.stroke();
+
+          // Directional arrow
+          const angle = Math.atan2(b.y - a.y, b.x - a.x);
+          const arrowX = b.x - Math.cos(angle) * 42;
+          const arrowY = b.y - Math.sin(angle) * 42;
+
+          ctx.save();
+          ctx.translate(arrowX, arrowY);
+          ctx.rotate(angle);
+
+          ctx.beginPath();
+          ctx.moveTo(-5, -5);
+          ctx.lineTo(4, 0);
+          ctx.lineTo(-5, 5);
+          ctx.strokeStyle = "rgba(71,85,105,0.65)";
+          ctx.lineWidth = 1.8;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.stroke();
+
+          ctx.restore();
+
+          // Traveling policy pulse
+          const progress = (time * 0.00025 + i * 0.2) % 1;
+
+          const px = a.x + (b.x - a.x) * progress;
+          const py = a.y + (b.y - a.y) * progress;
+
+          ctx.beginPath();
+          ctx.arc(px, py, 4, 0, Math.PI * 2);
+          ctx.fillStyle = colors[i];
+          ctx.shadowColor = colors[i];
+          ctx.shadowBlur = 14;
+          ctx.fill();
+          ctx.shadowBlur = 0;
         }
       }
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+      function drawGovernmentBuilding(cx, cy) {
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        // Central glow
+        const glow = ctx.createRadialGradient(
+          0, 0, 10,
+          0, 0, 85
+        );
+
+        glow.addColorStop(0, "rgba(37,99,235,0.16)");
+        glow.addColorStop(1, "rgba(37,99,235,0)");
+
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(0, 0, 85, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Building roof
+        ctx.beginPath();
+        ctx.moveTo(-43, -19);
+        ctx.lineTo(0, -46);
+        ctx.lineTo(43, -19);
+        ctx.closePath();
+
+        ctx.fillStyle = "#2563EB";
+        ctx.globalAlpha = 0.9;
+        ctx.fill();
+
+        // Roof outline
+        ctx.strokeStyle = "#1D4ED8";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Building base
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(-39, -17, 78, 45);
+
+        ctx.strokeStyle = "#2563EB";
+        ctx.lineWidth = 1.8;
+        ctx.strokeRect(-39, -17, 78, 45);
+
+        // Pillars
+        for (let i = -2; i <= 2; i++) {
+          const x = i * 15;
+
+          ctx.fillStyle = i % 2 === 0
+            ? "#0D9488"
+            : "#60A5FA";
+
+          ctx.fillRect(x - 4, -13, 8, 36);
+        }
+
+        // Base platform
+        ctx.fillStyle = "#2563EB";
+        ctx.fillRect(-47, 28, 94, 6);
+
+        ctx.fillStyle = "#1D4ED8";
+        ctx.fillRect(-53, 34, 106, 5);
+
+        // Central highlight
+        ctx.beginPath();
+        ctx.arc(0, -32, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "#F59E0B";
+        ctx.fill();
+
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
+      function drawStageNodes() {
+        stages.forEach((stage, i) => {
+          const pulse = Math.sin(time * 0.002 + stage.phase) * 3;
+          const r = 18 + pulse;
+
+          // Outer glow
+          ctx.beginPath();
+          ctx.arc(stage.x, stage.y, r + 12, 0, Math.PI * 2);
+          ctx.fillStyle = stage.color + "16";
+          ctx.fill();
+
+          // Node shadow
+          ctx.beginPath();
+          ctx.arc(stage.x, stage.y, r + 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#FFFFFF";
+          ctx.shadowColor = stage.color;
+          ctx.shadowBlur = 20;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Main node
+          ctx.beginPath();
+          ctx.arc(stage.x, stage.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = stage.color;
+          ctx.fill();
+
+          // Inner circle
+          ctx.beginPath();
+          ctx.arc(stage.x, stage.y, r * 0.45, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255,255,255,0.75)";
+          ctx.fill();
+
+          // Small center
+          ctx.beginPath();
+          ctx.arc(stage.x, stage.y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = stage.color;
+          ctx.fill();
+        });
+      }
+
+      function drawFeedback(cx, cy, radius) {
+        // Feedback ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius + 58, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(13,148,136,0.08)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Moving feedback particles
+        for (let i = 0; i < 3; i++) {
+          const angle = -time * 0.0002 + i * Math.PI * 2 / 3;
+
+          const x = cx + Math.cos(angle) * (radius + 58);
+          const y = cy + Math.sin(angle) * (radius + 58);
+
+          ctx.beginPath();
+          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = "#0D9488";
+          ctx.shadowColor = "#0D9488";
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      function draw() {
+        drawBackground();
+
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w * 0.23, h * 0.29, 185);
+
+        drawParticles(1);
+        drawOrbit(cx, cy, radius);
+        drawFeedback(cx, cy, radius);
+        drawConnections();
+        drawGovernmentBuilding(cx, cy);
+        drawStageNodes();
+      }
+
+      function animate(now) {
+        if (paused) return;
+
+        const dt = Math.min(
+          (now - lastTime) / 1000,
+          0.05
+        );
+
+        lastTime = now;
+        time += dt * 1000;
+
+        draw();
+
+        if (!reducedMotion) {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      function start() {
+        if (paused) return;
+
+        lastTime = performance.now();
+
+        if (!reducedMotion) {
+          requestAnimationFrame(animate);
+        } else {
+          draw();
+        }
+      }
+
+      // Pause and play support
+      window.addEventListener("message", e => {
+        if (e.data === "pause") {
+          paused = true;
+        }
+
+        if (e.data === "play" && paused) {
+          paused = false;
+          start();
+        }
+      });
+
+      // Pause animation when the page is hidden
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden;
+
+        if (!paused) {
+          start();
+        }
+      });
+
+      window.addEventListener("resize", resize);
+
+      resize();
+      start();
     })();
   </script>
 </body>
+
 </html>

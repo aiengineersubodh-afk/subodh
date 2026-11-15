@@ -1,124 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Computational Social Science Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #080E1C; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #D3C334
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let w, h, dpr, time = 0, last = performance.now(), paused = false;
+      let agents = [], particles = [], stars = [];
+      const TAU = Math.PI * 2;
+      const C = {
+        bg: "#D3C334",
+        navy: "#252344",
+        plum: "#49304F",
+        blue: "#65C8F0",
+        coral: "#F18A83",
+        ivory: "#FFF6D9",
+        gold: "#FFE68A",
+        mint: "#83D6B1"
+      };
+      const rand = (a, b) => Math.random() * (b - a) + a;
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        w = innerWidth; h = innerHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        canvas.style.width = w + "px"; canvas.style.height = h + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        init();
       }
-      window.addEventListener('resize', resize);
+      function init() {
+        agents = [];
+        const cx = w * .5, cy = h * .5;
+        const count = Math.min(100, Math.max(40, Math.floor(w * h / 12500)));
+        for (let i = 0; i < count; i++) {
+          const group = i % 2;
+          const angle = rand(0, TAU);
+          const radius = rand(30, Math.min(w, h) * .3);
+          agents.push({
+            x: cx + Math.cos(angle) * radius,
+            y: cy + Math.sin(angle) * radius,
+            vx: rand(-18, 18), vy: rand(-18, 18),
+            group,
+            phase: rand(0, TAU),
+            size: rand(3, 5.5),
+            influence: rand(.6, 1.4)
+          });
+        }
+        particles = Array.from({ length: 55 }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(1, 2.5),
+          speed: rand(6, 19), phase: rand(0, TAU)
+        }));
+        stars = Array.from({ length: 45 }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(.5, 1.4), phase: rand(0, TAU)
+        }));
+      }
+      function glow(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur }
+      function noGlow() { ctx.shadowBlur = 0 }
+      function line(x1, y1, x2, y2, color, width = 1) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+      }
+      function background() {
+        ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+        const g = ctx.createRadialGradient(w * .5, h * .5, 20, w * .5, h * .5, Math.max(w, h) * .8);
+        g.addColorStop(0, "rgba(255,249,190,.16)");
+        g.addColorStop(.55, "rgba(105,75,25,.04)");
+        g.addColorStop(1, "rgba(45,35,40,.23)");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
+        // Subtle research grid
+        ctx.strokeStyle = "rgba(37,35,68,.09)";
+        ctx.lineWidth = .7;
+        for (let x = 0; x < w; x += 48)line(x, 0, x, h, "rgba(37,35,68,.07)");
+        for (let y = 0; y < h; y += 48)line(0, y, w, y, "rgba(37,35,68,.07)");
+
+        for (const s of stars) {
+          ctx.globalAlpha = .12 + .2 * (.5 + .5 * Math.sin(time + s.phase));
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU);
+          ctx.fillStyle = C.ivory; ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+      function update(dt) {
+        const cx = w * .5, cy = h * .5;
+        for (let i = 0; i < agents.length; i++) {
+          const a = agents[i];
+          const dx = cx - a.x, dy = cy - a.y;
+          const distance = Math.hypot(dx, dy) || 1;
+
+          // Gentle social attraction and organic movement
+          a.vx += dx / distance * 2.8 * dt;
+          a.vy += dy / distance * 2.8 * dt;
+          a.vx += Math.sin(time * .7 + a.phase) * 8 * dt;
+          a.vy += Math.cos(time * .8 + a.phase) * 8 * dt;
+
+          // Agents of the same group have a subtle affinity
+          for (let j = i + 1; j < agents.length; j++) {
+            const b = agents[j];
+            const x = b.x - a.x, y = b.y - a.y;
+            const d = Math.hypot(x, y) || 1;
+            if (d < 24) {
+              const force = (24 - d) * .55;
+              a.vx -= x / d * force * dt;
+              a.vy -= y / d * force * dt;
+              b.vx += x / d * force * dt;
+              b.vy += y / d * force * dt;
+            }
           }
+          const max = 27;
+          const speed = Math.hypot(a.vx, a.vy);
+          if (speed > max) { a.vx = a.vx / speed * max; a.vy = a.vy / speed * max }
+          a.x += a.vx * dt; a.y += a.vy * dt;
+
+          // Soft boundary reflection
+          const margin = 30;
+          if (a.x < margin || a.x > w - margin) a.vx *= -1;
+          if (a.y < margin || a.y > h - margin) a.vy *= -1;
+          a.x = Math.max(margin, Math.min(w - margin, a.x));
+          a.y = Math.max(margin, Math.min(h - margin, a.y));
         }
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
-
-      
-    const agents = [];
-
-    function init(w, h) {
-      agents.length = 0;
-      for (let i = 0; i < 40; i++) {
-        agents.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 35,
-          vy: (Math.random() - 0.5) * 35,
-          group: Math.random() > 0.5 ? 1 : 2
-        });
-      }
-    }
-
-    function onResize(w, h) { init(w, h); }
-
-    function update(dt) {
-      for (const a of agents) {
-        a.x += a.vx * dt;
-        a.y += a.vy * dt;
-        if (a.x < 10 || a.x > w - 10) a.vx *= -1;
-        if (a.y < 10 || a.y > h - 10) a.vy *= -1;
-      }
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Agent-based Modeling Interaction Links
-      ctx.lineWidth = 0.8;
-      for (let i = 0; i < agents.length; i++) {
-        for (let j = i + 1; j < agents.length; j++) {
-          const dx = agents[i].x - agents[j].x;
-          const dy = agents[i].y - agents[j].y;
-          const dist = Math.hypot(dx, dy);
-          if (dist < 55) {
-            ctx.beginPath();
-            ctx.moveTo(agents[i].x, agents[i].y);
-            ctx.lineTo(agents[j].x, agents[j].y);
-            ctx.strokeStyle = agents[i].group === agents[j].group ? "rgba(6, 182, 212, 0.25)" : "rgba(244, 63, 94, 0.2)";
-            ctx.stroke();
-          }
+        for (const p of particles) {
+          p.y -= p.speed * dt;
+          p.x += Math.sin(time + p.phase) * 6 * dt;
+          if (p.y < -10) { p.y = h + 10; p.x = rand(0, w) }
         }
       }
-
-      // Agents
-      for (const a of agents) {
+      function drawCommunityHulls(group, color) {
+        const points = agents.filter(a => a.group === group);
+        if (points.length < 3) return;
+        let cx = 0, cy = 0;
+        for (const p of points) { cx += p.x; cy += p.y }
+        cx /= points.length; cy /= points.length;
+        const sorted = points.slice().sort((a, b) =>
+          Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
         ctx.beginPath();
-        ctx.arc(a.x, a.y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = a.group === 1 ? "#06B6D4" : "#F43F5E";
+        sorted.forEach((p, i) => {
+          const x = cx + (p.x - cx) * 1.22;
+          const y = cy + (p.y - cy) * 1.22;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.globalAlpha = .075;
         ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = .19;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
       }
-    }
-    
+      function drawConnections() {
+        for (let i = 0; i < agents.length; i++) {
+          for (let j = i + 1; j < agents.length; j++) {
+            const a = agents[i], b = agents[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            const d = Math.hypot(dx, dy);
+            if (d > 95) continue;
+            const same = a.group === b.group;
+            const alpha = (1 - d / 95) * (same ? .38 : .29);
+            const color = same ?
+              `rgba(101,200,240,${alpha})` :
+              `rgba(241,138,131,${alpha * .9})`;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = color; ctx.lineWidth = same ? 1.1 : .8; ctx.stroke();
 
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
-        lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+            // Animated information transfer
+            if (d < 75) {
+              const p = (time * .23 + (i * .11 + j * .07)) % 1;
+              const x = a.x + (b.x - a.x) * p;
+              const y = a.y + (b.y - a.y) * p;
+              ctx.beginPath(); ctx.arc(x, y, 1.8, 0, TAU);
+              ctx.fillStyle = same ? C.blue : C.coral;
+              glow(same ? C.blue : C.coral, 8); ctx.fill(); noGlow();
+            }
+          }
         }
       }
+      function drawAgents() {
+        for (const a of agents) {
+          const color = a.group === 0 ? C.blue : C.coral;
+          const pulse = 1 + Math.sin(time * 2 + a.phase) * .16;
+          ctx.beginPath(); ctx.arc(a.x, a.y, a.size * pulse + 3, 0, TAU);
+          ctx.strokeStyle = color; ctx.globalAlpha = .18; ctx.lineWidth = 1; ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.beginPath(); ctx.arc(a.x, a.y, a.size * pulse, 0, TAU);
+          ctx.fillStyle = color; glow(color, 12); ctx.fill(); noGlow();
+          ctx.beginPath(); ctx.arc(a.x - a.size * .25, a.y - a.size * .25, a.size * .25, 0, TAU);
+          ctx.fillStyle = C.ivory; ctx.fill();
+        }
+      }
+      function drawCentralHub(cx, cy, r) {
+        const pulse = 1 + Math.sin(time * 1.4) * .05;
+        ctx.save(); ctx.translate(cx, cy); ctx.scale(pulse, pulse);
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+        // Outer concentric rings
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath(); ctx.arc(0, 0, r * (1 + i * .27), 0, TAU);
+          ctx.strokeStyle = `rgba(37,35,68,${.23 - i * .045})`;
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash(i % 2 ? [5, 8] : []);
+          ctx.lineDashOffset = -time * 12 * (i + 1);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Hub body
+        const g = ctx.createRadialGradient(-r * .25, -r * .3, 2, 0, 0, r);
+        g.addColorStop(0, "#5D527E");
+        g.addColorStop(.6, C.plum);
+        g.addColorStop(1, C.navy);
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU);
+        ctx.fillStyle = g; ctx.fill();
+        ctx.strokeStyle = C.gold; ctx.lineWidth = 2;
+        glow(C.gold, 18); ctx.stroke(); noGlow();
+
+        // Network-like core
+        for (let i = 0; i < 8; i++) {
+          const a = i * TAU / 8 + time * .12;
+          const x = Math.cos(a) * r * .57, y = Math.sin(a) * r * .57;
+          line(0, 0, x, y, "rgba(255,230,138,.55)", 1.2);
+          ctx.beginPath(); ctx.arc(x, y, 3.5, 0, TAU);
+          ctx.fillStyle = i % 2 ? C.blue : C.coral;
+          glow(i % 2 ? C.blue : C.coral, 9); ctx.fill(); noGlow();
+        }
+        ctx.beginPath(); ctx.arc(0, 0, r * .19, 0, TAU);
+        ctx.fillStyle = C.ivory; glow(C.gold, 17); ctx.fill(); noGlow();
+        ctx.beginPath(); ctx.arc(0, 0, r * .1, 0, TAU);
+        ctx.fillStyle = C.gold; ctx.fill();
+        ctx.restore();
+      }
+      function drawInformationWaves(cx, cy, r) {
+        for (let i = 0; i < 4; i++) {
+          const p = (time * .17 + i * .25) % 1;
+          const radius = r * (1.6 + p * 1.8);
+          ctx.beginPath(); ctx.arc(cx, cy, radius, 0, TAU);
+          ctx.strokeStyle = `rgba(255,246,217,${(1 - p) * .22})`;
+          ctx.lineWidth = 1.2; ctx.stroke();
+        }
+      }
+      function drawParticles(dt) {
+        for (const p of particles) {
+          ctx.globalAlpha = .2 + .35 * (.5 + .5 * Math.sin(time + p.phase));
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU);
+          ctx.fillStyle = C.ivory; glow(C.ivory, 8); ctx.fill(); noGlow();
+          ctx.globalAlpha = 1;
+        }
+      }
+      function draw(dt) {
+        background();
+        const cx = w * .5, cy = h * .5;
+        const scale = Math.min(w / 1100, h / 750, 1.1);
+        const r = Math.min(43 * scale, 55);
+        drawCommunityHulls(0, "rgba(101,200,240,.8)");
+        drawCommunityHulls(1, "rgba(241,138,131,.8)");
+        drawInformationWaves(cx, cy, r);
+        drawConnections();
+        drawCentralHub(cx, cy, r);
+        drawAgents();
+        drawParticles(dt);
+      }
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function render(now) {
+        if (paused) return;
+        const dt = Math.min((now - last) / 1000, .05);
+        last = now; time += dt; update(dt); draw(dt);
+        if (!reduced) requestAnimationFrame(render);
+      }
+      function start() { if (paused) return; last = performance.now(); requestAnimationFrame(render) }
+      addEventListener("resize", resize);
+      addEventListener("message", e => {
+        if (e.data === "pause") paused = true;
+        if (e.data === "play" && paused) { paused = false; start() }
+      });
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden; if (!paused) start();
+      });
+      resize(); start();
     })();
   </script>
 </body>
+
 </html>

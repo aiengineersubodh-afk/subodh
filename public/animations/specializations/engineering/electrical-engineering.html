@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Electrical Engineering Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #0E0A05; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #76cc5e;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,70 +66,70 @@
         }
       });
 
-      
-    let phase = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let phase = 0;
 
-    function update(dt) {
-      phase += dt * 3.0;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const midY = h * 0.48;
+      function update(dt) {
+        phase += dt * 3.0;
+      }
 
-      // 3-Phase AC sinusoidal waveforms (V_A, V_B, V_C with 120deg offset)
-      const phases = [
-        { offset: 0, color: "#F59E0B", label: "Phase A" },
-        { offset: (Math.PI * 2) / 3, color: "#FDE047", label: "Phase B" },
-        { offset: (Math.PI * 4) / 3, color: "#EA580C", label: "Phase C" }
-      ];
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const midY = h * 0.48;
 
-      for (const p of phases) {
-        ctx.beginPath();
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = 1.8;
-        for (let x = 0; x < w; x += 4) {
-          const y = midY + Math.sin(x * 0.02 + phase + p.offset) * (h * 0.22);
-          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        // 3-Phase AC sinusoidal waveforms (V_A, V_B, V_C with 120deg offset)
+        const phases = [
+          { offset: 0, color: "#F59E0B", label: "Phase A" },
+          { offset: (Math.PI * 2) / 3, color: "#FDE047", label: "Phase B" },
+          { offset: (Math.PI * 4) / 3, color: "#EA580C", label: "Phase C" }
+        ];
+
+        for (const p of phases) {
+          ctx.beginPath();
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 1.8;
+          for (let x = 0; x < w; x += 4) {
+            const y = midY + Math.sin(x * 0.02 + phase + p.offset) * (h * 0.22);
+            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
         }
-        ctx.stroke();
-      }
 
-      // Rotating magnetic field lines in center (stator / rotor simulation)
-      const cx = w * 0.5;
-      const cy = h * 0.48;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(phase * 0.25);
-      for (let i = 0; i < 4; i++) {
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 75, 28, (Math.PI / 4) * i, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(245, 158, 11, 0.15)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      // High voltage spark arc occasionally flashing
-      if (Math.sin(phase * 2) > 0.85) {
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(253, 224, 71, 0.7)";
-        ctx.lineWidth = 1.5;
-        let arcX = w * 0.2;
-        let arcY = h * 0.2;
-        ctx.moveTo(arcX, arcY);
-        for (let i = 0; i < 6; i++) {
-          arcX += (w * 0.6) / 6;
-          arcY += (Math.random() - 0.5) * 25;
-          ctx.lineTo(arcX, arcY);
+        // Rotating magnetic field lines in center (stator / rotor simulation)
+        const cx = w * 0.5;
+        const cy = h * 0.48;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(phase * 0.25);
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 75, 28, (Math.PI / 4) * i, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(245, 158, 11, 0.15)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
         }
-        ctx.stroke();
+        ctx.restore();
+
+        // High voltage spark arc occasionally flashing
+        if (Math.sin(phase * 2) > 0.85) {
+          ctx.beginPath();
+          ctx.strokeStyle = "rgba(253, 224, 71, 0.7)";
+          ctx.lineWidth = 1.5;
+          let arcX = w * 0.2;
+          let arcY = h * 0.2;
+          ctx.moveTo(arcX, arcY);
+          for (let i = 0; i < 6; i++) {
+            arcX += (w * 0.6) / 6;
+            arcY += (Math.random() - 0.5) * 25;
+            ctx.lineTo(arcX, arcY);
+          }
+          ctx.stroke();
+        }
       }
-    }
-    
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -129,4 +148,5 @@
     })();
   </script>
 </body>
+
 </html>

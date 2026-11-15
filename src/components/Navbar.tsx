@@ -88,20 +88,28 @@ export function Navbar() {
             <span className="hidden sm:inline text-[#666666]">— {tagline}</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              href="/explore?tab=internships"
-              className="hover:text-[#2563EB] transition-colors font-medium"
-            >
-              Browse Open Internships
-            </Link>
-            <span className="text-[#E5E7EB]">|</span>
-            <Link
-              href="/admin/login"
-              className="hover:text-[#2563EB] transition-colors flex items-center gap-1"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" />
-              <span>Admin Portal</span>
-            </Link>
+            {session ? (
+              <>
+                <Link
+                  href="/explore?tab=internships"
+                  className="hover:text-[#2563EB] transition-colors font-medium"
+                >
+                  Browse Open Internships
+                </Link>
+                <span className="text-[#E5E7EB]">|</span>
+                <Link
+                  href="/admin/login"
+                  className="hover:text-[#2563EB] transition-colors flex items-center gap-1"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span>Admin Portal</span>
+                </Link>
+              </>
+            ) : (
+              <span className="text-xs text-[#666666] font-medium">
+                Academic Authentication Gateway
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -125,31 +133,38 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-7">
-            {navLinks.map((item) => {
-              const isActive =
-                item.href === "/"
-                  ? pathname === "/"
-                  : item.tab
-                  ? pathname.startsWith("/explore") && currentTab === item.tab
-                  : pathname.startsWith(item.href);
+          {session ? (
+            <nav className="hidden lg:flex items-center gap-7">
+              {navLinks.map((item) => {
+                const isActive =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : item.tab
+                    ? pathname.startsWith("/explore") && currentTab === item.tab
+                    : pathname.startsWith(item.href);
 
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => handleNavLinkClick(item.tab)}
-                  className={`text-sm font-medium transition-colors py-2 border-b-2 cursor-pointer ${
-                    isActive
-                      ? "border-[#2563EB] text-white font-semibold"
-                      : "border-transparent text-gray-300 hover:text-white"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => handleNavLinkClick(item.tab)}
+                    className={`text-sm font-medium transition-colors py-2 border-b-2 cursor-pointer ${
+                      isActive
+                        ? "border-[#2563EB] text-white font-semibold"
+                        : "border-transparent text-gray-300 hover:text-white"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          ) : (
+            <div className="hidden lg:flex items-center gap-2 text-xs text-gray-400">
+              <span className="w-2 h-2 rounded-full bg-[#F97316]" />
+              <span>Research Collaboration & Internship Platform</span>
+            </div>
+          )}
 
           {/* Right Auth / User Controls */}
           <div className="hidden lg:flex items-center gap-3">
@@ -267,15 +282,15 @@ export function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2.5 rounded-lg text-sm font-semibold text-white border border-white/20 hover:border-[#2563EB] hover:text-[#2563EB] transition-colors"
+                  className="px-4 py-2.5 rounded-lg text-xs font-bold text-white border border-white/20 hover:border-[#F97316] hover:text-[#F97316] transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-colors shadow-xs"
+                  className="px-5 py-2.5 rounded-lg text-xs font-bold bg-[#F97316] text-white hover:bg-[#EA580C] transition-colors shadow-xs"
                 >
-                  Register
+                  Create Account
                 </Link>
               </>
             )}
@@ -286,7 +301,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="p-2.5 rounded-lg border border-white/20 text-white hover:border-[#2563EB] transition-colors"
+              className="p-2.5 rounded-lg border border-white/20 text-white hover:border-[#F97316] transition-colors"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -298,31 +313,33 @@ export function Navbar() {
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#222326] border-b border-[#33353A] px-4 pt-3 pb-6 space-y-3">
-          <div className="space-y-1">
-            {navLinks.map((item) => {
-              const isActive =
-                item.href === "/"
-                  ? pathname === "/"
-                  : item.tab
-                  ? pathname.startsWith("/explore") && currentTab === item.tab
-                  : pathname.startsWith(item.href);
+          {session && (
+            <div className="space-y-1">
+              {navLinks.map((item) => {
+                const isActive =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : item.tab
+                    ? pathname.startsWith("/explore") && currentTab === item.tab
+                    : pathname.startsWith(item.href);
 
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => handleNavLinkClick(item.tab)}
-                  className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/10 text-white font-semibold border-l-2 border-[#2563EB]"
-                      : "text-white hover:bg-white/10"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => handleNavLinkClick(item.tab)}
+                    className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-white/10 text-white font-semibold border-l-2 border-[#2563EB]"
+                        : "text-white hover:bg-white/10"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
           <div className="pt-3 border-t border-[#33353A] flex flex-col gap-2">
             {session ? (
               <>
@@ -331,7 +348,7 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full py-2.5 px-4 rounded-lg bg-white/10 border border-white/15 text-white text-sm font-semibold text-center flex items-center justify-center gap-2"
                 >
-                  <User className="w-4 h-4 text-[#2563EB]" />
+                  <User className="w-4 h-4 text-[#F97316]" />
                   <span>Go to Dashboard ({session.user.full_name})</span>
                 </Link>
                 <button
@@ -350,16 +367,16 @@ export function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-2.5 px-4 rounded-lg border border-white/20 text-center text-sm font-semibold text-white hover:border-[#2563EB] hover:text-[#2563EB]"
+                  className="w-full py-2.5 px-4 rounded-lg border border-white/20 text-center text-xs font-bold text-white hover:border-[#F97316] hover:text-[#F97316]"
                 >
-                  Login
+                  Login to Your Account
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full py-2.5 px-4 rounded-lg bg-[#2563EB] text-center text-sm font-semibold text-white hover:bg-[#1D4ED8]"
+                  className="w-full py-2.5 px-4 rounded-lg bg-[#F97316] text-center text-xs font-bold text-white hover:bg-[#EA580C]"
                 >
-                  Register on STARSKY
+                  Create a New Account
                 </Link>
               </>
             )}

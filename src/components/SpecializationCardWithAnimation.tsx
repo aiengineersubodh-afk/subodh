@@ -63,6 +63,7 @@ export function SpecializationCardWithAnimation({
   return (
     <div
       ref={cardRef}
+      data-spec-id={spec.id}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

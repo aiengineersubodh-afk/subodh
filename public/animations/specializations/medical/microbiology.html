@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Microbiology Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #051310; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #451fb9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,84 +66,84 @@
         }
       });
 
-      
-    const bacteria = [];
 
-    function init(w, h) {
-      bacteria.length = 0;
-      for (let i = 0; i < 24; i++) {
-        bacteria.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 20,
-          vy: (Math.random() - 0.5) * 20,
-          len: 12 + Math.random() * 10,
-          angle: Math.random() * Math.PI * 2,
-          division: Math.random()
-        });
+      const bacteria = [];
+
+      function init(w, h) {
+        bacteria.length = 0;
+        for (let i = 0; i < 24; i++) {
+          bacteria.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 20,
+            vy: (Math.random() - 0.5) * 20,
+            len: 12 + Math.random() * 10,
+            angle: Math.random() * Math.PI * 2,
+            division: Math.random()
+          });
+        }
       }
-    }
 
-    function onResize(w, h) { init(w, h); }
+      function onResize(w, h) { init(w, h); }
 
-    function update(dt) {
-      for (const b of bacteria) {
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
-        b.angle += dt * 0.4;
-        b.division = (b.division + dt * 0.2) % 1;
-        if (b.x < 0) b.x = w; if (b.x > w) b.x = 0;
-        if (b.y < 0) b.y = h; if (b.y > h) b.y = 0;
+      function update(dt) {
+        for (const b of bacteria) {
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
+          b.angle += dt * 0.4;
+          b.division = (b.division + dt * 0.2) % 1;
+          if (b.x < 0) b.x = w; if (b.x > w) b.x = 0;
+          if (b.y < 0) b.y = h; if (b.y > h) b.y = 0;
+        }
       }
-    }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
 
-      // Darkfield microscope circular viewing aperture
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      const r = Math.min(w, h) * 0.44;
+        // Darkfield microscope circular viewing aperture
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+        const r = Math.min(w, h) * 0.44;
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(132, 204, 22, 0.3)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.clip();
-
-      // Bacilli bacteria rods with flagella
-      for (const b of bacteria) {
         ctx.save();
-        ctx.translate(b.x, b.y);
-        ctx.rotate(b.angle);
-
-        // Capsule rod
         ctx.beginPath();
-        const half = b.len * 0.5;
-        ctx.moveTo(-half, -4);
-        ctx.lineTo(half, -4);
-        ctx.arc(half, 0, 4, -Math.PI / 2, Math.PI / 2);
-        ctx.lineTo(-half, 4);
-        ctx.arc(-half, 0, 4, Math.PI / 2, -Math.PI / 2);
-        ctx.fillStyle = "rgba(132, 204, 22, 0.75)";
-        ctx.fill();
-
-        // Flagella tail
-        ctx.beginPath();
-        ctx.moveTo(-half, 0);
-        ctx.quadraticCurveTo(-half - 8, Math.sin(b.division * 10) * 6, -half - 18, 0);
-        ctx.strokeStyle = "rgba(34, 197, 94, 0.5)";
-        ctx.lineWidth = 1.2;
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(132, 204, 22, 0.3)";
+        ctx.lineWidth = 2;
         ctx.stroke();
+        ctx.clip();
+
+        // Bacilli bacteria rods with flagella
+        for (const b of bacteria) {
+          ctx.save();
+          ctx.translate(b.x, b.y);
+          ctx.rotate(b.angle);
+
+          // Capsule rod
+          ctx.beginPath();
+          const half = b.len * 0.5;
+          ctx.moveTo(-half, -4);
+          ctx.lineTo(half, -4);
+          ctx.arc(half, 0, 4, -Math.PI / 2, Math.PI / 2);
+          ctx.lineTo(-half, 4);
+          ctx.arc(-half, 0, 4, Math.PI / 2, -Math.PI / 2);
+          ctx.fillStyle = "rgba(132, 204, 22, 0.75)";
+          ctx.fill();
+
+          // Flagella tail
+          ctx.beginPath();
+          ctx.moveTo(-half, 0);
+          ctx.quadraticCurveTo(-half - 8, Math.sin(b.division * 10) * 6, -half - 18, 0);
+          ctx.strokeStyle = "rgba(34, 197, 94, 0.5)";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          ctx.restore();
+        }
 
         ctx.restore();
       }
 
-      ctx.restore();
-    }
-    
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -143,4 +162,5 @@
     })();
   </script>
 </body>
+
 </html>

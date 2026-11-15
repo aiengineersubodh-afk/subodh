@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Physics Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #07081A; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #469826;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,75 +66,75 @@
         }
       });
 
-      
-    let t = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let t = 0;
 
-    function update(dt) {
-      t += dt * 1.5;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Spacetime curvature grid depression in background
-      ctx.strokeStyle = "rgba(139, 92, 246, 0.08)";
-      ctx.lineWidth = 1;
-      for (let r = 20; r < 160; r += 25) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.stroke();
+      function update(dt) {
+        t += dt * 1.5;
       }
 
-      // Quantum Atomic Orbitals (3 elliptical electron shells)
-      const shells = [
-        { rx: 90, ry: 35, rot: 0, color: "#8B5CF6", speed: 2.2 },
-        { rx: 90, ry: 35, rot: Math.PI / 3, color: "#00F0FF", speed: 1.8 },
-        { rx: 90, ry: 35, rot: -Math.PI / 3, color: "#EC4899", speed: 2.5 }
-      ];
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const cx = w * 0.5;
+        const cy = h * 0.5;
 
-      for (const s of shells) {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(s.rot);
+        // Spacetime curvature grid depression in background
+        ctx.strokeStyle = "rgba(139, 92, 246, 0.08)";
+        ctx.lineWidth = 1;
+        for (let r = 20; r < 160; r += 25) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
 
-        // Orbital path
+        // Quantum Atomic Orbitals (3 elliptical electron shells)
+        const shells = [
+          { rx: 90, ry: 35, rot: 0, color: "#8B5CF6", speed: 2.2 },
+          { rx: 90, ry: 35, rot: Math.PI / 3, color: "#00F0FF", speed: 1.8 },
+          { rx: 90, ry: 35, rot: -Math.PI / 3, color: "#EC4899", speed: 2.5 }
+        ];
+
+        for (const s of shells) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(s.rot);
+
+          // Orbital path
+          ctx.beginPath();
+          ctx.ellipse(0, 0, s.rx, s.ry, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          // Orbiting quantum electron particle
+          const ea = t * s.speed;
+          const ex = Math.cos(ea) * s.rx;
+          const ey = Math.sin(ea) * s.ry;
+
+          ctx.beginPath();
+          ctx.arc(ex, ey, 4, 0, Math.PI * 2);
+          ctx.fillStyle = s.color;
+          ctx.shadowColor = s.color;
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          ctx.restore();
+        }
+
+        // Atomic Nucleus (protons & neutrons cluster)
         ctx.beginPath();
-        ctx.ellipse(0, 0, s.rx, s.ry, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-
-        // Orbiting quantum electron particle
-        const ea = t * s.speed;
-        const ex = Math.cos(ea) * s.rx;
-        const ey = Math.sin(ea) * s.ry;
-
-        ctx.beginPath();
-        ctx.arc(ex, ey, 4, 0, Math.PI * 2);
-        ctx.fillStyle = s.color;
-        ctx.shadowColor = s.color;
-        ctx.shadowBlur = 10;
+        ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+        ctx.fillStyle = "#FDE047";
+        ctx.shadowColor = "#FDE047";
+        ctx.shadowBlur = 12;
         ctx.fill();
         ctx.shadowBlur = 0;
-
-        ctx.restore();
       }
 
-      // Atomic Nucleus (protons & neutrons cluster)
-      ctx.beginPath();
-      ctx.arc(cx, cy, 10, 0, Math.PI * 2);
-      ctx.fillStyle = "#FDE047";
-      ctx.shadowColor = "#FDE047";
-      ctx.shadowBlur = 12;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-    
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -134,4 +153,5 @@
     })();
   </script>
 </body>
+
 </html>

@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Civil Engineering Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #0B1424; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #c4ccda;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,105 +66,105 @@
         }
       });
 
-      
-    let loadT = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let loadT = 0;
 
-    function update(dt) {
-      loadT += dt * 0.8;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Blueprint drafting grid
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.05)";
-      ctx.lineWidth = 1;
-      const gSize = 25;
-      for (let x = 0; x < w; x += gSize) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      }
-      for (let y = 0; y < h; y += gSize) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      function update(dt) {
+        loadT += dt * 0.8;
       }
 
-      // Pratt Truss Bridge Structural Framework
-      const bays = 6;
-      const bayW = (w * 0.8) / bays;
-      const startX = w * 0.1;
-      const botY = h * 0.65;
-      const topY = h * 0.35;
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
 
-      const topNodes = [];
-      const botNodes = [];
-
-      for (let i = 0; i <= bays; i++) {
-        botNodes.push({ x: startX + i * bayW, y: botY });
-        if (i > 0 && i < bays) {
-          topNodes.push({ x: startX + i * bayW, y: topY });
+        // Blueprint drafting grid
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.05)";
+        ctx.lineWidth = 1;
+        const gSize = 25;
+        for (let x = 0; x < w; x += gSize) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
         }
-      }
+        for (let y = 0; y < h; y += gSize) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
 
-      // Bottom chord
-      ctx.beginPath();
-      ctx.moveTo(botNodes[0].x, botNodes[0].y);
-      for (let i = 1; i < botNodes.length; i++) ctx.lineTo(botNodes[i].x, botNodes[i].y);
-      ctx.strokeStyle = "#38BDF8";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
+        // Pratt Truss Bridge Structural Framework
+        const bays = 6;
+        const bayW = (w * 0.8) / bays;
+        const startX = w * 0.1;
+        const botY = h * 0.65;
+        const topY = h * 0.35;
 
-      // Top chord
-      ctx.beginPath();
-      ctx.moveTo(topNodes[0].x, topNodes[0].y);
-      for (let i = 1; i < topNodes.length; i++) ctx.lineTo(topNodes[i].x, topNodes[i].y);
-      ctx.strokeStyle = "#38BDF8";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
+        const topNodes = [];
+        const botNodes = [];
 
-      // Diagonal and vertical truss members with FEA stress colors
-      for (let i = 0; i < topNodes.length; i++) {
-        const tn = topNodes[i];
-        const bn = botNodes[i + 1];
+        for (let i = 0; i <= bays; i++) {
+          botNodes.push({ x: startX + i * bayW, y: botY });
+          if (i > 0 && i < bays) {
+            topNodes.push({ x: startX + i * bayW, y: topY });
+          }
+        }
 
-        // Vertical member
+        // Bottom chord
         ctx.beginPath();
-        ctx.moveTo(tn.x, tn.y);
-        ctx.lineTo(bn.x, bn.y);
-        ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
-        ctx.lineWidth = 1.5;
+        ctx.moveTo(botNodes[0].x, botNodes[0].y);
+        for (let i = 1; i < botNodes.length; i++) ctx.lineTo(botNodes[i].x, botNodes[i].y);
+        ctx.strokeStyle = "#38BDF8";
+        ctx.lineWidth = 2.5;
         ctx.stroke();
 
-        // Diagonal member (tension: blue, compression: orange)
-        const isComp = (i + Math.floor(loadT)) % 2 === 0;
+        // Top chord
         ctx.beginPath();
-        ctx.moveTo(topNodes[i].x, topNodes[i].y);
-        ctx.lineTo(botNodes[i].x, botNodes[i].y);
-        ctx.strokeStyle = isComp ? "#F59E0B" : "#38BDF8";
-        ctx.lineWidth = 1.8;
+        ctx.moveTo(topNodes[0].x, topNodes[0].y);
+        for (let i = 1; i < topNodes.length; i++) ctx.lineTo(topNodes[i].x, topNodes[i].y);
+        ctx.strokeStyle = "#38BDF8";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Diagonal and vertical truss members with FEA stress colors
+        for (let i = 0; i < topNodes.length; i++) {
+          const tn = topNodes[i];
+          const bn = botNodes[i + 1];
+
+          // Vertical member
+          ctx.beginPath();
+          ctx.moveTo(tn.x, tn.y);
+          ctx.lineTo(bn.x, bn.y);
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Diagonal member (tension: blue, compression: orange)
+          const isComp = (i + Math.floor(loadT)) % 2 === 0;
+          ctx.beginPath();
+          ctx.moveTo(topNodes[i].x, topNodes[i].y);
+          ctx.lineTo(botNodes[i].x, botNodes[i].y);
+          ctx.strokeStyle = isComp ? "#F59E0B" : "#38BDF8";
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+        }
+
+        // Moving live vehicle load vector
+        const loadPos = (loadT % 1) * (w * 0.8) + startX;
+        ctx.beginPath();
+        ctx.moveTo(loadPos, botY - 25);
+        ctx.lineTo(loadPos, botY - 5);
+        ctx.strokeStyle = "#EF4444";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Load arrow tip
+        ctx.beginPath();
+        ctx.moveTo(loadPos - 4, botY - 12);
+        ctx.lineTo(loadPos, botY - 5);
+        ctx.lineTo(loadPos + 4, botY - 12);
+        ctx.strokeStyle = "#EF4444";
+        ctx.lineWidth = 2.5;
         ctx.stroke();
       }
 
-      // Moving live vehicle load vector
-      const loadPos = (loadT % 1) * (w * 0.8) + startX;
-      ctx.beginPath();
-      ctx.moveTo(loadPos, botY - 25);
-      ctx.lineTo(loadPos, botY - 5);
-      ctx.strokeStyle = "#EF4444";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      // Load arrow tip
-      ctx.beginPath();
-      ctx.moveTo(loadPos - 4, botY - 12);
-      ctx.lineTo(loadPos, botY - 5);
-      ctx.lineTo(loadPos + 4, botY - 12);
-      ctx.strokeStyle = "#EF4444";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-    }
-    
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -164,4 +183,5 @@
     })();
   </script>
 </body>
+
 </html>

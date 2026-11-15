@@ -1,120 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Computational Linguistics Animation</title>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #07111F; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #F3F6FC;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
+
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let w, h, dpr;
+      let time = 0;
+      let paused = false;
+      let lastTime = performance.now();
+
+      const reducedMotion =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const nodes = [];
+      const particles = [];
+
+      const colors = {
+        blue: "#2563EB",
+        cyan: "#0891B2",
+        purple: "#8B5CF6",
+        green: "#16A34A",
+        orange: "#EA580C",
+        dark: "#1E293B"
+      };
 
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
-      }
-      window.addEventListener('resize', resize);
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = window.innerWidth;
+        h = window.innerHeight;
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        init();
+        draw();
+      }
+
+      function init() {
+        nodes.length = 0;
+        particles.length = 0;
+
+        const cx = w * 0.5;
+        const cy = h * 0.49;
+
+        const sx = Math.min(w * 0.20, 190);
+        const sy = Math.min(h * 0.19, 125);
+
+        const layout = [
+          ["S", cx, cy - sy * 1.55, -1, colors.purple],
+          ["NP", cx - sx, cy - sy * 0.35, 0, colors.blue],
+          ["VP", cx + sx, cy - sy * 0.35, 0, colors.cyan],
+          ["Det", cx - sx * 1.35, cy + sy * 0.85, 1, colors.orange],
+          ["Noun", cx - sx * 0.65, cy + sy * 0.85, 1, colors.blue],
+          ["Verb", cx + sx * 0.55, cy + sy * 0.85, 2, colors.green],
+          ["NP", cx + sx * 1.35, cy + sy * 0.85, 2, colors.purple]
+        ];
+
+        layout.forEach((n, i) => {
+          nodes.push({
+            tag: n[0],
+            x: n[1],
+            y: n[2],
+            parent: n[3],
+            color: n[4],
+            phase: Math.random() * Math.PI * 2,
+            radius: i === 0 ? 23 : 19
+          });
+        });
+
+        for (let i = 0; i < 65; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            size: Math.random() * 2 + 0.5,
+            speed: Math.random() * 0.35 + 0.08,
+            alpha: Math.random() * 0.4 + 0.15
+          });
+        }
+      }
+
+      function drawBackground() {
+        ctx.fillStyle = "#F3F6FC";
+        ctx.fillRect(0, 0, w, h);
+
+        const gradient = ctx.createRadialGradient(
+          w * 0.5, h * 0.45, 20,
+          w * 0.5, h * 0.45, Math.max(w, h) * 0.7
+        );
+
+        gradient.addColorStop(0, "rgba(219,234,254,0.25)");
+        gradient.addColorStop(1, "rgba(243,246,252,0)");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = "rgba(37,99,235,0.10)";
+
+        for (let x = 20; x < w; x += 35) {
+          for (let y = 20; y < h; y += 35) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1, 0, Math.PI * 2);
+            ctx.fill();
           }
         }
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
-
-      
-    const tree = [];
-
-    function init(w, h) {
-      tree.length = 0;
-      // Syntactic Dependency Parse Tree (S -> NP, VP)
-      tree.push({ tag: "S", x: w * 0.5, y: h * 0.25 });
-      tree.push({ tag: "NP", x: w * 0.32, y: h * 0.5, p: 0 });
-      tree.push({ tag: "VP", x: w * 0.68, y: h * 0.5, p: 0 });
-      tree.push({ tag: "Det", x: w * 0.22, y: h * 0.75, p: 1 });
-      tree.push({ tag: "Noun", x: w * 0.42, y: h * 0.75, p: 1 });
-      tree.push({ tag: "Verb", x: w * 0.6, y: h * 0.75, p: 2 });
-      tree.push({ tag: "NP", x: w * 0.78, y: h * 0.75, p: 2 });
-    }
-
-    function onResize(w, h) { init(w, h); }
-    function update(dt) {}
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Syntax tree branches
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
-      ctx.lineWidth = 1.5;
-      for (let i = 1; i < tree.length; i++) {
-        const n = tree[i];
-        const p = tree[n.p];
-        ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        ctx.lineTo(n.x, n.y);
-        ctx.stroke();
       }
 
-      // Syntax nodes
-      ctx.font = "bold 11px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      function drawParticles(dt) {
+        particles.forEach(p => {
+          p.y -= p.speed * dt * 60;
 
-      for (const n of tree) {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, 14, 0, Math.PI * 2);
-        ctx.fillStyle = "#0F1E36";
-        ctx.fill();
-        ctx.strokeStyle = "#06B6D4";
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
+          if (p.y < -5) {
+            p.y = h + 5;
+            p.x = Math.random() * w;
+          }
 
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillText(n.tag, n.x, n.y);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(37,99,235,${p.alpha})`;
+          ctx.fill();
+        });
       }
-    }
-    
 
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
+      function drawConnections() {
+        nodes.forEach((n, i) => {
+          if (n.parent < 0) return;
+
+          const p = nodes[n.parent];
+
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+
+          ctx.bezierCurveTo(
+            p.x, (p.y + n.y) / 2,
+            n.x, (p.y + n.y) / 2,
+            n.x, n.y
+          );
+
+          ctx.strokeStyle = "rgba(37,99,235,0.28)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          const progress = (time * 0.00035 + i * 0.23) % 1;
+
+          const px = p.x + (n.x - p.x) * progress;
+          const py = p.y + (n.y - p.y) * progress;
+
+          ctx.beginPath();
+          ctx.arc(px, py, 3.2, 0, Math.PI * 2);
+
+          ctx.fillStyle = n.color;
+          ctx.shadowColor = n.color;
+          ctx.shadowBlur = 12;
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+        });
+      }
+
+      function drawNodes() {
+        nodes.forEach(n => {
+          const pulse = Math.sin(time * 0.002 + n.phase) * 2;
+          const r = n.radius + pulse;
+
+          // Outer glow
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, r + 8, 0, Math.PI * 2);
+          ctx.fillStyle = n.color + "12";
+          ctx.fill();
+
+          // Node
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = "#FFFFFF";
+
+          ctx.shadowColor = n.color;
+          ctx.shadowBlur = 16;
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+
+          ctx.strokeStyle = n.color;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          // No text inside nodes
+        });
+      }
+
+      function draw() {
+        drawBackground();
+        drawParticles(1);
+        drawConnections();
+        drawNodes();
+      }
+
+      function animate(now) {
+        if (paused) return;
+
+        const dt = Math.min(
+          (now - lastTime) / 1000,
+          0.05
+        );
+
         lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+        time += dt * 1000;
+
+        draw();
+
+        if (!reducedMotion) {
+          requestAnimationFrame(animate);
         }
       }
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+      function start() {
+        if (paused) return;
+
+        lastTime = performance.now();
+
+        if (!reducedMotion) {
+          requestAnimationFrame(animate);
+        } else {
+          draw();
+        }
+      }
+
+      // Pause and play support
+      window.addEventListener("message", e => {
+        if (e.data === "pause") {
+          paused = true;
+        }
+
+        if (e.data === "play" && paused) {
+          paused = false;
+          start();
+        }
+      });
+
+      // Pause when tab is hidden
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden;
+
+        if (!paused) {
+          start();
+        }
+      });
+
+      window.addEventListener("resize", resize);
+
+      resize();
+      start();
     })();
   </script>
 </body>
+
 </html>

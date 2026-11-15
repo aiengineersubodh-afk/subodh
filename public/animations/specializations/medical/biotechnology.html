@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Medical Biotechnology Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #11081C; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #b5b9a3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,67 +66,67 @@
         }
       });
 
-      
-    let t = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let t = 0;
 
-    function update(dt) {
-      t += dt * 1.5;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.48;
-
-      // CRISPR-Cas9 Endonuclease Molecular Scissor Mechanism
-      // Target DNA unwinding
-      ctx.beginPath();
-      ctx.strokeStyle = "#06B6D4";
-      ctx.lineWidth = 2.5;
-      for (let x = w * 0.15; x < w * 0.85; x += 5) {
-        // Strand 1
-        const bulge = Math.exp(-Math.pow(x - cx, 2) / 3000) * 22;
-        const y1 = cy - 14 - bulge + Math.sin(x * 0.05 + t) * 4;
-        if (x === w * 0.15) ctx.moveTo(x, y1); else ctx.lineTo(x, y1);
+      function update(dt) {
+        t += dt * 1.5;
       }
-      ctx.stroke();
 
-      ctx.beginPath();
-      ctx.strokeStyle = "#06B6D4";
-      ctx.lineWidth = 2.5;
-      for (let x = w * 0.15; x < w * 0.85; x += 5) {
-        // Strand 2
-        const bulge = Math.exp(-Math.pow(x - cx, 2) / 3000) * 22;
-        const y2 = cy + 14 + bulge - Math.sin(x * 0.05 + t) * 4;
-        if (x === w * 0.15) ctx.moveTo(x, y2); else ctx.lineTo(x, y2);
-      }
-      ctx.stroke();
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const cx = w * 0.5;
+        const cy = h * 0.48;
 
-      // Guide RNA (sgRNA) in magenta
-      ctx.beginPath();
-      ctx.strokeStyle = "#EC4899";
-      ctx.lineWidth = 2;
-      for (let x = cx - 40; x < cx + 40; x += 4) {
-        const y = cy - 6 + Math.sin(x * 0.1) * 3;
-        if (x === cx - 40) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      // Cas9 Endonuclease Cleavage Spark Flash
-      if (Math.sin(t * 3) > 0.6) {
+        // CRISPR-Cas9 Endonuclease Molecular Scissor Mechanism
+        // Target DNA unwinding
         ctx.beginPath();
-        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#FDE047";
-        ctx.shadowColor = "#FDE047";
-        ctx.shadowBlur = 15;
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#06B6D4";
+        ctx.lineWidth = 2.5;
+        for (let x = w * 0.15; x < w * 0.85; x += 5) {
+          // Strand 1
+          const bulge = Math.exp(-Math.pow(x - cx, 2) / 3000) * 22;
+          const y1 = cy - 14 - bulge + Math.sin(x * 0.05 + t) * 4;
+          if (x === w * 0.15) ctx.moveTo(x, y1); else ctx.lineTo(x, y1);
+        }
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = "#06B6D4";
+        ctx.lineWidth = 2.5;
+        for (let x = w * 0.15; x < w * 0.85; x += 5) {
+          // Strand 2
+          const bulge = Math.exp(-Math.pow(x - cx, 2) / 3000) * 22;
+          const y2 = cy + 14 + bulge - Math.sin(x * 0.05 + t) * 4;
+          if (x === w * 0.15) ctx.moveTo(x, y2); else ctx.lineTo(x, y2);
+        }
+        ctx.stroke();
+
+        // Guide RNA (sgRNA) in magenta
+        ctx.beginPath();
+        ctx.strokeStyle = "#EC4899";
+        ctx.lineWidth = 2;
+        for (let x = cx - 40; x < cx + 40; x += 4) {
+          const y = cy - 6 + Math.sin(x * 0.1) * 3;
+          if (x === cx - 40) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Cas9 Endonuclease Cleavage Spark Flash
+        if (Math.sin(t * 3) > 0.6) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+          ctx.fillStyle = "#FDE047";
+          ctx.shadowColor = "#FDE047";
+          ctx.shadowBlur = 15;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
       }
-    }
-    
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -126,4 +145,5 @@
     })();
   </script>
 </body>
+
 </html>

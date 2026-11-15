@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Artificial Intelligence and Machine Learning Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #0B0817; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: rgb(197, 191, 18);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,143 +66,143 @@
         }
       });
 
-      
-    const layers = [4, 6, 6, 3];
-    const nodes = [];
-    const signals = [];
-    let spawnTimer = 0;
 
-    function init(w, h) {
-      nodes.length = 0;
-      signals.length = 0;
-      const layerSpacing = (w * 0.75) / (layers.length - 1);
-      const startX = w * 0.125;
+      const layers = [4, 6, 6, 3];
+      const nodes = [];
+      const signals = [];
+      let spawnTimer = 0;
 
-      for (let l = 0; l < layers.length; l++) {
-        const count = layers[l];
-        const colNodes = [];
-        const ySpacing = (h * 0.7) / (count + 1);
-        for (let i = 0; i < count; i++) {
-          colNodes.push({
-            x: startX + l * layerSpacing,
-            y: h * 0.15 + (i + 1) * ySpacing,
-            layer: l,
-            idx: i,
-            activation: 0.3 + Math.random() * 0.7,
-            pulse: 0
+      function init(w, h) {
+        nodes.length = 0;
+        signals.length = 0;
+        const layerSpacing = (w * 0.75) / (layers.length - 1);
+        const startX = w * 0.125;
+
+        for (let l = 0; l < layers.length; l++) {
+          const count = layers[l];
+          const colNodes = [];
+          const ySpacing = (h * 0.7) / (count + 1);
+          for (let i = 0; i < count; i++) {
+            colNodes.push({
+              x: startX + l * layerSpacing,
+              y: h * 0.15 + (i + 1) * ySpacing,
+              layer: l,
+              idx: i,
+              activation: 0.3 + Math.random() * 0.7,
+              pulse: 0
+            });
+          }
+          nodes.push(colNodes);
+        }
+      }
+
+      function onResize(w, h) { init(w, h); }
+
+      function update(dt) {
+        spawnTimer += dt;
+        if (spawnTimer > 0.4) {
+          spawnTimer = 0;
+          // Spawn forward propagating signal from layer 0 to layer 1
+          const srcCol = 0;
+          const srcNode = Math.floor(Math.random() * nodes[srcCol].length);
+          const dstNode = Math.floor(Math.random() * nodes[srcCol + 1].length);
+          signals.push({
+            srcL: 0,
+            srcI: srcNode,
+            dstL: 1,
+            dstI: dstNode,
+            t: 0,
+            speed: 1.4
           });
         }
-        nodes.push(colNodes);
-      }
-    }
 
-    function onResize(w, h) { init(w, h); }
-
-    function update(dt) {
-      spawnTimer += dt;
-      if (spawnTimer > 0.4) {
-        spawnTimer = 0;
-        // Spawn forward propagating signal from layer 0 to layer 1
-        const srcCol = 0;
-        const srcNode = Math.floor(Math.random() * nodes[srcCol].length);
-        const dstNode = Math.floor(Math.random() * nodes[srcCol + 1].length);
-        signals.push({
-          srcL: 0,
-          srcI: srcNode,
-          dstL: 1,
-          dstI: dstNode,
-          t: 0,
-          speed: 1.4
-        });
-      }
-
-      for (let i = signals.length - 1; i >= 0; i--) {
-        const s = signals[i];
-        s.t += s.speed * dt;
-        if (s.t >= 1) {
-          // Trigger next layer propagation
-          const nextLayer = s.dstL + 1;
-          if (nextLayer < layers.length && nodes[nextLayer]) {
-            const nextDst = Math.floor(Math.random() * nodes[nextLayer].length);
-            signals.push({
-              srcL: s.dstL,
-              srcI: s.dstI,
-              dstL: nextLayer,
-              dstI: nextDst,
-              t: 0,
-              speed: 1.6
-            });
-            nodes[s.dstL][s.dstI].pulse = 1.0;
+        for (let i = signals.length - 1; i >= 0; i--) {
+          const s = signals[i];
+          s.t += s.speed * dt;
+          if (s.t >= 1) {
+            // Trigger next layer propagation
+            const nextLayer = s.dstL + 1;
+            if (nextLayer < layers.length && nodes[nextLayer]) {
+              const nextDst = Math.floor(Math.random() * nodes[nextLayer].length);
+              signals.push({
+                srcL: s.dstL,
+                srcI: s.dstI,
+                dstL: nextLayer,
+                dstI: nextDst,
+                t: 0,
+                speed: 1.6
+              });
+              nodes[s.dstL][s.dstI].pulse = 1.0;
+            }
+            signals.splice(i, 1);
           }
-          signals.splice(i, 1);
         }
-      }
 
-      for (const col of nodes) {
-        for (const n of col) {
-          if (n.pulse > 0) n.pulse = Math.max(0, n.pulse - dt * 2.5);
-        }
-      }
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Decision boundary background curves
-      ctx.strokeStyle = "rgba(139, 92, 246, 0.08)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      for (let x = 0; x < w; x += 10) {
-        const y = h * 0.5 + Math.sin(x * 0.015) * 50 + Math.cos(x * 0.008) * 30;
-        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      // Synaptic weights / connections
-      for (let l = 0; l < nodes.length - 1; l++) {
-        const colA = nodes[l];
-        const colB = nodes[l + 1];
-        for (const a of colA) {
-          for (const b of colB) {
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = "rgba(139, 92, 246, 0.12)";
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
+        for (const col of nodes) {
+          for (const n of col) {
+            if (n.pulse > 0) n.pulse = Math.max(0, n.pulse - dt * 2.5);
           }
         }
       }
 
-      // Synaptic signals
-      for (const s of signals) {
-        const p1 = nodes[s.srcL][s.srcI];
-        const p2 = nodes[s.dstL][s.dstI];
-        const sx = p1.x + (p2.x - p1.x) * s.t;
-        const sy = p1.y + (p2.y - p1.y) * s.t;
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Decision boundary background curves
+        ctx.strokeStyle = "rgba(139, 92, 246, 0.08)";
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(sx, sy, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "#EC4899";
-        ctx.shadowColor = "#EC4899";
-        ctx.shadowBlur = 8;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
+        for (let x = 0; x < w; x += 10) {
+          const y = h * 0.5 + Math.sin(x * 0.015) * 50 + Math.cos(x * 0.008) * 30;
+          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
 
-      // Neural nodes
-      for (const col of nodes) {
-        for (const n of col) {
+        // Synaptic weights / connections
+        for (let l = 0; l < nodes.length - 1; l++) {
+          const colA = nodes[l];
+          const colB = nodes[l + 1];
+          for (const a of colA) {
+            for (const b of colB) {
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.strokeStyle = "rgba(139, 92, 246, 0.12)";
+              ctx.lineWidth = 0.8;
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Synaptic signals
+        for (const s of signals) {
+          const p1 = nodes[s.srcL][s.srcI];
+          const p2 = nodes[s.dstL][s.dstI];
+          const sx = p1.x + (p2.x - p1.x) * s.t;
+          const sy = p1.y + (p2.y - p1.y) * s.t;
           ctx.beginPath();
-          ctx.arc(n.x, n.y, 5 + n.pulse * 4, 0, Math.PI * 2);
-          ctx.fillStyle = n.pulse > 0.1 ? "#00F0FF" : "rgba(139, 92, 246, 0.85)";
-          ctx.shadowColor = n.pulse > 0.1 ? "#00F0FF" : "transparent";
-          ctx.shadowBlur = n.pulse * 15;
+          ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+          ctx.fillStyle = "#EC4899";
+          ctx.shadowColor = "#EC4899";
+          ctx.shadowBlur = 8;
           ctx.fill();
           ctx.shadowBlur = 0;
         }
+
+        // Neural nodes
+        for (const col of nodes) {
+          for (const n of col) {
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, 5 + n.pulse * 4, 0, Math.PI * 2);
+            ctx.fillStyle = n.pulse > 0.1 ? "#00F0FF" : "rgba(139, 92, 246, 0.85)";
+            ctx.shadowColor = n.pulse > 0.1 ? "#00F0FF" : "transparent";
+            ctx.shadowBlur = n.pulse * 15;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
       }
-    }
-    
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -202,4 +221,5 @@
     })();
   </script>
 </body>
+
 </html>

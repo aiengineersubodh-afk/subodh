@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Soil and Water Engineering Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #120D08; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f4dbc6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,56 +66,56 @@
         }
       });
 
-      
-    let dropT = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let dropT = 0;
 
-    function update(dt) {
-      dropT = (dropT + dt * 0.8) % 1;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Soil vertical geological strata layers (Clay, Loam, Sand)
-      const layers = [
-        { y: h * 0.35, color: "rgba(180, 83, 9, 0.25)", label: "Topsoil / Loam" },
-        { y: h * 0.55, color: "rgba(146, 64, 14, 0.35)", label: "Clay Subsoil" },
-        { y: h * 0.75, color: "rgba(120, 53, 15, 0.45)", label: "Bedrock Strata" }
-      ];
-
-      for (let i = 0; i < layers.length; i++) {
-        const l = layers[i];
-        ctx.fillStyle = l.color;
-        ctx.fillRect(0, l.y, w, h - l.y);
-
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(0, l.y); ctx.lineTo(w, l.y); ctx.stroke();
+      function update(dt) {
+        dropT = (dropT + dt * 0.8) % 1;
       }
 
-      // Subsurface drip irrigation moisture bulb percolation
-      const bulbX = w * 0.5;
-      const emitterY = h * 0.35;
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
 
-      for (let r = 15; r <= 65; r += 16) {
+        // Soil vertical geological strata layers (Clay, Loam, Sand)
+        const layers = [
+          { y: h * 0.35, color: "rgba(180, 83, 9, 0.25)", label: "Topsoil / Loam" },
+          { y: h * 0.55, color: "rgba(146, 64, 14, 0.35)", label: "Clay Subsoil" },
+          { y: h * 0.75, color: "rgba(120, 53, 15, 0.45)", label: "Bedrock Strata" }
+        ];
+
+        for (let i = 0; i < layers.length; i++) {
+          const l = layers[i];
+          ctx.fillStyle = l.color;
+          ctx.fillRect(0, l.y, w, h - l.y);
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(0, l.y); ctx.lineTo(w, l.y); ctx.stroke();
+        }
+
+        // Subsurface drip irrigation moisture bulb percolation
+        const bulbX = w * 0.5;
+        const emitterY = h * 0.35;
+
+        for (let r = 15; r <= 65; r += 16) {
+          ctx.beginPath();
+          ctx.ellipse(bulbX, emitterY + r * 0.6, r, r * 0.7, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(6, 182, 212, " + (0.8 - r / 80) + ")";
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+        }
+
+        // Moving water percolation droplet
+        const curY = emitterY + dropT * 60;
         ctx.beginPath();
-        ctx.ellipse(bulbX, emitterY + r * 0.6, r, r * 0.7, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(6, 182, 212, " + (0.8 - r / 80) + ")";
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
+        ctx.arc(bulbX, curY, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#38BDF8";
+        ctx.fill();
       }
 
-      // Moving water percolation droplet
-      const curY = emitterY + dropT * 60;
-      ctx.beginPath();
-      ctx.arc(bulbX, curY, 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = "#38BDF8";
-      ctx.fill();
-    }
-    
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -115,4 +134,5 @@
     })();
   </script>
 </body>
+
 </html>

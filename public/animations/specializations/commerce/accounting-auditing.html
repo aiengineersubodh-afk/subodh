@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accounting and Auditing Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #0A0F17; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #2f6f38;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,63 +66,63 @@
         }
       });
 
-      
-    let balanceT = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let balanceT = 0;
 
-    function update(dt) {
-      balanceT += dt * 1.2;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.45;
+      function update(dt) {
+        balanceT += dt * 1.2;
+      }
 
-      // Balancing Golden Scales of Double-Entry Bookkeeping (Debit vs Credit)
-      // Fulcrum Stand
-      ctx.strokeStyle = "#94A3B8";
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 25); ctx.lineTo(cx, cy + 50);
-      ctx.moveTo(cx - 30, cy + 50); ctx.lineTo(cx + 30, cy + 50);
-      ctx.stroke();
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const cx = w * 0.5;
+        const cy = h * 0.45;
 
-      // Lever Beam oscillating slightly in equilibrium
-      const tilt = Math.sin(balanceT) * 0.08;
-      const beamL = 75;
-      const leftX = cx - Math.cos(tilt) * beamL;
-      const leftY = cy - 25 - Math.sin(tilt) * beamL;
-      const rightX = cx + Math.cos(tilt) * beamL;
-      const rightY = cy - 25 + Math.sin(tilt) * beamL;
+        // Balancing Golden Scales of Double-Entry Bookkeeping (Debit vs Credit)
+        // Fulcrum Stand
+        ctx.strokeStyle = "#94A3B8";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 25); ctx.lineTo(cx, cy + 50);
+        ctx.moveTo(cx - 30, cy + 50); ctx.lineTo(cx + 30, cy + 50);
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(leftX, leftY);
-      ctx.lineTo(rightX, rightY);
-      ctx.strokeStyle = "#EAB308";
-      ctx.lineWidth = 3;
-      ctx.stroke();
+        // Lever Beam oscillating slightly in equilibrium
+        const tilt = Math.sin(balanceT) * 0.08;
+        const beamL = 75;
+        const leftX = cx - Math.cos(tilt) * beamL;
+        const leftY = cy - 25 - Math.sin(tilt) * beamL;
+        const rightX = cx + Math.cos(tilt) * beamL;
+        const rightY = cy - 25 + Math.sin(tilt) * beamL;
 
-      // Scale Pans
-      ctx.strokeStyle = "rgba(234, 179, 8, 0.6)";
-      ctx.lineWidth = 1.5;
-      // Left Pan (Debit)
-      ctx.beginPath();
-      ctx.moveTo(leftX, leftY); ctx.lineTo(leftX - 15, leftY + 30);
-      ctx.moveTo(leftX, leftY); ctx.lineTo(leftX + 15, leftY + 30);
-      ctx.moveTo(leftX - 20, leftY + 30); ctx.lineTo(leftX + 20, leftY + 30);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(leftX, leftY);
+        ctx.lineTo(rightX, rightY);
+        ctx.strokeStyle = "#EAB308";
+        ctx.lineWidth = 3;
+        ctx.stroke();
 
-      // Right Pan (Credit)
-      ctx.beginPath();
-      ctx.moveTo(rightX, rightY); ctx.lineTo(rightX - 15, rightY + 30);
-      ctx.moveTo(rightX, rightY); ctx.lineTo(rightX + 15, rightY + 30);
-      ctx.moveTo(rightX - 20, rightY + 30); ctx.lineTo(rightX + 20, rightY + 30);
-      ctx.stroke();
-    }
-    
+        // Scale Pans
+        ctx.strokeStyle = "rgba(234, 179, 8, 0.6)";
+        ctx.lineWidth = 1.5;
+        // Left Pan (Debit)
+        ctx.beginPath();
+        ctx.moveTo(leftX, leftY); ctx.lineTo(leftX - 15, leftY + 30);
+        ctx.moveTo(leftX, leftY); ctx.lineTo(leftX + 15, leftY + 30);
+        ctx.moveTo(leftX - 20, leftY + 30); ctx.lineTo(leftX + 20, leftY + 30);
+        ctx.stroke();
+
+        // Right Pan (Credit)
+        ctx.beginPath();
+        ctx.moveTo(rightX, rightY); ctx.lineTo(rightX - 15, rightY + 30);
+        ctx.moveTo(rightX, rightY); ctx.lineTo(rightX + 15, rightY + 30);
+        ctx.moveTo(rightX - 20, rightY + 30); ctx.lineTo(rightX + 20, rightY + 30);
+        ctx.stroke();
+      }
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -122,4 +141,5 @@
     })();
   </script>
 </body>
+
 </html>

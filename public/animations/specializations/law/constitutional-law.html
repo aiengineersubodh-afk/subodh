@@ -1,111 +1,514 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Constitutional Law Animation</title>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #0B0E17; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #F4F1E9;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
+
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let w, h, dpr;
+      let time = 0;
+      let paused = false;
+      let lastTime = performance.now();
+
+      const reducedMotion =
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const gold = "#C49A42";
+      const darkGold = "#96702F";
+      const navy = "#334155";
+      const stone = "#A8A29E";
+      const particles = [];
 
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
-      }
-      window.addEventListener('resize', resize);
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = window.innerWidth;
+        h = window.innerHeight;
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        init();
+        draw();
+      }
+
+      function init() {
+        particles.length = 0;
+
+        for (let i = 0; i < 90; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            radius: Math.random() * 2 + 0.5,
+            speed: Math.random() * 0.35 + 0.08,
+            alpha: Math.random() * 0.3 + 0.08,
+            drift: Math.random() * 0.4 - 0.2
+          });
+        }
+      }
+
+      function drawBackground() {
+        ctx.fillStyle = "#F4F1E9";
+        ctx.fillRect(0, 0, w, h);
+
+        const gradient = ctx.createRadialGradient(
+          w / 2, h / 2, 20,
+          w / 2, h / 2, Math.max(w, h) * 0.65
+        );
+
+        gradient.addColorStop(0, "rgba(212,175,105,0.18)");
+        gradient.addColorStop(0.6, "rgba(226,218,199,0.10)");
+        gradient.addColorStop(1, "rgba(244,241,233,0)");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle architectural grid
+        ctx.strokeStyle = "rgba(150,112,47,0.055)";
+        ctx.lineWidth = 1;
+
+        for (let x = 0; x < w; x += 45) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+
+        for (let y = 0; y < h; y += 45) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+      }
+
+      function drawParticles(dt) {
+        particles.forEach(p => {
+          p.y -= p.speed * dt * 60;
+          p.x += p.drift * dt * 20;
+
+          if (p.y < -5) {
+            p.y = h + 5;
+            p.x = Math.random() * w;
           }
-        }
-      });
 
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
+          if (p.x < -5) p.x = w + 5;
+          if (p.x > w + 5) p.x = -5;
 
-      
-    let t = 0;
-
-    function init(w, h) {}
-    function onResize(w, h) {}
-
-    function update(dt) {
-      t += dt * 1.0;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.45;
-
-      // Greco-Roman Constitutional Portico Pillars (Tripartite Separation of Powers)
-      ctx.strokeStyle = "#94A3B8";
-      ctx.lineWidth = 1.8;
-
-      // Pediment Triangle
-      ctx.beginPath();
-      ctx.moveTo(cx - 70, cy - 25);
-      ctx.lineTo(cx, cy - 60);
-      ctx.lineTo(cx + 70, cy - 25);
-      ctx.closePath();
-      ctx.stroke();
-
-      // 3 Constitutional Pillars (Legislative, Executive, Judicial)
-      const pillars = [cx - 50, cx, cx + 50];
-      for (const px of pillars) {
-        ctx.strokeRect(px - 6, cy - 20, 12, 60);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(150,112,47,${p.alpha})`;
+          ctx.fill();
+        });
       }
 
-      // Base Stylobate
-      ctx.strokeRect(cx - 75, cy + 40, 150, 10);
+      function drawGlow(cx, cy) {
+        const glow = ctx.createRadialGradient(
+          cx, cy, 15,
+          cx, cy, 230
+        );
 
-      // Scales of Justice balanced at top apex
-      ctx.beginPath();
-      ctx.arc(cx, cy - 40, 6, 0, Math.PI * 2);
-      ctx.fillStyle = "#EAB308";
-      ctx.fill();
-    }
-    
+        glow.addColorStop(0, "rgba(196,154,66,0.13)");
+        glow.addColorStop(0.5, "rgba(196,154,66,0.05)");
+        glow.addColorStop(1, "rgba(196,154,66,0)");
 
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        ctx.fillStyle = glow;
+        ctx.fillRect(cx - 230, cy - 230, 460, 460);
+      }
+
+      function drawArchitecture(cx, cy, scale) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(scale, scale);
+
+        // Building shadow
+        ctx.fillStyle = "rgba(51,65,85,0.07)";
+        ctx.fillRect(-150, 115, 300, 15);
+
+        // Pediment
+        ctx.beginPath();
+        ctx.moveTo(-155, -80);
+        ctx.lineTo(0, -165);
+        ctx.lineTo(155, -80);
+        ctx.closePath();
+
+        const roofGradient = ctx.createLinearGradient(
+          0, -165, 0, -80
+        );
+
+        roofGradient.addColorStop(0, "#D8C6A0");
+        roofGradient.addColorStop(1, "#B8A47C");
+
+        ctx.fillStyle = roofGradient;
+        ctx.fill();
+
+        ctx.strokeStyle = darkGold;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Decorative inner pediment
+        ctx.beginPath();
+        ctx.moveTo(-112, -87);
+        ctx.lineTo(0, -145);
+        ctx.lineTo(112, -87);
+        ctx.strokeStyle = "rgba(150,112,47,0.45)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Entablature
+        ctx.fillStyle = "#D6C8AC";
+        ctx.fillRect(-160, -82, 320, 15);
+
+        ctx.strokeStyle = darkGold;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(-160, -82, 320, 15);
+
+        ctx.fillStyle = "#B8A47C";
+        ctx.fillRect(-165, -67, 330, 7);
+
+        // Three columns
+        const positions = [-105, -35, 35, 105];
+
+        positions.forEach((x, i) => {
+          // Capital
+          ctx.fillStyle = "#C8B99C";
+          ctx.fillRect(x - 17, -60, 34, 9);
+
+          ctx.fillStyle = "#E0D4BC";
+          ctx.fillRect(x - 13, -51, 26, 108);
+
+          // Column grooves
+          for (let j = 0; j < 4; j++) {
+            ctx.beginPath();
+            ctx.moveTo(x - 8 + j * 6, -46);
+            ctx.lineTo(x - 8 + j * 6, 52);
+            ctx.strokeStyle = "rgba(150,112,47,0.24)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+
+          // Base
+          ctx.fillStyle = "#B8A47C";
+          ctx.fillRect(x - 17, 57, 34, 8);
+          ctx.fillStyle = "#D6C8AC";
+          ctx.fillRect(x - 21, 65, 42, 6);
+        });
+
+        // Main platform
+        ctx.fillStyle = "#B8A47C";
+        ctx.fillRect(-175, 72, 350, 10);
+
+        ctx.fillStyle = "#D6C8AC";
+        ctx.fillRect(-185, 82, 370, 9);
+
+        ctx.fillStyle = "#A89169";
+        ctx.fillRect(-195, 91, 390, 10);
+
+        ctx.fillStyle = "#D6C8AC";
+        ctx.fillRect(-205, 101, 410, 12);
+
+        ctx.restore();
+      }
+
+      function drawScales(cx, cy) {
+        ctx.save();
+        ctx.translate(cx, cy - 175);
+
+        const sway = Math.sin(time * 0.0015) * 0.045;
+
+        ctx.rotate(sway);
+
+        // Central support
+        ctx.beginPath();
+        ctx.moveTo(0, -35);
+        ctx.lineTo(0, 34);
+        ctx.strokeStyle = darkGold;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Top ornament
+        ctx.beginPath();
+        ctx.arc(0, -39, 7, 0, Math.PI * 2);
+        ctx.fillStyle = gold;
+        ctx.fill();
+
+        // Balance beam
+        ctx.beginPath();
+        ctx.moveTo(-57, -25);
+        ctx.lineTo(57, -25);
+        ctx.strokeStyle = gold;
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+
+        // Center joint
+        ctx.beginPath();
+        ctx.arc(0, -25, 5, 0, Math.PI * 2);
+        ctx.fillStyle = darkGold;
+        ctx.fill();
+
+        // Two pans
+        [-1, 1].forEach(side => {
+          const x = side * 48;
+          const angle = side * sway * 1.8;
+
+          ctx.save();
+          ctx.translate(x, -24);
+          ctx.rotate(angle);
+
+          // Suspension lines
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-15, 26);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(15, 26);
+          ctx.strokeStyle = darkGold;
+          ctx.lineWidth = 1.7;
+          ctx.stroke();
+
+          // Pan
+          ctx.beginPath();
+          ctx.moveTo(-19, 26);
+          ctx.quadraticCurveTo(0, 42, 19, 26);
+          ctx.strokeStyle = gold;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.restore();
+        });
+
+        // Base
+        ctx.beginPath();
+        ctx.moveTo(-17, 35);
+        ctx.lineTo(17, 35);
+        ctx.lineTo(0, 22);
+        ctx.closePath();
+        ctx.fillStyle = gold;
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawLawRings(cx, cy) {
+        // Outer rotating rings
+        for (let i = 0; i < 3; i++) {
+          const radius = 215 + i * 19;
+          const rotation = time * 0.00012 * (i % 2 === 0 ? 1 : -1);
+
+          ctx.beginPath();
+          ctx.ellipse(
+            cx, cy,
+            radius,
+            radius * 0.56,
+            rotation,
+            0,
+            Math.PI * 2
+          );
+
+          ctx.strokeStyle = i === 1
+            ? "rgba(196,154,66,0.18)"
+            : "rgba(51,65,85,0.10)";
+
+          ctx.lineWidth = 1.4;
+          ctx.setLineDash(i === 1 ? [5, 9] : []);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Moving orbit point
+          const a = time * 0.0004 * (i % 2 === 0 ? 1 : -1);
+          const x = cx + Math.cos(a) * radius;
+          const y = cy + Math.sin(a) * radius * 0.56;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = gold;
+          ctx.shadowColor = gold;
+          ctx.shadowBlur = 12;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      function drawConstitutionalEmblem(cx, cy) {
+        ctx.save();
+        ctx.translate(cx, cy + 145);
+
+        const pulse = Math.sin(time * 0.002) * 2;
+
+        // Emblem glow
+        ctx.beginPath();
+        ctx.arc(0, 0, 35 + pulse, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(196,154,66,0.10)";
+        ctx.fill();
+
+        // Shield
+        ctx.beginPath();
+        ctx.moveTo(0, -25);
+        ctx.lineTo(24, -16);
+        ctx.lineTo(21, 10);
+        ctx.quadraticCurveTo(15, 29, 0, 37);
+        ctx.quadraticCurveTo(-15, 29, -21, 10);
+        ctx.lineTo(-24, -16);
+        ctx.closePath();
+
+        ctx.fillStyle = "rgba(51,65,85,0.10)";
+        ctx.fill();
+
+        ctx.strokeStyle = gold;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Balance symbol inside shield
+        ctx.beginPath();
+        ctx.moveTo(0, -12);
+        ctx.lineTo(0, 15);
+        ctx.moveTo(-12, -6);
+        ctx.lineTo(12, -6);
+        ctx.strokeStyle = darkGold;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        [-9, 9].forEach(x => {
+          ctx.beginPath();
+          ctx.arc(x, 1, 6, 0, Math.PI);
+          ctx.stroke();
+        });
+
+        ctx.restore();
+      }
+
+      function drawEnergyParticles(cx, cy) {
+        for (let i = 0; i < 16; i++) {
+          const angle = time * 0.00025 + i * Math.PI / 8;
+          const radius = 125 + Math.sin(time * 0.001 + i) * 12;
+
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius * 0.7;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+
+          ctx.fillStyle = i % 2 === 0 ? gold : navy;
+          ctx.globalAlpha = 0.65;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      function draw() {
+        drawBackground();
+
+        const cx = w / 2;
+        const cy = h * 0.53;
+
+        const scale = Math.min(
+          1,
+          w / 650,
+          h / 600
+        );
+
+        drawGlow(cx, cy);
+        drawParticles(1);
+        drawLawRings(cx, cy);
+        drawEnergyParticles(cx, cy);
+
+        drawArchitecture(cx, cy, scale);
+        drawScales(cx, cy, scale);
+        drawConstitutionalEmblem(cx, cy);
+      }
+
+      function animate(now) {
+        if (paused) return;
+
+        const dt = Math.min(
+          (now - lastTime) / 1000,
+          0.05
+        );
+
         lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+        time += dt * 1000;
+
+        draw();
+
+        if (!reducedMotion) {
+          requestAnimationFrame(animate);
         }
       }
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+      function start() {
+        if (paused) return;
+
+        lastTime = performance.now();
+
+        if (!reducedMotion) {
+          requestAnimationFrame(animate);
+        } else {
+          draw();
+        }
+      }
+
+      // Pause and play support
+      window.addEventListener("message", e => {
+        if (e.data === "pause") {
+          paused = true;
+        }
+
+        if (e.data === "play" && paused) {
+          paused = false;
+          start();
+        }
+      });
+
+      // Pause when page is hidden
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden;
+
+        if (!paused) {
+          start();
+        }
+      });
+
+      window.addEventListener("resize", resize);
+
+      resize();
+      start();
     })();
   </script>
 </body>
+
 </html>

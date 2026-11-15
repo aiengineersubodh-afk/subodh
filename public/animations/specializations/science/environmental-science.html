@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Environmental Science Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #05131C; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #ab2323;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,46 +66,46 @@
         }
       });
 
-      
-    let flowT = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let flowT = 0;
 
-    function update(dt) {
-      flowT += dt * 1.2;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
+      function update(dt) {
+        flowT += dt * 1.2;
+      }
 
-      // Atmospheric Circulation & Ocean Conveyor Currents
-      const layers = 5;
-      for (let i = 0; i < layers; i++) {
-        const yBase = h * 0.25 + i * (h * 0.12);
-        ctx.beginPath();
-        ctx.strokeStyle = i < 3 ? "rgba(14, 165, 233, 0.4)" : "rgba(16, 185, 129, 0.4)";
-        ctx.lineWidth = 1.8;
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
 
-        for (let x = 0; x < w; x += 8) {
-          const y = yBase + Math.sin(x * 0.015 + flowT + i) * 16;
-          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        // Atmospheric Circulation & Ocean Conveyor Currents
+        const layers = 5;
+        for (let i = 0; i < layers; i++) {
+          const yBase = h * 0.25 + i * (h * 0.12);
+          ctx.beginPath();
+          ctx.strokeStyle = i < 3 ? "rgba(14, 165, 233, 0.4)" : "rgba(16, 185, 129, 0.4)";
+          ctx.lineWidth = 1.8;
+
+          for (let x = 0; x < w; x += 8) {
+            const y = yBase + Math.sin(x * 0.015 + flowT + i) * 16;
+            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
         }
-        ctx.stroke();
+
+        // Solar Radiation rays entering atmosphere
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.35)";
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 6; i++) {
+          const rx = w * 0.15 + i * (w * 0.14);
+          ctx.beginPath();
+          ctx.moveTo(rx, 10);
+          ctx.lineTo(rx + 25, h * 0.35);
+          ctx.stroke();
+        }
       }
 
-      // Solar Radiation rays entering atmosphere
-      ctx.strokeStyle = "rgba(251, 191, 36, 0.35)";
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < 6; i++) {
-        const rx = w * 0.15 + i * (w * 0.14);
-        ctx.beginPath();
-        ctx.moveTo(rx, 10);
-        ctx.lineTo(rx + 25, h * 0.35);
-        ctx.stroke();
-      }
-    }
-    
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -105,4 +124,5 @@
     })();
   </script>
 </body>
+
 </html>

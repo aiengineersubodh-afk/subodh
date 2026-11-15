@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -45,6 +45,7 @@ import {
 
 export default function ScholarProfileDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const scholarId = String(params.id || "");
   const preselectedInternshipId = searchParams.get("apply") || "";
@@ -536,6 +537,12 @@ export default function ScholarProfileDetailsPage() {
         <div className="flex items-center justify-between">
           <Link
             href="/explore?tab=scholars"
+            onClick={(e) => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                e.preventDefault();
+                router.back();
+              }
+            }}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#666666] hover:text-[#2563EB]"
           >
             <ArrowLeft className="w-4 h-4" /> Back to PhD Scholar Directory

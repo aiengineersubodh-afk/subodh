@@ -1,114 +1,645 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Intellectual Property Law Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #080E1C; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #D535AB;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
+
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let w, h, dpr;
+      let time = 0;
+      let lastTime = performance.now();
       let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      const TAU = Math.PI * 2;
+
+      const C = {
+        magenta: "#D535AB",
+        plum: "#351039",
+        deep: "#210B2A",
+        pink: "#FF80D5",
+        lightPink: "#FFC1EA",
+        gold: "#F6C96B",
+        ivory: "#FFF0FA",
+        purple: "#9C4BD1",
+        white: "#FFFFFF"
+      };
+
+      let particles = [];
+      let stars = [];
+      let orbitNodes = [];
+
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
 
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
-      }
-      window.addEventListener('resize', resize);
+        w = window.innerWidth;
+        h = window.innerHeight;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        createElements();
+      }
+
+      function createElements() {
+        particles = [];
+        stars = [];
+        orbitNodes = [];
+
+        const count = Math.min(100, Math.floor(w * h / 9500));
+
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: random(0, w),
+            y: random(0, h),
+            size: random(0.8, 2.4),
+            speed: random(7, 22),
+            phase: random(0, TAU),
+            color: Math.random() > 0.5 ? C.lightPink : C.gold
+          });
+        }
+
+        for (let i = 0; i < 42; i++) {
+          stars.push({
+            x: random(0, w),
+            y: random(0, h),
+            size: random(0.5, 1.7),
+            phase: random(0, TAU)
+          });
+        }
+
+        for (let i = 0; i < 10; i++) {
+          orbitNodes.push({
+            angle: i * TAU / 10,
+            radius: random(145, 185),
+            speed: random(0.12, 0.24),
+            size: random(2, 4)
+          });
+        }
+      }
+
+      function glow(color, amount) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = amount;
+      }
+
+      function clearGlow() {
+        ctx.shadowBlur = 0;
+      }
+
+      function drawBackground() {
+        // Preserve the exact requested background color
+        ctx.fillStyle = C.magenta;
+        ctx.fillRect(0, 0, w, h);
+
+        // Dark plum vignette around the composition
+        const bg = ctx.createRadialGradient(
+          w * 0.5, h * 0.48, 20,
+          w * 0.5, h * 0.48, Math.max(w, h) * 0.72
+        );
+
+        bg.addColorStop(0, "rgba(255,128,213,0.04)");
+        bg.addColorStop(0.55, "rgba(83,12,75,0.08)");
+        bg.addColorStop(1, "rgba(33,11,42,0.34)");
+
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        // Fine ornamental grid
+        ctx.strokeStyle = "rgba(255,240,250,0.07)";
+        ctx.lineWidth = 1;
+
+        const spacing = 55;
+
+        for (let x = 0; x < w; x += spacing) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+
+        for (let y = 0; y < h; y += spacing) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        // Twinkling background stars
+        for (const s of stars) {
+          const alpha = 0.15 +
+            0.35 * (0.5 + 0.5 * Math.sin(time + s.phase));
+
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size, 0, TAU);
+          ctx.fillStyle = C.ivory;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      function drawParticles(dt) {
+        for (const p of particles) {
+          p.y -= p.speed * dt;
+          p.x += Math.sin(time * 0.5 + p.phase) * 8 * dt;
+
+          if (p.y < -10) {
+            p.y = h + 10;
+            p.x = random(0, w);
           }
+
+          const alpha = 0.28 +
+            0.5 * (0.5 + 0.5 * Math.sin(time + p.phase));
+
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, TAU);
+          ctx.fillStyle = p.color;
+          glow(p.color, 10);
+          ctx.fill();
+          clearGlow();
+          ctx.globalAlpha = 1;
         }
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
-
-      
-    let rot = 0;
-
-    function init(w, h) {}
-    function onResize(w, h) {}
-
-    function update(dt) {
-      rot += dt * 0.6;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Patent Claims Concentric Boundary Rings
-      for (let r = 25; r <= 65; r += 20) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([4, 4]);
-        ctx.stroke();
       }
-      ctx.setLineDash([]);
 
-      // Official Registered Trademark Certification Seal (R)
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(rot);
+      function drawOrbit(cx, cy, rx, ry, rotation, color, dash) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rotation);
 
-      ctx.beginPath();
-      ctx.arc(0, 0, 26, 0, Math.PI * 2);
-      ctx.strokeStyle = "#F59E0B";
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, ry, 0, 0, TAU);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.3;
+        ctx.setLineDash(dash || []);
+        ctx.stroke();
 
-      ctx.font = "bold 18px serif";
-      ctx.fillStyle = "#F59E0B";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("R", 0, 1);
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
 
-      ctx.restore();
-    }
-    
+      function drawInnovationNetwork(cx, cy, radius) {
+        const points = [];
 
-      let lastTime = performance.now();
+        for (const node of orbitNodes) {
+          const a = node.angle + time * node.speed;
+
+          points.push({
+            x: cx + Math.cos(a) * node.radius,
+            y: cy + Math.sin(a) * node.radius * 0.72,
+            size: node.size
+          });
+        }
+
+        // Interconnected intellectual property network
+        for (let i = 0; i < points.length; i++) {
+          const a = points[i];
+          const b = points[(i + 1) % points.length];
+
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.quadraticCurveTo(cx, cy, b.x, b.y);
+          ctx.strokeStyle = "rgba(255,240,250,0.3)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // Moving information pulses
+          const p = (time * 0.2 + i * 0.13) % 1;
+          const px = a.x + (b.x - a.x) * p;
+          const py = a.y + (b.y - a.y) * p;
+
+          ctx.beginPath();
+          ctx.arc(px, py, 2.5, 0, TAU);
+          ctx.fillStyle = C.gold;
+          glow(C.gold, 12);
+          ctx.fill();
+          clearGlow();
+        }
+
+        for (const point of points) {
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, point.size + 5, 0, TAU);
+          ctx.strokeStyle = "rgba(255,193,234,0.35)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, point.size, 0, TAU);
+          ctx.fillStyle = C.ivory;
+          glow(C.lightPink, 12);
+          ctx.fill();
+          clearGlow();
+        }
+      }
+
+      function drawShield(cx, cy, radius) {
+        const pulse = Math.sin(time * 1.2) * 4;
+        const r = radius + pulse;
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r);
+        ctx.bezierCurveTo(
+          cx + r * 0.82, cy - r * 0.83,
+          cx + r * 0.95, cy - r * 0.4,
+          cx + r * 0.8, cy + r * 0.18
+        );
+        ctx.bezierCurveTo(
+          cx + r * 0.65, cy + r * 0.76,
+          cx + r * 0.25, cy + r * 1.04,
+          cx, cy + r * 1.18
+        );
+        ctx.bezierCurveTo(
+          cx - r * 0.25, cy + r * 1.04,
+          cx - r * 0.65, cy + r * 0.76,
+          cx - r * 0.8, cy + r * 0.18
+        );
+        ctx.bezierCurveTo(
+          cx - r * 0.95, cy - r * 0.4,
+          cx - r * 0.82, cy - r * 0.83,
+          cx, cy - r
+        );
+        ctx.closePath();
+
+        const fill = ctx.createLinearGradient(
+          cx - r, cy - r,
+          cx + r, cy + r
+        );
+
+        fill.addColorStop(0, "rgba(53,16,57,0.55)");
+        fill.addColorStop(0.5, "rgba(74,20,71,0.35)");
+        fill.addColorStop(1, "rgba(33,11,42,0.55)");
+
+        ctx.fillStyle = fill;
+        ctx.fill();
+
+        ctx.strokeStyle = C.lightPink;
+        ctx.lineWidth = 2;
+        glow(C.lightPink, 20);
+        ctx.stroke();
+        clearGlow();
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r * 0.78);
+        ctx.lineTo(cx, cy + r * 0.9);
+        ctx.strokeStyle = "rgba(255,240,250,0.18)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawDocument(cx, cy, size) {
+        const x = cx - size * 0.52;
+        const y = cy - size * 0.7;
+        const width = size * 1.04;
+        const height = size * 1.4;
+
+        ctx.save();
+
+        // Floating shadow
+        ctx.beginPath();
+        ctx.roundRect(x + 9, y + 10, width, height, 10);
+        ctx.fillStyle = "rgba(24,5,30,0.45)";
+        ctx.fill();
+
+        // Main patent paper
+        const paper = ctx.createLinearGradient(
+          x, y, x + width, y + height
+        );
+
+        paper.addColorStop(0, "#FFF9FD");
+        paper.addColorStop(1, "#EAD7EB");
+
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, height, 10);
+        ctx.fillStyle = paper;
+        ctx.fill();
+
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 2;
+        glow(C.gold, 15);
+        ctx.stroke();
+        clearGlow();
+
+        // Folded corner
+        ctx.beginPath();
+        ctx.moveTo(x + width * 0.7, y);
+        ctx.lineTo(x + width * 0.7, y + height * 0.2);
+        ctx.lineTo(x + width, y + height * 0.2);
+        ctx.closePath();
+        ctx.fillStyle = "#D9B4D5";
+        ctx.fill();
+
+        // Decorative document lines
+        for (let i = 0; i < 4; i++) {
+          const yy = y + height * (0.37 + i * 0.12);
+
+          ctx.beginPath();
+          ctx.moveTo(x + width * 0.15, yy);
+          ctx.lineTo(
+            x + width * (i === 2 ? 0.7 : 0.85),
+            yy
+          );
+
+          ctx.strokeStyle = "rgba(53,16,57,0.4)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // Technical invention diagram
+        ctx.beginPath();
+        ctx.arc(cx, y + height * 0.82, size * 0.17, 0, TAU);
+        ctx.strokeStyle = C.purple;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, y + height * 0.82, size * 0.1, 0, TAU);
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(cx - size * 0.25, y + height * 0.82);
+        ctx.lineTo(cx + size * 0.25, y + height * 0.82);
+        ctx.moveTo(cx, y + height * 0.65);
+        ctx.lineTo(cx, y + height * 0.99);
+        ctx.strokeStyle = C.purple;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawCopyright(cx, cy, size) {
+        const pulse = 1 + Math.sin(time * 1.5) * 0.05;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(pulse, pulse);
+
+        ctx.beginPath();
+        ctx.arc(0, 0, size, 0, TAU);
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 2.5;
+        glow(C.gold, 18);
+        ctx.stroke();
+        clearGlow();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.78, 0, TAU);
+        ctx.strokeStyle = C.lightPink;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Copyright emblem
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.46, 0, TAU);
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.22, 0.7, TAU - 0.7);
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawTrademark(cx, cy, radius) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(-time * 0.15);
+
+        // Seal
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, TAU);
+        ctx.strokeStyle = C.lightPink;
+        ctx.lineWidth = 2;
+        glow(C.pink, 16);
+        ctx.stroke();
+        clearGlow();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.78, 0, TAU);
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Geometric trademark-inspired mark
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.35, -radius * 0.3);
+        ctx.lineTo(radius * 0.35, -radius * 0.3);
+        ctx.lineTo(radius * 0.35, -radius * 0.1);
+        ctx.lineTo(radius * 0.12, -radius * 0.1);
+        ctx.lineTo(radius * 0.12, radius * 0.35);
+        ctx.lineTo(-radius * 0.12, radius * 0.35);
+        ctx.lineTo(-radius * 0.12, -radius * 0.1);
+        ctx.lineTo(-radius * 0.35, -radius * 0.1);
+        ctx.closePath();
+
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawOrbitingRays(cx, cy, radius) {
+        for (let i = 0; i < 16; i++) {
+          const angle = i * TAU / 16 + time * 0.08;
+          const inner = radius * 1.05;
+          const outer = radius * (
+            1.2 + 0.08 * Math.sin(time * 2 + i)
+          );
+
+          const x1 = cx + Math.cos(angle) * inner;
+          const y1 = cy + Math.sin(angle) * inner;
+          const x2 = cx + Math.cos(angle) * outer;
+          const y2 = cy + Math.sin(angle) * outer;
+
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.strokeStyle = i % 4 === 0
+            ? "rgba(246,201,107,0.9)"
+            : "rgba(255,193,234,0.65)";
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(x2, y2, 2.2, 0, TAU);
+          ctx.fillStyle = i % 4 === 0 ? C.gold : C.ivory;
+          ctx.fill();
+        }
+      }
+
+      function drawScene(dt) {
+        drawBackground();
+
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+
+        const scale = Math.min(w / 900, h / 650, 1.12);
+        const radius = 50 * scale;
+
+        // Outer rotating protection boundaries
+        drawOrbit(
+          cx, cy,
+          radius * 2.1, radius * 0.95,
+          time * 0.13,
+          "rgba(255,240,250,0.4)",
+          [5, 9]
+        );
+
+        drawOrbit(
+          cx, cy,
+          radius * 1.8, radius * 1.4,
+          -time * 0.1,
+          "rgba(246,201,107,0.35)"
+        );
+
+        drawOrbit(
+          cx, cy,
+          radius * 1.5, radius * 1.5,
+          time * 0.08,
+          "rgba(255,193,234,0.3)",
+          [3, 8]
+        );
+
+        drawInnovationNetwork(cx, cy, radius);
+        drawOrbitingRays(cx, cy, radius);
+
+        // Central protection shield
+        drawShield(cx, cy, radius * 1.48);
+
+        // Patent document
+        drawDocument(cx, cy, radius * 1.5);
+
+        // Copyright and trademark seals
+        drawCopyright(
+          cx - radius * 1.85,
+          cy - radius * 0.82,
+          radius * 0.38
+        );
+
+        drawTrademark(
+          cx + radius * 1.85,
+          cy - radius * 0.82,
+          radius * 0.4
+        );
+
+        // Golden orbiting dots
+        for (let i = 0; i < 4; i++) {
+          const angle = time * 0.35 + i * TAU / 4;
+          const x = cx + Math.cos(angle) * radius * 2.05;
+          const y = cy + Math.sin(angle) * radius * 1.2;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, TAU);
+          ctx.fillStyle = C.gold;
+          glow(C.gold, 12);
+          ctx.fill();
+          clearGlow();
+        }
+
+        drawParticles(dt);
+      }
+
+      function update(dt) {
+        time += dt;
+      }
+
       function renderLoop(now) {
         if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
+
+        const dt = Math.min((now - lastTime) / 1000, 0.05);
         lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
+
+        if (!reducedMotion) update(dt);
+
+        drawScene(dt);
+
+        if (!reducedMotion) {
           requestAnimationFrame(renderLoop);
         }
       }
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+      function start() {
+        if (isPaused) return;
+        lastTime = performance.now();
+        requestAnimationFrame(renderLoop);
+      }
+
+      window.addEventListener("resize", resize);
+
+      window.addEventListener("message", (e) => {
+        if (e.data === "pause") {
+          isPaused = true;
+        }
+
+        if (e.data === "play" && isPaused) {
+          isPaused = false;
+          start();
+        }
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        isPaused = document.hidden;
+        if (!isPaused) start();
+      });
+
+      resize();
+      start();
+
     })();
   </script>
 </body>
+
 </html>

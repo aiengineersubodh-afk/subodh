@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>International Trade Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #061121; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #b13784;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,65 +66,65 @@
         }
       });
 
-      
-    const routes = [];
-    let shipT = 0;
 
-    function init(w, h) {
-      routes.length = 0;
-      routes.push({ x1: w * 0.15, y1: h * 0.4, x2: w * 0.45, y2: h * 0.6 });
-      routes.push({ x1: w * 0.45, y1: h * 0.6, x2: w * 0.85, y2: h * 0.35 });
-    }
+      const routes = [];
+      let shipT = 0;
 
-    function onResize(w, h) { init(w, h); }
-
-    function update(dt) {
-      shipT = (shipT + dt * 0.4) % 1;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Maritime shipping route curved arcs
-      ctx.strokeStyle = "rgba(14, 165, 233, 0.35)";
-      ctx.lineWidth = 1.8;
-      ctx.setLineDash([6, 6]);
-      for (const r of routes) {
-        ctx.beginPath();
-        ctx.moveTo(r.x1, r.y1);
-        ctx.quadraticCurveTo((r.x1 + r.x2) * 0.5, (r.y1 + r.y2) * 0.5 - 25, r.x2, r.y2);
-        ctx.stroke();
+      function init(w, h) {
+        routes.length = 0;
+        routes.push({ x1: w * 0.15, y1: h * 0.4, x2: w * 0.45, y2: h * 0.6 });
+        routes.push({ x1: w * 0.45, y1: h * 0.6, x2: w * 0.85, y2: h * 0.35 });
       }
-      ctx.setLineDash([]);
 
-      // Port hub nodes
-      const hubs = [
-        { x: w * 0.15, y: h * 0.4 },
-        { x: w * 0.45, y: h * 0.6 },
-        { x: w * 0.85, y: h * 0.35 }
-      ];
+      function onResize(w, h) { init(w, h); }
 
-      for (const hub of hubs) {
+      function update(dt) {
+        shipT = (shipT + dt * 0.4) % 1;
+      }
+
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+
+        // Maritime shipping route curved arcs
+        ctx.strokeStyle = "rgba(14, 165, 233, 0.35)";
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([6, 6]);
+        for (const r of routes) {
+          ctx.beginPath();
+          ctx.moveTo(r.x1, r.y1);
+          ctx.quadraticCurveTo((r.x1 + r.x2) * 0.5, (r.y1 + r.y2) * 0.5 - 25, r.x2, r.y2);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // Port hub nodes
+        const hubs = [
+          { x: w * 0.15, y: h * 0.4 },
+          { x: w * 0.45, y: h * 0.6 },
+          { x: w * 0.85, y: h * 0.35 }
+        ];
+
+        for (const hub of hubs) {
+          ctx.beginPath();
+          ctx.arc(hub.x, hub.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = "#F59E0B";
+          ctx.fill();
+        }
+
+        // Moving cargo container ship
+        const r = routes[0];
+        const curX = r.x1 + (r.x2 - r.x1) * shipT;
+        const curY = r.y1 + (r.y2 - r.y1) * shipT;
+
         ctx.beginPath();
-        ctx.arc(hub.x, hub.y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#F59E0B";
+        ctx.arc(curX, curY, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#38BDF8";
+        ctx.shadowColor = "#38BDF8";
+        ctx.shadowBlur = 8;
         ctx.fill();
+        ctx.shadowBlur = 0;
       }
 
-      // Moving cargo container ship
-      const r = routes[0];
-      const curX = r.x1 + (r.x2 - r.x1) * shipT;
-      const curY = r.y1 + (r.y2 - r.y1) * shipT;
-
-      ctx.beginPath();
-      ctx.arc(curX, curY, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#38BDF8";
-      ctx.shadowColor = "#38BDF8";
-      ctx.shadowBlur = 8;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-    
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -124,4 +143,5 @@
     })();
   </script>
 </body>
+
 </html>

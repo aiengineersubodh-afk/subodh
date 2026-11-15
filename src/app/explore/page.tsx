@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -114,46 +114,252 @@ function ExploreContent() {
       .catch(() => {});
   }, [session?.user?.id, session?.hasPremiumAccess]);
 
-  useEffect(() => {
-    const domParam = searchParams.get("domain");
-    const specParam = searchParams.get("spec");
-    const tabParam = searchParams.get("tab");
+  // Helper to resolve domain id from id, name, or slug
+  const resolveDomainId = useCallback(
+    (param: string | null): string => {
+      if (!param || !param.trim()) return "";
+      const p = param.trim().toLowerCase();
+      const match = domains.find(
+        (d) =>
+          d.id.toLowerCase() === p ||
+          d.name.toLowerCase() === p ||
+          (d.slug && d.slug.toLowerCase() === p)
+      );
+      if (match) return match.id;
+      return domains.length > 0 ? "" : param;
+    },
+    [domains]
+  );
 
-    if (domParam) {
-      setSelectedDomainId(domParam);
-    } else if (tabParam === "domains") {
-      setSelectedDomainId("");
-      setSelectedSpecId("");
-    }
-    if (specParam) {
-      setSelectedSpecId(specParam);
-      if (tabParam === "internships" || tabParam === "scholars" || tabParam === "domains") {
-        setActiveTab(tabParam);
+  // Helper to resolve specialization id from id, name, or slug
+  const resolveSpecId = useCallback(
+    (param: string | null): string => {
+      if (!param || !param.trim()) return "";
+      const p = param.trim().toLowerCase();
+      const match = specializations.find(
+        (s) =>
+          s.id.toLowerCase() === p ||
+          s.name.toLowerCase() === p ||
+          (s.slug && s.slug.toLowerCase() === p)
+      );
+      if (match) return match.id;
+      return specializations.length > 0 ? "" : param;
+    },
+    [specializations]
+  );
+
+  // Navigate to new Explore state creating proper browser history entry
+  const navigateToExploreState = useCallback(
+    (
+      updates: {
+        tab?: "domains" | "scholars" | "internships";
+        domain?: string;
+        spec?: string;
+        q?: string;
+        mode?: string;
+        skill?: string;
+        uni?: string;
+        country?: string;
+        avail?: boolean;
+        page?: number;
+      },
+      options?: { replace?: boolean; scroll?: boolean }
+    ) => {
+      const nextTab = updates.tab !== undefined ? updates.tab : activeTab;
+      const nextDomain = updates.domain !== undefined ? updates.domain : selectedDomainId;
+      const nextSpec = updates.spec !== undefined ? updates.spec : selectedSpecId;
+      const nextQ = updates.q !== undefined ? updates.q : searchQuery;
+      const nextMode = updates.mode !== undefined ? updates.mode : modeFilter;
+      const nextSkill = updates.skill !== undefined ? updates.skill : skillFilter;
+      const nextUni = updates.uni !== undefined ? updates.uni : universityFilter;
+      const nextCountry = updates.country !== undefined ? updates.country : countryFilter;
+      const nextAvail = updates.avail !== undefined ? updates.avail : availabilityOnly;
+      const nextPage = updates.page !== undefined ? updates.page : currentPage;
+
+      const sp = new URLSearchParams();
+      if (nextTab) sp.set("tab", nextTab);
+      if (nextDomain) sp.set("domain", nextDomain);
+      if (nextSpec) sp.set("spec", nextSpec);
+      if (nextQ && nextQ.trim()) sp.set("q", nextQ.trim());
+      if (nextMode) sp.set("mode", nextMode);
+      if (nextSkill && nextSkill.trim()) sp.set("skill", nextSkill.trim());
+      if (nextUni && nextUni.trim()) sp.set("uni", nextUni.trim());
+      if (nextCountry && nextCountry.trim()) sp.set("country", nextCountry.trim());
+      if (nextAvail) sp.set("avail", "true");
+      if (nextPage > 1) sp.set("page", String(nextPage));
+
+      const queryStr = sp.toString();
+      const targetUrl = queryStr ? `/explore?${queryStr}` : "/explore";
+      const currentUrl =
+        typeof window !== "undefined"
+          ? window.location.pathname + window.location.search
+          : "";
+
+      if (targetUrl === currentUrl) return;
+
+      if (options?.replace) {
+        router.replace(targetUrl, { scroll: options?.scroll ?? false });
       } else {
-        setActiveTab("scholars");
+        router.push(targetUrl, { scroll: options?.scroll ?? false });
       }
-    } else if (tabParam === "scholars" || tabParam === "internships" || tabParam === "domains") {
-      setActiveTab(tabParam as "domains" | "scholars" | "internships");
-    }
+    },
+    [
+      activeTab,
+      selectedDomainId,
+      selectedSpecId,
+      searchQuery,
+      modeFilter,
+      skillFilter,
+      universityFilter,
+      countryFilter,
+      availabilityOnly,
+      currentPage,
+      router,
+    ]
+  );
 
-    if (tabParam) {
-      setTimeout(() => {
-        const el = document.getElementById("academic-domains-section");
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-      }, 150);
-    }
-  }, [searchParams]);
+  // Synchronize internal state from URL search parameters
+  const syncFromUrl = useCallback(
+    (params: URLSearchParams) => {
+      const domParam = params.get("domain");
+      const specParam = params.get("spec");
+      const tabParam = params.get("tab");
+      const qParam = params.get("q");
+      const modeParam = params.get("mode");
+      const skillParam = params.get("skill");
+      const uniParam = params.get("uni");
+      const countryParam = params.get("country");
+      const availParam = params.get("avail");
+      const pageParam = params.get("page");
+
+      let resolvedDom = resolveDomainId(domParam);
+      const resolvedSpec = resolveSpecId(specParam);
+
+      // If spec is provided but domain is not, deduce domain from specialization
+      if (resolvedSpec && !resolvedDom && specializations.length > 0) {
+        const specObj = specializations.find((s) => s.id === resolvedSpec);
+        if (specObj) {
+          resolvedDom = specObj.domain_id;
+        }
+      }
+
+      setSelectedDomainId(resolvedDom || "");
+      setSelectedSpecId(resolvedSpec || "");
+
+      // Determine active tab
+      if (tabParam === "internships" || tabParam === "scholars" || tabParam === "domains") {
+        setActiveTab(tabParam as "domains" | "scholars" | "internships");
+      } else if (resolvedSpec) {
+        setActiveTab("internships");
+      } else if (resolvedDom) {
+        setActiveTab("domains");
+      } else {
+        setActiveTab("domains");
+      }
+
+      if (qParam !== null) setSearchQuery(qParam);
+      else setSearchQuery("");
+
+      if (modeParam !== null) setModeFilter(modeParam);
+      else setModeFilter("");
+
+      if (skillParam !== null) setSkillFilter(skillParam);
+      else setSkillFilter("");
+
+      if (uniParam !== null) setUniversityFilter(uniParam);
+      else setUniversityFilter("");
+
+      if (countryParam !== null) setCountryFilter(countryParam);
+      else setCountryFilter("");
+
+      if (availParam !== null) setAvailabilityOnly(availParam === "true");
+      else setAvailabilityOnly(false);
+
+      if (pageParam !== null) {
+        const pNum = parseInt(pageParam, 10);
+        setCurrentPage(!isNaN(pNum) && pNum > 0 ? pNum : 1);
+      } else {
+        setCurrentPage(1);
+      }
+    },
+    [resolveDomainId, resolveSpecId, specializations]
+  );
+
+  // Sync state when searchParams or taxonomy changes
+  useEffect(() => {
+    syncFromUrl(searchParams);
+  }, [searchParams, syncFromUrl]);
+
+  // Listen to popstate event (native browser Back / Forward)
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== "undefined") {
+        syncFromUrl(new URLSearchParams(window.location.search));
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [syncFromUrl]);
+
+  // Debounced input handlers for keyword search, university, and country filters
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleSearchChange = (newQ: string) => {
+    setSearchQuery(newQ);
+    setCurrentPage(1);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
+      navigateToExploreState({ q: newQ, page: 1 }, { replace: true });
+    }, 350);
+  };
+
+  const uniTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleUniChange = (newUni: string) => {
+    setUniversityFilter(newUni);
+    setCurrentPage(1);
+    if (uniTimeoutRef.current) clearTimeout(uniTimeoutRef.current);
+    uniTimeoutRef.current = setTimeout(() => {
+      navigateToExploreState({ uni: newUni, page: 1 }, { replace: true });
+    }, 350);
+  };
+
+  const countryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleCountryChange = (newCountry: string) => {
+    setCountryFilter(newCountry);
+    setCurrentPage(1);
+    if (countryTimeoutRef.current) clearTimeout(countryTimeoutRef.current);
+    countryTimeoutRef.current = setTimeout(() => {
+      navigateToExploreState({ country: newCountry, page: 1 }, { replace: true });
+    }, 350);
+  };
+
+  const handleModeChange = (newMode: string) => {
+    setModeFilter(newMode);
+    setCurrentPage(1);
+    navigateToExploreState({ mode: newMode, page: 1 }, { replace: true });
+  };
+
+  const handleSkillChange = (newSkill: string) => {
+    setSkillFilter(newSkill);
+    setCurrentPage(1);
+    navigateToExploreState({ skill: newSkill, page: 1 }, { replace: true });
+  };
+
+  const handleAvailChange = (newAvail: boolean) => {
+    setAvailabilityOnly(newAvail);
+    setCurrentPage(1);
+    navigateToExploreState({ avail: newAvail, page: 1 }, { replace: true });
+  };
 
   useEffect(() => {
     const handleSwitchTab = (e: Event) => {
       const customEvent = e as CustomEvent<string>;
       const tab = customEvent.detail;
       if (tab === "domains" || tab === "scholars" || tab === "internships") {
-        setActiveTab(tab as "domains" | "scholars" | "internships");
-        if (tab === "domains") {
-          setSelectedDomainId("");
-          setSelectedSpecId("");
-        }
+        navigateToExploreState({
+          tab: tab as "domains" | "scholars" | "internships",
+          domain: tab === "domains" ? "" : selectedDomainId,
+          spec: tab === "domains" ? "" : selectedSpecId,
+        });
         setTimeout(() => {
           const el = document.getElementById("academic-domains-section");
           if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -164,7 +370,7 @@ function ExploreContent() {
     return () => {
       window.removeEventListener("starsky:switch-tab", handleSwitchTab);
     };
-  }, []);
+  }, [navigateToExploreState, selectedDomainId, selectedSpecId]);
 
   const openPremiumModal = (context?: string) => {
     setPremiumModalContext(context || "");
@@ -184,7 +390,7 @@ function ExploreContent() {
 
   const toggleSaveScholar = async (scholarId: string) => {
     if (!session || session.user.role !== "student") {
-      window.location.href = "/login";
+      router.push("/login?redirect=" + encodeURIComponent("/explore" + window.location.search));
       return;
     }
     const res = await fetch("/api/saved-scholars", {
@@ -359,6 +565,17 @@ function ExploreContent() {
     setModeFilter("");
     setSkillFilter("");
     setCurrentPage(1);
+    navigateToExploreState({
+      domain: "",
+      spec: "",
+      q: "",
+      mode: "",
+      skill: "",
+      uni: "",
+      country: "",
+      avail: false,
+      page: 1,
+    });
   };
 
   return (
@@ -437,7 +654,7 @@ function ExploreContent() {
               <button
                 type="button"
                 onClick={() => {
-                  setActiveTab("domains");
+                  navigateToExploreState({ tab: "domains", domain: "", spec: "" });
                   const el = document.getElementById("academic-domains-section");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
@@ -449,7 +666,7 @@ function ExploreContent() {
               <button
                 type="button"
                 onClick={() => {
-                  setActiveTab("scholars");
+                  navigateToExploreState({ tab: "scholars" });
                   const el = document.getElementById("academic-domains-section");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
@@ -460,7 +677,7 @@ function ExploreContent() {
               <button
                 type="button"
                 onClick={() => {
-                  setActiveTab("internships");
+                  navigateToExploreState({ tab: "internships" });
                   const el = document.getElementById("academic-domains-section");
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
@@ -495,7 +712,7 @@ function ExploreContent() {
           <div className="inline-flex rounded-xl bg-[#F7F8FA] p-1.5 border border-[#E5E7EB] self-start sm:self-auto">
             <button
               type="button"
-              onClick={() => setActiveTab("domains")}
+              onClick={() => navigateToExploreState({ tab: "domains" })}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === "domains"
                   ? "bg-[#2563EB] text-white shadow-xs"
@@ -506,7 +723,7 @@ function ExploreContent() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab("scholars")}
+              onClick={() => navigateToExploreState({ tab: "scholars" })}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === "scholars"
                   ? "bg-[#2563EB] text-white shadow-xs"
@@ -517,7 +734,7 @@ function ExploreContent() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab("internships")}
+              onClick={() => navigateToExploreState({ tab: "internships" })}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                 activeTab === "internships"
                   ? "bg-[#2563EB] text-white shadow-xs"
@@ -531,7 +748,22 @@ function ExploreContent() {
         {/* TAB 1: ACADEMIC DOMAINS & SPECIALIZATIONS DRILLDOWN */}
         {activeTab === "domains" && (
           <div className="space-y-10">
-            {!selectedDomain ? (
+            {loading && domains.length === 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="h-72 rounded-2xl bg-[#F7F8FA] border border-[#E5E7EB] p-6 flex flex-col justify-between"
+                  >
+                    <div className="h-36 bg-[#E5E7EB] rounded-xl mb-4" />
+                    <div className="space-y-2">
+                      <div className="h-4 bg-[#E5E7EB] rounded w-2/3" />
+                      <div className="h-3 bg-[#E5E7EB] rounded w-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : !selectedDomain ? (
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <div>
@@ -561,7 +793,14 @@ function ExploreContent() {
                     return (
                       <div
                         key={domain.id}
-                        onClick={() => setSelectedDomainId(domain.id)}
+                        data-domain-id={domain.id}
+                        onClick={() => {
+                          navigateToExploreState({
+                            tab: "domains",
+                            domain: domain.id,
+                            spec: "",
+                          });
+                        }}
                         className="card-corporate overflow-hidden flex flex-col justify-between cursor-pointer group"
                       >
                         <div>
@@ -631,8 +870,11 @@ function ExploreContent() {
                     <button
                       type="button"
                       onClick={() => {
-                        setSelectedDomainId("");
-                        setSelectedSpecId("");
+                        navigateToExploreState({
+                          tab: "domains",
+                          domain: "",
+                          spec: "",
+                        });
                       }}
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:underline"
                     >
@@ -651,8 +893,11 @@ function ExploreContent() {
                     <button
                       type="button"
                       onClick={() => {
-                        setSelectedSpecId("");
-                        setActiveTab("internships");
+                        navigateToExploreState({
+                          tab: "internships",
+                          domain: selectedDomainId,
+                          spec: "",
+                        });
                       }}
                       className="px-4 py-2.5 rounded-lg bg-[#2563EB] text-white text-xs font-semibold hover:bg-[#1D4ED8] transition-colors"
                     >
@@ -661,8 +906,11 @@ function ExploreContent() {
                     <button
                       type="button"
                       onClick={() => {
-                        setSelectedSpecId("");
-                        setActiveTab("scholars");
+                        navigateToExploreState({
+                          tab: "scholars",
+                          domain: selectedDomainId,
+                          spec: "",
+                        });
                       }}
                       className="px-4 py-2.5 rounded-lg bg-white border border-[#E5E7EB] text-[#202124] text-xs font-semibold hover:border-[#2563EB] hover:text-[#2563EB] transition-colors"
                     >
@@ -671,34 +919,56 @@ function ExploreContent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {domainSpecializations.map((spec) => {
-                    const specVisibleCount = scholars.filter(
-                      (s) => s.scholar.specialization_id === spec.id
-                    ).length;
-                    const specLockedCount = lockedScholarPreviews.filter(
-                      (lp) => lp.specialization_id === spec.id
-                    ).length;
-                    const specScholarCount = specVisibleCount + specLockedCount;
-                    const specInternshipCount = internships.filter(
-                      (i) => i.internship.specialization_id === spec.id
-                    ).length;
-                    return (
-                      <SpecializationCardWithAnimation
-                        key={spec.id}
-                        spec={spec}
-                        domainName={selectedDomain.name}
-                        scholarCount={specScholarCount}
-                        internshipCount={specInternshipCount}
-                        ctaLabel={`Explore Open Internships in ${spec.name}`}
-                        onClick={() => {
-                          setSelectedSpecId(spec.id);
-                          setActiveTab("internships");
-                        }}
-                      />
-                    );
-                  })}
-                </div>
+                {loading && domainSpecializations.length === 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className="h-80 rounded-2xl bg-[#0C1017] border border-white/10 p-6 flex flex-col justify-between"
+                      >
+                        <div className="h-6 bg-white/10 rounded w-1/2" />
+                        <div className="h-4 bg-white/5 rounded w-3/4" />
+                        <div className="h-10 bg-white/10 rounded" />
+                      </div>
+                    ))}
+                  </div>
+                ) : domainSpecializations.length === 0 ? (
+                  <div className="p-12 text-center text-sm text-[#666666] bg-[#F7F8FA] rounded-2xl border border-[#E5E7EB]">
+                    No research specializations currently found for {selectedDomain.name}.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {domainSpecializations.map((spec) => {
+                      const specVisibleCount = scholars.filter(
+                        (s) => s.scholar.specialization_id === spec.id
+                      ).length;
+                      const specLockedCount = lockedScholarPreviews.filter(
+                        (lp) => lp.specialization_id === spec.id
+                      ).length;
+                      const specScholarCount = specVisibleCount + specLockedCount;
+                      const specInternshipCount = internships.filter(
+                        (i) => i.internship.specialization_id === spec.id
+                      ).length;
+                      return (
+                        <SpecializationCardWithAnimation
+                          key={spec.id}
+                          spec={spec}
+                          domainName={selectedDomain.name}
+                          scholarCount={specScholarCount}
+                          internshipCount={specInternshipCount}
+                          ctaLabel={`Explore Open Internships in ${spec.name}`}
+                          onClick={() => {
+                            navigateToExploreState({
+                              tab: "internships",
+                              domain: selectedDomainId,
+                              spec: spec.id,
+                            });
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -734,10 +1004,7 @@ function ExploreContent() {
                     <input
                       type="text"
                       value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
+                      onChange={(e) => handleSearchChange(e.target.value)}
                       placeholder="Name, topic, skill..."
                       className="w-full pl-8 pr-3 py-2 rounded-lg border border-[#E5E7EB] text-xs"
                     />
@@ -752,9 +1019,11 @@ function ExploreContent() {
                   <select
                     value={selectedDomainId}
                     onChange={(e) => {
-                      setSelectedDomainId(e.target.value);
-                      setSelectedSpecId("");
-                      setCurrentPage(1);
+                      navigateToExploreState({
+                        domain: e.target.value,
+                        spec: "",
+                        page: 1,
+                      });
                     }}
                     className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs bg-white"
                   >
@@ -775,8 +1044,11 @@ function ExploreContent() {
                   <select
                     value={selectedSpecId}
                     onChange={(e) => {
-                      setSelectedSpecId(e.target.value);
-                      setCurrentPage(1);
+                      navigateToExploreState({
+                        domain: selectedDomainId,
+                        spec: e.target.value,
+                        page: 1,
+                      });
                     }}
                     className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs bg-white"
                   >
@@ -802,10 +1074,7 @@ function ExploreContent() {
                   <input
                     type="text"
                     value={universityFilter}
-                    onChange={(e) => {
-                      setUniversityFilter(e.target.value);
-                      setCurrentPage(1);
-                    }}
+                    onChange={(e) => handleUniChange(e.target.value)}
                     placeholder="e.g., IISc, IIT, AIIMS, IIM"
                     className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs"
                   />
@@ -819,10 +1088,7 @@ function ExploreContent() {
                   <input
                     type="text"
                     value={skillFilter}
-                    onChange={(e) => {
-                      setSkillFilter(e.target.value);
-                      setCurrentPage(1);
-                    }}
+                    onChange={(e) => handleSkillChange(e.target.value)}
                     placeholder="e.g., PyTorch, ROS2, MONAI, R"
                     className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs"
                   />
@@ -835,10 +1101,7 @@ function ExploreContent() {
                   </label>
                   <select
                     value={modeFilter}
-                    onChange={(e) => {
-                      setModeFilter(e.target.value);
-                      setCurrentPage(1);
-                    }}
+                    onChange={(e) => handleModeChange(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs bg-white"
                   >
                     <option value="">Any Mode</option>
@@ -856,10 +1119,7 @@ function ExploreContent() {
                   <input
                     type="text"
                     value={countryFilter}
-                    onChange={(e) => {
-                      setCountryFilter(e.target.value);
-                      setCurrentPage(1);
-                    }}
+                    onChange={(e) => handleCountryChange(e.target.value)}
                     placeholder="e.g., India"
                     className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs"
                   />
@@ -870,10 +1130,7 @@ function ExploreContent() {
                   <input
                     type="checkbox"
                     checked={availabilityOnly}
-                    onChange={(e) => {
-                      setAvailabilityOnly(e.target.checked);
-                      setCurrentPage(1);
-                    }}
+                    onChange={(e) => handleAvailChange(e.target.checked)}
                     className="w-4 h-4 accent-[#2563EB]"
                   />
                   <span>Accepting Interns Only</span>
@@ -1218,9 +1475,10 @@ function ExploreContent() {
                           <button
                             type="button"
                             disabled={currentPage === 1}
-                            onClick={() =>
-                              setCurrentPage((p) => Math.max(1, p - 1))
-                            }
+                            onClick={() => {
+                              const p = Math.max(1, currentPage - 1);
+                              navigateToExploreState({ page: p });
+                            }}
                             className="px-4 py-2 rounded-lg border border-[#E5E7EB] text-xs font-semibold disabled:opacity-40"
                           >
                             Previous
@@ -1232,11 +1490,10 @@ function ExploreContent() {
                           <button
                             type="button"
                             disabled={currentPage === totalPages}
-                            onClick={() =>
-                              setCurrentPage((p) =>
-                                Math.min(totalPages, p + 1)
-                              )
-                            }
+                            onClick={() => {
+                              const p = Math.min(totalPages, currentPage + 1);
+                              navigateToExploreState({ page: p });
+                            }}
                             className="px-4 py-2 rounded-lg border border-[#E5E7EB] text-xs font-semibold disabled:opacity-40"
                           >
                             Next
@@ -1269,8 +1526,7 @@ function ExploreContent() {
                       <button
                         type="button"
                         onClick={() => {
-                          setSelectedDomainId("");
-                          setSelectedSpecId("");
+                          navigateToExploreState({ domain: "", spec: "", page: 1 });
                         }}
                         className="text-xs text-[#2563EB] font-semibold hover:underline"
                       >

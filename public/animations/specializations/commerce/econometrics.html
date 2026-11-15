@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Econometrics Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #091021; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #45219b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,60 +66,60 @@
         }
       });
 
-      
-    let shiftT = 0;
 
-    function init(w, h) {}
-    function onResize(w, h) {}
+      let shiftT = 0;
 
-    function update(dt) {
-      shiftT += dt * 0.9;
-    }
+      function init(w, h) { }
+      function onResize(w, h) { }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const startX = w * 0.15;
-      const endX = w * 0.85;
-      const baseY = h * 0.8;
-      const topY = h * 0.2;
+      function update(dt) {
+        shiftT += dt * 0.9;
+      }
 
-      // Coordinate axes (Price P vertical, Quantity Q horizontal)
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(startX, topY); ctx.lineTo(startX, baseY); ctx.lineTo(endX, baseY);
-      ctx.stroke();
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
+        const startX = w * 0.15;
+        const endX = w * 0.85;
+        const baseY = h * 0.8;
+        const topY = h * 0.2;
 
-      // Supply Curve (Upward sloping: Green)
-      ctx.beginPath();
-      ctx.strokeStyle = "#10B981";
-      ctx.lineWidth = 2.2;
-      ctx.moveTo(startX + 20, baseY - 20);
-      ctx.lineTo(endX - 20, topY + 20);
-      ctx.stroke();
+        // Coordinate axes (Price P vertical, Quantity Q horizontal)
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(startX, topY); ctx.lineTo(startX, baseY); ctx.lineTo(endX, baseY);
+        ctx.stroke();
 
-      // Demand Curve (Downward sloping: Red/Rose with economic shock shift)
-      const shock = Math.sin(shiftT) * 25;
-      ctx.beginPath();
-      ctx.strokeStyle = "#F43F5E";
-      ctx.lineWidth = 2.2;
-      ctx.moveTo(startX + 20 + shock, topY + 20);
-      ctx.lineTo(endX - 20 + shock, baseY - 20);
-      ctx.stroke();
+        // Supply Curve (Upward sloping: Green)
+        ctx.beginPath();
+        ctx.strokeStyle = "#10B981";
+        ctx.lineWidth = 2.2;
+        ctx.moveTo(startX + 20, baseY - 20);
+        ctx.lineTo(endX - 20, topY + 20);
+        ctx.stroke();
 
-      // Market Equilibrium intersection point P*, Q*
-      const eqX = (startX + endX) * 0.5 + shock * 0.5;
-      const eqY = (topY + baseY) * 0.5;
+        // Demand Curve (Downward sloping: Red/Rose with economic shock shift)
+        const shock = Math.sin(shiftT) * 25;
+        ctx.beginPath();
+        ctx.strokeStyle = "#F43F5E";
+        ctx.lineWidth = 2.2;
+        ctx.moveTo(startX + 20 + shock, topY + 20);
+        ctx.lineTo(endX - 20 + shock, baseY - 20);
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.arc(eqX, eqY, 5, 0, Math.PI * 2);
-      ctx.fillStyle = "#FBBF24";
-      ctx.shadowColor = "#FBBF24";
-      ctx.shadowBlur = 10;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-    
+        // Market Equilibrium intersection point P*, Q*
+        const eqX = (startX + endX) * 0.5 + shock * 0.5;
+        const eqY = (topY + baseY) * 0.5;
+
+        ctx.beginPath();
+        ctx.arc(eqX, eqY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = "#FBBF24";
+        ctx.shadowColor = "#FBBF24";
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -119,4 +138,5 @@
     })();
   </script>
 </body>
+
 </html>

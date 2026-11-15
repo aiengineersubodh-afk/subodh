@@ -1,0 +1,134 @@
+[
+  {
+    "specializationId": "spec-engineering-computer-science-engineering",
+    "specializationName": "Computer Science Engineering",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-artificial-intelligence-and-machine-learning",
+    "specializationName": "Artificial Intelligence and Machine Learning",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-data-science",
+    "specializationName": "Data Science",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-cybersecurity",
+    "specializationName": "Cybersecurity",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-electronics-and-communication",
+    "specializationName": "Electronics and Communication",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-electrical-engineering",
+    "specializationName": "Electrical Engineering",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-mechanical-engineering",
+    "specializationName": "Mechanical Engineering",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-civil-engineering",
+    "specializationName": "Civil Engineering",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-chemical-engineering",
+    "specializationName": "Chemical Engineering",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-biotechnology",
+    "specializationName": "Biotechnology",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-information-technology",
+    "specializationName": "Information Technology",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  },
+  {
+    "specializationId": "spec-engineering-robotics-and-automation",
+    "specializationName": "Robotics and Automation",
+    "scholarAccountsCount": 3,
+    "studentAccountsCount": 3,
+    "internshipsPublished": 3,
+    "discoveryPassed": 3,
+    "applicationsPassed": 3,
+    "correctScholarDashboard": 3,
+    "finalStatus": "PASS"
+  }
+]

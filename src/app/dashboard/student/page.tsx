@@ -70,8 +70,33 @@ function StudentDashboardContent({
       ["overview", "applications", "saved", "profile", "settings"].includes(t)
     ) {
       setActiveTab(t);
+    } else if (!t) {
+      setActiveTab("overview");
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const sp = new URLSearchParams(window.location.search);
+      const t = sp.get("tab") as StudentTab | null;
+      if (t && ["overview", "applications", "saved", "profile", "settings"].includes(t)) {
+        setActiveTab(t);
+      } else {
+        setActiveTab("overview");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleTabClick = (t: StudentTab) => {
+    setActiveTab(t);
+    const targetUrl = t === "overview" ? "/dashboard/student" : `/dashboard/student?tab=${t}`;
+    const currentUrl = typeof window !== "undefined" ? window.location.pathname + window.location.search : "";
+    if (targetUrl !== currentUrl) {
+      router.push(targetUrl, { scroll: false });
+    }
+  };
 
   const loadDashboardData = async () => {
     setLoadingData(true);
@@ -252,7 +277,7 @@ function StudentDashboardContent({
               <nav className="space-y-1">
                 <button
                   type="button"
-                  onClick={() => setActiveTab("overview")}
+                  onClick={() => handleTabClick("overview")}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "overview"
                       ? "bg-[#202124] text-white"
@@ -273,7 +298,8 @@ function StudentDashboardContent({
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("applications")}
+                  data-tab="applications"
+                  onClick={() => handleTabClick("applications")}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "applications"
                       ? "bg-[#202124] text-white"
@@ -291,7 +317,7 @@ function StudentDashboardContent({
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("saved")}
+                  onClick={() => handleTabClick("saved")}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "saved"
                       ? "bg-[#202124] text-white"
@@ -309,7 +335,7 @@ function StudentDashboardContent({
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("profile")}
+                  onClick={() => handleTabClick("profile")}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "profile"
                       ? "bg-[#202124] text-white"
@@ -322,7 +348,7 @@ function StudentDashboardContent({
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("settings")}
+                  onClick={() => handleTabClick("settings")}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeTab === "settings"
                       ? "bg-[#202124] text-white"

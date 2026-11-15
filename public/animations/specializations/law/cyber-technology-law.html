@@ -1,104 +1,619 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cyber and Technology Law Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #090A17; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: rgb(205, 150, 61);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
+
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let w, h, dpr;
+      let time = 0;
+      let lastTime = performance.now();
+      let paused = false;
+
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      const TAU = Math.PI * 2;
+
+      const C = {
+        gold: "#CD963D",
+        lightGold: "#F5C76B",
+        ivory: "#FFF0D2",
+        burgundy: "#351B25",
+        dark: "#20151D",
+        emerald: "#123D35",
+        green: "#4F9B78",
+        cream: "#F9E6BC"
+      };
+
+      let particles = [];
+      let circuits = [];
+      let stars = [];
+      let network = [];
+
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
 
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
-      }
-      window.addEventListener('resize', resize);
+        w = window.innerWidth;
+        h = window.innerHeight;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        init();
+        draw();
+      }
+
+      function init() {
+        particles = [];
+        circuits = [];
+        stars = [];
+        network = [];
+
+        const count = Math.min(110, Math.floor(w * h / 9000));
+
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: random(0, w),
+            y: random(0, h),
+            vx: random(-0.2, 0.2),
+            vy: random(-0.35, -0.08),
+            r: random(0.8, 2.3),
+            phase: random(0, TAU)
+          });
+        }
+
+        for (let i = 0; i < 42; i++) {
+          circuits.push({
+            side: Math.random() > 0.5 ? 1 : -1,
+            y: random(0, h),
+            length: random(40, 120),
+            speed: random(0.12, 0.35),
+            phase: random(0, TAU)
+          });
+        }
+
+        for (let i = 0; i < 60; i++) {
+          stars.push({
+            x: random(0, w),
+            y: random(0, h),
+            r: random(0.5, 1.5),
+            phase: random(0, TAU)
+          });
+        }
+
+        for (let i = 0; i < 22; i++) {
+          const angle = i * TAU / 22;
+          const radius = random(175, 255);
+
+          network.push({
+            angle,
+            radius,
+            phase: random(0, TAU)
+          });
+        }
+      }
+
+      function glow(color, blur) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = blur;
+      }
+
+      function clearGlow() {
+        ctx.shadowBlur = 0;
+      }
+
+      function background() {
+        // Exact requested base color
+        ctx.fillStyle = C.gold;
+        ctx.fillRect(0, 0, w, h);
+
+        // Rich antique-gold depth
+        const gradient = ctx.createRadialGradient(
+          w * 0.5, h * 0.5, 20,
+          w * 0.5, h * 0.5, Math.max(w, h) * 0.72
+        );
+
+        gradient.addColorStop(0, "rgba(255,220,145,0.15)");
+        gradient.addColorStop(0.5, "rgba(135,83,28,0.08)");
+        gradient.addColorStop(1, "rgba(48,24,26,0.25)");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        // Fine digital grid
+        ctx.strokeStyle = "rgba(53,27,37,0.12)";
+        ctx.lineWidth = 1;
+
+        for (let x = 0; x < w; x += 45) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+
+        for (let y = 0; y < h; y += 45) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+      }
+
+      function drawStars() {
+        for (const s of stars) {
+          const alpha = 0.12 +
+            0.3 * (0.5 + 0.5 * Math.sin(time + s.phase));
+
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, TAU);
+          ctx.fillStyle = C.ivory;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      function drawParticles(dt) {
+        for (const p of particles) {
+          p.x += p.vx * dt * 60;
+          p.y += p.vy * dt * 60;
+
+          if (p.y < -8) {
+            p.y = h + 8;
+            p.x = random(0, w);
+          }
+
+          if (p.x < -8) p.x = w + 8;
+          if (p.x > w + 8) p.x = -8;
+
+          const alpha = 0.3 +
+            0.4 * (0.5 + 0.5 * Math.sin(time * 0.001 + p.phase));
+
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, TAU);
+          ctx.fillStyle = C.ivory;
+          glow(C.lightGold, 9);
+          ctx.fill();
+          clearGlow();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      function drawCircuits() {
+        circuits.forEach((c, i) => {
+          const x = c.side > 0 ? w * 0.06 : w * 0.94;
+          const direction = c.side > 0 ? 1 : -1;
+
+          const y = (c.y + time * c.speed * 0.3) % h;
+          const length = c.length;
+
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + direction * length * 0.45, y);
+          ctx.lineTo(x + direction * length * 0.45, y + 24);
+          ctx.lineTo(x + direction * length, y + 24);
+
+          ctx.strokeStyle = i % 2 === 0
+            ? "rgba(18,61,53,0.6)"
+            : "rgba(255,240,210,0.55)";
+
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(
+            x + direction * length,
+            y + 24,
+            2.8,
+            0, TAU
+          );
+
+          ctx.fillStyle = i % 2 === 0 ? C.emerald : C.ivory;
+          glow(ctx.fillStyle, 9);
+          ctx.fill();
+          clearGlow();
+        });
+      }
+
+      function drawFingerprint(cx, cy, scale) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(scale, scale);
+
+        const pulse = 1 + Math.sin(time * 0.0015) * 0.025;
+
+        ctx.scale(pulse, pulse);
+
+        // Fingerprint made from curved paths
+        for (let i = 0; i < 9; i++) {
+          const r = 18 + i * 8;
+          const start = -Math.PI * (0.82 - i * 0.018);
+          const end = Math.PI * (0.82 - i * 0.018);
+
+          ctx.beginPath();
+          ctx.arc(0, 0, r, start, end);
+
+          ctx.strokeStyle = i % 2 === 0
+            ? C.lightGold
+            : C.cream;
+
+          ctx.lineWidth = 2.1;
+          ctx.lineCap = "round";
+          glow(C.lightGold, 7);
+          ctx.stroke();
+          clearGlow();
+        }
+
+        // Fingerprint inner ridges
+        ctx.beginPath();
+        ctx.moveTo(-8, 48);
+        ctx.bezierCurveTo(-22, 25, -18, -8, 0, -12);
+        ctx.bezierCurveTo(22, -8, 25, 24, 8, 48);
+
+        ctx.strokeStyle = C.ivory;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawShield(cx, cy, scale) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(scale, scale);
+
+        const pulse = Math.sin(time * 0.0015) * 3;
+
+        // Outer protection rings
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.arc(
+            0, 0,
+            137 + i * 17 + pulse,
+            0, TAU
+          );
+
+          ctx.strokeStyle = i % 2 === 0
+            ? "rgba(255,240,210,0.5)"
+            : "rgba(18,61,53,0.45)";
+
+          ctx.lineWidth = 1.3;
+          ctx.setLineDash(i % 2 === 0 ? [5, 8] : []);
+          ctx.lineDashOffset = -time * 0.012;
+          ctx.stroke();
+        }
+
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+
+        // Dark shield glow
+        const halo = ctx.createRadialGradient(
+          0, 0, 15,
+          0, 0, 145
+        );
+
+        halo.addColorStop(0, "rgba(18,61,53,0.42)");
+        halo.addColorStop(0.65, "rgba(53,27,37,0.25)");
+        halo.addColorStop(1, "rgba(53,27,37,0)");
+
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(0, 0, 145, 0, TAU);
+        ctx.fill();
+
+        // Shield shape
+        ctx.beginPath();
+        ctx.moveTo(0, -105);
+        ctx.lineTo(80, -72);
+        ctx.lineTo(76, 15);
+        ctx.quadraticCurveTo(66, 80, 0, 116);
+        ctx.quadraticCurveTo(-66, 80, -76, 15);
+        ctx.lineTo(-80, -72);
+        ctx.closePath();
+
+        const shieldGradient = ctx.createLinearGradient(
+          -80, -105, 80, 116
+        );
+
+        shieldGradient.addColorStop(0, "#315B4C");
+        shieldGradient.addColorStop(0.5, "#193F36");
+        shieldGradient.addColorStop(1, "#25151F");
+
+        ctx.fillStyle = shieldGradient;
+        ctx.fill();
+
+        ctx.strokeStyle = C.lightGold;
+        ctx.lineWidth = 3;
+        glow(C.lightGold, 20);
+        ctx.stroke();
+        clearGlow();
+
+        // Inner shield border
+        ctx.beginPath();
+        ctx.moveTo(0, -88);
+        ctx.lineTo(63, -62);
+        ctx.lineTo(60, 12);
+        ctx.quadraticCurveTo(50, 68, 0, 94);
+        ctx.quadraticCurveTo(-50, 68, -60, 12);
+        ctx.lineTo(-63, -62);
+        ctx.closePath();
+
+        ctx.strokeStyle = "rgba(255,240,210,0.55)";
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+
+        // Lock shackle
+        ctx.beginPath();
+        ctx.arc(0, -13, 17, Math.PI, 0);
+        ctx.strokeStyle = C.lightGold;
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        // Lock body
+        ctx.beginPath();
+        ctx.roundRect(-27, -13, 54, 47, 8);
+
+        const lockGradient = ctx.createLinearGradient(
+          -27, -13, 27, 34
+        );
+
+        lockGradient.addColorStop(0, "#F5C76B");
+        lockGradient.addColorStop(1, "#B77A2D");
+
+        ctx.fillStyle = lockGradient;
+        ctx.fill();
+
+        ctx.strokeStyle = C.ivory;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Keyhole
+        ctx.beginPath();
+        ctx.arc(0, 3, 5, 0, TAU);
+        ctx.fillStyle = C.burgundy;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-3, 6);
+        ctx.lineTo(3, 6);
+        ctx.lineTo(2, 17);
+        ctx.lineTo(-2, 17);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawRadar(cx, cy) {
+        const radius = 205;
+        const angle = time * 0.00065;
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, TAU);
+        ctx.strokeStyle = "rgba(18,61,53,0.38)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Radar cross lines
+        ctx.beginPath();
+        ctx.moveTo(cx - radius, cy);
+        ctx.lineTo(cx + radius, cy);
+        ctx.moveTo(cx, cy - radius);
+        ctx.lineTo(cx, cy + radius);
+
+        ctx.strokeStyle = "rgba(53,27,37,0.22)";
+        ctx.stroke();
+
+        // Radar sweep
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+
+        const sweep = ctx.createRadialGradient(
+          0, 0, 0,
+          0, 0, radius
+        );
+
+        sweep.addColorStop(0, "rgba(255,240,210,0.16)");
+        sweep.addColorStop(1, "rgba(255,240,210,0)");
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, -0.32, 0.32);
+        ctx.closePath();
+
+        ctx.fillStyle = sweep;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(radius, 0);
+        ctx.strokeStyle = C.ivory;
+        ctx.lineWidth = 1.5;
+        glow(C.ivory, 10);
+        ctx.stroke();
+        clearGlow();
+
+        ctx.restore();
+      }
+
+      function drawNetwork(cx, cy) {
+        const points = [];
+        const radius = Math.min(w * 0.34, 275, h * 0.39);
+
+        for (let i = 0; i < network.length; i++) {
+          const n = network[i];
+          const a = n.angle + time * 0.00008;
+          const r = radius + Math.sin(time * 0.001 + n.phase) * 12;
+
+          points.push({
+            x: cx + Math.cos(a) * r,
+            y: cy + Math.sin(a) * r * 0.75
+          });
+        }
+
+        // Network connections
+        for (let i = 0; i < points.length; i++) {
+          for (let j = i + 1; j < points.length; j++) {
+            const a = points[i];
+            const b = points[j];
+
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 120) {
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+
+              ctx.strokeStyle = "rgba(18,61,53,0.32)";
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
           }
         }
-      });
 
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
+        // Network nodes
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
 
-      
-    let t = 0;
-
-    function init(w, h) {}
-    function onResize(w, h) {}
-
-    function update(dt) {
-      t += dt * 1.5;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Legal Firewall Shield
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 50);
-      ctx.lineTo(cx + 45, cy - 30);
-      ctx.lineTo(cx + 45, cy + 15);
-      ctx.quadraticCurveTo(cx + 45, cy + 50, cx, cy + 60);
-      ctx.quadraticCurveTo(cx - 45, cy + 50, cx - 45, cy + 15);
-      ctx.lineTo(cx - 45, cy - 30);
-      ctx.closePath();
-      ctx.strokeStyle = "#EF4444";
-      ctx.lineWidth = 2.2;
-      ctx.stroke();
-
-      // GDPR / Privacy Data Inspection Radar Sweep
-      ctx.beginPath();
-      ctx.arc(cx, cy + 5, 25, t, t + 0.6);
-      ctx.strokeStyle = "#00F0FF";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-    
-
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
-        lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3, 0, TAU);
+          ctx.fillStyle = i % 2 === 0 ? C.emerald : C.ivory;
+          glow(ctx.fillStyle, 10);
+          ctx.fill();
+          clearGlow();
         }
       }
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+      function drawDataStreams(cx, cy) {
+        for (let i = 0; i < 14; i++) {
+          const angle = time * 0.0003 + i * TAU / 14;
+          const radius = 130 + Math.sin(time * 0.001 + i) * 12;
+
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 3, 0, TAU);
+          ctx.fillStyle = i % 2 === 0 ? C.ivory : C.green;
+          glow(ctx.fillStyle, 13);
+          ctx.fill();
+          clearGlow();
+        }
+      }
+
+      function draw() {
+        background();
+        drawStars();
+        drawCircuits();
+
+        const cx = w / 2;
+        const cy = h / 2;
+
+        const scale = Math.min(1, w / 680, h / 580);
+
+        drawNetwork(cx, cy);
+        drawRadar(cx, cy);
+        drawDataStreams(cx, cy);
+        drawShield(cx, cy, scale);
+        drawFingerprint(
+          cx,
+          cy + 3,
+          scale * 0.82
+        );
+
+        drawParticles(1);
+      }
+
+      function animate(now) {
+        if (paused) return;
+
+        const dt = Math.min((now - lastTime) / 1000, 0.05);
+        lastTime = now;
+
+        time += dt * 1000;
+        draw();
+
+        if (!reducedMotion) {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      function start() {
+        if (paused) return;
+
+        lastTime = performance.now();
+
+        if (!reducedMotion) {
+          requestAnimationFrame(animate);
+        } else {
+          draw();
+        }
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.data === "pause") paused = true;
+
+        if (e.data === "play" && paused) {
+          paused = false;
+          start();
+        }
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden;
+        if (!paused) start();
+      });
+
+      window.addEventListener("resize", resize);
+
+      resize();
+      start();
+
     })();
   </script>
 </body>
+
 </html>

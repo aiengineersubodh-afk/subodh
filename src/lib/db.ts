@@ -1704,16 +1704,33 @@ export function readDb(): DatabaseStore {
   }
   if (!fs.existsSync(DB_FILE)) {
     const initial = ensureDbMigrations(createInitialSeed());
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf-8");
+    writeDb(initial);
     return initial;
   }
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const raw = fs.readFileSync(DB_FILE, "utf-8");
+      if (!raw || raw.trim().length === 0) {
+        const delay = (attempt + 1) * 20;
+        const waitUntil = Date.now() + delay;
+        while (Date.now() < waitUntil) {}
+        continue;
+      }
+      const parsed = JSON.parse(raw) as DatabaseStore;
+      return ensureDbMigrations(parsed);
+    } catch {
+      const delay = (attempt + 1) * 20;
+      const waitUntil = Date.now() + delay;
+      while (Date.now() < waitUntil) {}
+    }
+  }
+  // If file exists and failed repeatedly, attempt reading backup or re-read once more
   try {
     const raw = fs.readFileSync(DB_FILE, "utf-8");
-    const parsed = JSON.parse(raw) as DatabaseStore;
-    return ensureDbMigrations(parsed);
+    return ensureDbMigrations(JSON.parse(raw) as DatabaseStore);
   } catch {
     const initial = ensureDbMigrations(createInitialSeed());
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf-8");
+    writeDb(initial);
     return initial;
   }
 }
@@ -1722,7 +1739,21 @@ export function writeDb(store: DatabaseStore): void {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
-  fs.writeFileSync(DB_FILE, JSON.stringify(store, null, 2), "utf-8");
+  const serialized = JSON.stringify(store, null, 2);
+  const tempPath = `${DB_FILE}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2, 6)}.tmp`;
+  try {
+    fs.writeFileSync(tempPath, serialized, "utf-8");
+    try {
+      fs.renameSync(tempPath, DB_FILE);
+    } catch {
+      // On Windows rename can collide if another read handle is open
+      fs.copyFileSync(tempPath, DB_FILE);
+      try { fs.unlinkSync(tempPath); } catch {}
+    }
+  } catch {
+    // Direct write fallback
+    fs.writeFileSync(DB_FILE, serialized, "utf-8");
+  }
 }
 
 export function createNotification(

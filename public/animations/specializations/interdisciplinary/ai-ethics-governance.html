@@ -1,113 +1,316 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Ethics and Governance Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #090D18; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #A95277
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let w, h, dpr, time = 0, last = performance.now(), paused = false;
+      let particles = [], network = [], stars = [];
+      const TAU = Math.PI * 2;
+      const C = {
+        bg: "#A95277",
+        plum: "#351B32",
+        dark: "#281C30",
+        gold: "#F4D49A",
+        ivory: "#FFF1E5",
+        teal: "#83D6C0",
+        mint: "#B4E8D3",
+        rose: "#E7A0B7",
+        blue: "#9CC9E8"
+      };
+      const rand = (a, b) => Math.random() * (b - a) + a;
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        w = innerWidth; h = innerHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        canvas.style.width = w + "px"; canvas.style.height = h + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        particles = Array.from({ length: Math.min(110, Math.floor(w * h / 8500)) }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(1, 2.7),
+          speed: rand(8, 22), phase: rand(0, TAU),
+          color: Math.random() > .5 ? C.gold : C.ivory
+        }));
+        network = Array.from({ length: 16 }, (_, i) => ({
+          a: i * TAU / 16, r: rand(.8, 1.2), phase: rand(0, TAU)
+        }));
+        stars = Array.from({ length: 55 }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(.5, 1.5), phase: rand(0, TAU)
+        }));
       }
-      window.addEventListener('resize', resize);
+      function glow(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur }
+      function noGlow() { ctx.shadowBlur = 0 }
+      function line(x1, y1, x2, y2, color, width = 1) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+      }
+      function background() {
+        ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+        const g = ctx.createRadialGradient(w * .5, h * .48, 20, w * .5, h * .5, Math.max(w, h) * .8);
+        g.addColorStop(0, "rgba(255,205,190,.10)");
+        g.addColorStop(.55, "rgba(80,20,50,.06)");
+        g.addColorStop(1, "rgba(35,12,35,.3)");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
+        // Subtle technical grid
+        ctx.strokeStyle = "rgba(255,241,229,.055)";
+        ctx.lineWidth = .7;
+        for (let x = 0; x < w; x += 48)line(x, 0, x, h, "rgba(255,241,229,.05)");
+        for (let y = 0; y < h; y += 48)line(0, y, w, y, "rgba(255,241,229,.05)");
+
+        for (const s of stars) {
+          const a = .12 + .22 * (.5 + .5 * Math.sin(time + s.phase));
+          ctx.globalAlpha = a;
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU);
+          ctx.fillStyle = C.ivory; ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+      function drawOrbitalRings(cx, cy, r) {
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r * (1.35 + i * .18), r * (.9 + i * .14),
+            -.25, 0, TAU);
+          ctx.strokeStyle = `rgba(255,241,229,${.19 - i * .025})`;
+          ctx.lineWidth = 1;
+          ctx.setLineDash(i % 2 ? [5, 9] : []);
+          ctx.lineDashOffset = -time * (8 + i * 3);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+      function drawShield(cx, cy, r) {
+        const pulse = Math.sin(time * 1.2) * 3;
+        r += pulse;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r);
+        ctx.bezierCurveTo(cx + r * .83, cy - r * .82, cx + r * .94, cy - r * .35, cx + r * .8, cy + r * .2);
+        ctx.bezierCurveTo(cx + r * .68, cy + r * .8, cx + r * .25, cy + r * 1.08, cx, cy + r * 1.24);
+        ctx.bezierCurveTo(cx - r * .25, cy + r * 1.08, cx - r * .68, cy + r * .8, cx - r * .8, cy + r * .2);
+        ctx.bezierCurveTo(cx - r * .94, cy - r * .35, cx - r * .83, cy - r * .82, cx, cy - r);
+
+        const f = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+        f.addColorStop(0, "rgba(131,214,192,.22)");
+        f.addColorStop(.5, "rgba(53,27,50,.4)");
+        f.addColorStop(1, "rgba(244,212,154,.14)");
+        ctx.fillStyle = f; ctx.fill();
+        ctx.strokeStyle = C.gold; ctx.lineWidth = 2;
+        glow(C.gold, 18); ctx.stroke(); noGlow();
+
+        // Inner border
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - r * .8);
+        ctx.bezierCurveTo(cx + r * .65, cy - r * .62, cx + r * .7, cy - r * .2, cx + r * .62, cy + r * .18);
+        ctx.bezierCurveTo(cx + r * .5, cy + r * .7, cx + r * .18, cy + r * .94, cx, cy + r * 1.08);
+        ctx.bezierCurveTo(cx - r * .18, cy + r * .94, cx - r * .5, cy + r * .7, cx - r * .62, cy + r * .18);
+        ctx.bezierCurveTo(cx - r * .7, cy - r * .2, cx - r * .65, cy - r * .62, cx, cy - r * .8);
+        ctx.strokeStyle = "rgba(255,241,229,.35)";
+        ctx.lineWidth = 1; ctx.stroke();
+      }
+      function drawBrain(cx, cy, r) {
+        const gradient = ctx.createRadialGradient(cx - r * .3, cy - r * .35, r * .05, cx, cy, r * 1.1);
+        gradient.addColorStop(0, "#68415E");
+        gradient.addColorStop(.7, "#432A43");
+        gradient.addColorStop(1, "#281C30");
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, TAU);
+        ctx.fillStyle = gradient; ctx.fill();
+        ctx.strokeStyle = C.teal; ctx.lineWidth = 1.8;
+        glow(C.teal, 17); ctx.stroke(); noGlow();
+
+        // Neural folds
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, cy, r * .91, 0, TAU); ctx.clip();
+        for (let i = 0; i < 7; i++) {
+          const y = cy - r * .65 + i * r * .21;
+          ctx.beginPath();
+          ctx.moveTo(cx - r * .72, y);
+          ctx.bezierCurveTo(cx - r * .3, y - r * .22, cx + r * .1, y + r * .22, cx + r * .7, y - r * .08);
+          ctx.strokeStyle = i % 2 ? "rgba(131,214,192,.3)" : "rgba(244,212,154,.3)";
+          ctx.lineWidth = 1.4; ctx.stroke();
+        }
+        ctx.restore();
+
+        // Central AI core
+        const core = ctx.createRadialGradient(cx, cy, 2, cx, cy, r * .4);
+        core.addColorStop(0, C.ivory);
+        core.addColorStop(.2, C.gold);
+        core.addColorStop(.55, C.teal);
+        core.addColorStop(1, "rgba(131,214,192,0)");
+        ctx.fillStyle = core;
+        ctx.beginPath(); ctx.arc(cx, cy, r * .4, 0, TAU); ctx.fill();
+      }
+      function drawNeuralNetwork(cx, cy, r) {
+        const pts = network.map(n => ({
+          x: cx + Math.cos(n.a + time * .09) * r * 1.8 * n.r,
+          y: cy + Math.sin(n.a + time * .09) * r * 1.2 * n.r
+        }));
+        for (let i = 0; i < pts.length; i++) {
+          for (let j = i + 1; j < pts.length; j++) {
+            const a = pts[i], b = pts[j];
+            const distance = Math.hypot(a.x - b.x, a.y - b.y);
+            if (distance > r * 1.05) continue;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = "rgba(255,241,229,.13)";
+            ctx.lineWidth = .8; ctx.stroke();
           }
-        }
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
-
-      
-    let t = 0;
-
-    function init(w, h) {}
-    function onResize(w, h) {}
-
-    function update(dt) {
-      t += dt * 1.2;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const startX = w * 0.15;
-      const baseY = h * 0.8;
-      const topY = h * 0.2;
-
-      // Algorithmic Fairness Pareto Efficiency Frontier Curve
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(startX, topY); ctx.lineTo(startX, baseY); ctx.lineTo(w * 0.85, baseY);
-      ctx.stroke();
-
-      // Pareto Frontier (Tradeoff between Model Accuracy and Fairness Equity)
-      ctx.beginPath();
-      ctx.strokeStyle = "#3B82F6";
-      ctx.lineWidth = 2.5;
-      ctx.moveTo(startX + 20, topY + 20);
-      ctx.quadraticCurveTo(w * 0.55, topY + 30, w * 0.8, baseY - 20);
-      ctx.stroke();
-
-      // Optimal Ethical Operating Point moving along frontier
-      const progress = (Math.sin(t) + 1) * 0.5;
-      const px = startX + 20 + progress * (w * 0.6);
-      const py = topY + 20 + Math.pow(progress, 1.8) * (baseY - topY - 40);
-
-      ctx.beginPath();
-      ctx.arc(px, py, 6, 0, Math.PI * 2);
-      ctx.fillStyle = "#10B981";
-      ctx.shadowColor = "#10B981";
-      ctx.shadowBlur = 10;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-    
-
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
-        lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+          const p = pts[i];
+          ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, TAU);
+          ctx.fillStyle = i % 2 ? C.teal : C.gold;
+          glow(i % 2 ? C.teal : C.gold, 10); ctx.fill(); noGlow();
         }
       }
+      function drawDataFlows(cx, cy, r) {
+        for (let i = 0; i < 8; i++) {
+          const a = i * TAU / 8 + time * .12;
+          const x1 = cx + Math.cos(a) * r * .65;
+          const y1 = cy + Math.sin(a) * r * .65;
+          const x2 = cx + Math.cos(a) * r * 2.1;
+          const y2 = cy + Math.sin(a) * r * 1.55;
+          ctx.beginPath(); ctx.moveTo(x1, y1);
+          ctx.quadraticCurveTo(cx + Math.cos(a + .4) * r * 1.2,
+            cy + Math.sin(a + .4) * r * .9, x2, y2);
+          ctx.strokeStyle = "rgba(131,214,192,.24)";
+          ctx.lineWidth = 1.2; ctx.stroke();
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+          const p = (time * .22 + i * .13) % 1;
+          const px = x1 + (x2 - x1) * p;
+          const py = y1 + (y2 - y1) * p;
+          ctx.beginPath(); ctx.arc(px, py, 3, 0, TAU);
+          ctx.fillStyle = C.ivory; glow(C.ivory, 12); ctx.fill(); noGlow();
+        }
+      }
+      function drawBalance(cx, cy, r) {
+        const y = cy + r * 1.45;
+        const sway = Math.sin(time * .8) * .06;
+        const width = r * .85;
+
+        // Central pivot
+        ctx.beginPath(); ctx.moveTo(cx, y - r * .65);
+        ctx.lineTo(cx, y + r * .15);
+        ctx.strokeStyle = C.gold; ctx.lineWidth = 3;
+        glow(C.gold, 9); ctx.stroke(); noGlow();
+
+        // Balance beam
+        ctx.save(); ctx.translate(cx, y - r * .5); ctx.rotate(sway);
+        line(-width, 0, width, 0, C.gold, 3);
+        ctx.beginPath(); ctx.arc(0, 0, 5, 0, TAU);
+        ctx.fillStyle = C.ivory; ctx.fill();
+
+        for (const side of [-1, 1]) {
+          const x = side * width * .78;
+          line(x, 0, x + side * 8, r * .48, C.gold, 1.7);
+          line(x, 0, x - side * 8, r * .48, C.gold, 1.7);
+          ctx.beginPath();
+          ctx.moveTo(x - r * .25, r * .48);
+          ctx.quadraticCurveTo(x, r * .75, x + r * .25, r * .48);
+          ctx.strokeStyle = C.ivory; ctx.lineWidth = 2; ctx.stroke();
+          ctx.beginPath(); ctx.ellipse(x, r * .48, r * .25, r * .065, 0, 0, TAU);
+          ctx.strokeStyle = C.gold; ctx.stroke();
+          ctx.restore();
+        }
+        ctx.beginPath(); ctx.moveTo(cx - r * .35, y + r * .2);
+        ctx.lineTo(cx + r * .35, y + r * .2);
+        ctx.lineTo(cx, y - r * .02); ctx.closePath();
+        ctx.fillStyle = C.gold; ctx.fill();
+      }
+      function drawGovernanceNodes(cx, cy, r) {
+        const positions = [
+          [-2.1, -.45], [2.1, -.45], [-1.8, .9], [1.8, .9], [0, -1.85], [0, 1.95]
+        ];
+        positions.forEach((pos, i) => {
+          const x = cx + pos[0] * r;
+          const y = cy + pos[1] * r;
+          const pulse = .5 + .5 * Math.sin(time * 1.5 + i);
+          ctx.beginPath(); ctx.arc(x, y, 8 + pulse * 2, 0, TAU);
+          ctx.fillStyle = i % 2 ? C.teal : C.gold;
+          glow(i % 2 ? C.teal : C.gold, 14); ctx.fill(); noGlow();
+          ctx.beginPath(); ctx.arc(x, y, 17 + pulse * 3, 0, TAU);
+          ctx.strokeStyle = `rgba(255,241,229,${.22 + pulse * .15})`;
+          ctx.lineWidth = 1; ctx.stroke();
+        });
+      }
+      function drawParticles(dt) {
+        for (const p of particles) {
+          p.y -= p.speed * dt;
+          p.x += Math.sin(time + p.phase) * 8 * dt;
+          if (p.y < -10) { p.y = h + 10; p.x = rand(0, w) }
+          const alpha = .22 + .48 * (.5 + .5 * Math.sin(time * 1.3 + p.phase));
+          ctx.globalAlpha = alpha;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU);
+          ctx.fillStyle = p.color; glow(p.color, 9); ctx.fill(); noGlow();
+          ctx.globalAlpha = 1;
+        }
+      }
+      function draw(dt) {
+        background();
+        const cx = w * .5, cy = h * .48;
+        const scale = Math.min(w / 1000, h / 750, 1.15);
+        const r = Math.min(68 * scale, 80);
+
+        drawOrbitalRings(cx, cy, r);
+        drawDataFlows(cx, cy, r);
+        drawGovernanceNodes(cx, cy, r);
+        drawShield(cx, cy, r * 1.7);
+        drawBrain(cx, cy, r);
+        drawNeuralNetwork(cx, cy, r);
+        drawBalance(cx, cy, r);
+        drawParticles(dt);
+      }
+      function update(dt) { time += dt }
+      let reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function render(now) {
+        if (paused) return;
+        const dt = Math.min((now - last) / 1000, .05);
+        last = now; update(dt); draw(dt);
+        if (!reduced) requestAnimationFrame(render);
+      }
+      function start() {
+        if (paused) return;
+        last = performance.now();
+        requestAnimationFrame(render);
+      }
+      addEventListener("resize", resize);
+      addEventListener("message", e => {
+        if (e.data === "pause") paused = true;
+        if (e.data === "play" && paused) { paused = false; start() }
+      });
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden;
+        if (!paused) start();
+      });
+      resize(); start();
     })();
   </script>
 </body>
+
 </html>

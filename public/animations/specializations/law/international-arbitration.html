@@ -1,118 +1,684 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>International Arbitration Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #060E1C; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #252B35;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
+
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let w, h, dpr;
+      let time = 0;
+      let lastTime = performance.now();
       let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      const TAU = Math.PI * 2;
+
+      const C = {
+        background: "#252B35",
+        dark: "#1B222D",
+        silver: "#AEB8C5",
+        light: "#E8EDF5",
+        blue: "#4F8FEF",
+        gold: "#E6BC72",
+        paleGold: "#F4DCA8",
+        muted: "#788697"
+      };
+
+      let particles = [];
+      let nodes = [];
+      let stars = [];
+
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
 
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
-      }
-      window.addEventListener('resize', resize);
+        w = window.innerWidth;
+        h = window.innerHeight;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        createElements();
+      }
+
+      function createElements() {
+        particles = [];
+        nodes = [];
+        stars = [];
+
+        const count = Math.min(100, Math.floor(w * h / 10000));
+
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: random(0, w),
+            y: random(0, h),
+            size: random(0.7, 2),
+            speed: random(5, 18),
+            phase: random(0, TAU)
+          });
+        }
+
+        for (let i = 0; i < 6; i++) {
+          nodes.push({
+            angle: i * TAU / 6 - Math.PI / 2,
+            orbit: random(145, 185),
+            phase: random(0, TAU),
+            size: random(3, 5)
+          });
+        }
+
+        for (let i = 0; i < 35; i++) {
+          stars.push({
+            x: random(0, w),
+            y: random(0, h),
+            size: random(0.5, 1.5),
+            phase: random(0, TAU)
+          });
+        }
+      }
+
+      function glow(color, blur) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = blur;
+      }
+
+      function clearGlow() {
+        ctx.shadowBlur = 0;
+      }
+
+      function drawBackground() {
+        const gradient = ctx.createRadialGradient(
+          w * 0.5, h * 0.5, 20,
+          w * 0.5, h * 0.5, Math.max(w, h) * 0.75
+        );
+
+        gradient.addColorStop(0, "#414A57");
+        gradient.addColorStop(0.48, "#303945");
+        gradient.addColorStop(1, "#1B222D");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
+
+        // Fine architectural grid
+        ctx.strokeStyle = "rgba(190,204,221,0.055)";
+        ctx.lineWidth = 1;
+
+        const spacing = 55;
+
+        for (let x = 0; x < w; x += spacing) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          ctx.stroke();
+        }
+
+        for (let y = 0; y < h; y += spacing) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        // Ambient floating lights
+        for (const s of stars) {
+          const alpha = 0.1 + 0.25 *
+            (0.5 + 0.5 * Math.sin(time + s.phase));
+
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size, 0, TAU);
+          ctx.fillStyle = `rgba(232,237,245,${alpha})`;
+          ctx.fill();
+        }
+      }
+
+      function drawParticles(dt) {
+        for (const p of particles) {
+          p.y -= p.speed * dt;
+          p.x += Math.sin(time * 0.4 + p.phase) * 6 * dt;
+
+          if (p.y < -10) {
+            p.y = h + 10;
+            p.x = random(0, w);
           }
+
+          const alpha = 0.15 +
+            0.3 * (0.5 + 0.5 * Math.sin(time + p.phase));
+
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, TAU);
+          ctx.fillStyle = C.silver;
+          ctx.fill();
+          ctx.globalAlpha = 1;
         }
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
-
-      
-    const treatyNodes = [];
-
-    function init(w, h) {
-      treatyNodes.length = 0;
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      const count = 5;
-      for (let i = 0; i < count; i++) {
-        const a = (Math.PI * 2 / count) * i;
-        treatyNodes.push({ x: cx + Math.cos(a) * 65, y: cy + Math.sin(a) * 65 });
       }
-    }
 
-    function onResize(w, h) { init(w, h); }
-    function update(dt) {}
+      function drawOrbit(cx, cy, rx, ry, rotation, color, dash) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rotation);
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Cross-border treaty jurisdiction links converging on central tribunal
-      ctx.strokeStyle = "rgba(59, 130, 246, 0.35)";
-      ctx.lineWidth = 1.4;
-      for (const n of treatyNodes) {
         ctx.beginPath();
-        ctx.moveTo(n.x, n.y);
-        ctx.lineTo(cx, cy);
+        ctx.ellipse(0, 0, rx, ry, 0, 0, TAU);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.1;
+        ctx.setLineDash(dash || []);
         ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.restore();
       }
 
-      // Neutral Arbitral Tribunal center
-      ctx.beginPath();
-      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-      ctx.fillStyle = "#F59E0B";
-      ctx.fill();
-      ctx.strokeStyle = "#FFFFFF";
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      function drawJurisdictionNetwork(cx, cy, radius) {
+        const points = [];
 
-      // Member State jurisdiction nodes
-      for (const n of treatyNodes) {
+        for (const node of nodes) {
+          const angle = node.angle + time * 0.035;
+
+          points.push({
+            x: cx + Math.cos(angle) * node.orbit,
+            y: cy + Math.sin(angle) * node.orbit * 0.68,
+            size: node.size
+          });
+        }
+
+        // Treaty connections
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.quadraticCurveTo(
+            cx + Math.cos(time * 0.2 + i) * 12,
+            cy + Math.sin(time * 0.2 + i) * 12,
+            cx, cy
+          );
+
+          ctx.strokeStyle = "rgba(79,143,239,0.3)";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          // Moving signal
+          const progress = (time * 0.22 + i * 0.17) % 1;
+          const px = p.x + (cx - p.x) * progress;
+          const py = p.y + (cy - p.y) * progress;
+
+          ctx.beginPath();
+          ctx.arc(px, py, 2.5, 0, TAU);
+          ctx.fillStyle = C.paleGold;
+          glow(C.gold, 12);
+          ctx.fill();
+          clearGlow();
+        }
+
+        // Jurisdiction nodes
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size + 7, 0, TAU);
+          ctx.strokeStyle = "rgba(79,143,239,0.25)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, TAU);
+          ctx.fillStyle = i % 2 === 0 ? C.blue : C.silver;
+          glow(C.blue, 13);
+          ctx.fill();
+          clearGlow();
+        }
+      }
+
+      function drawGlobe(cx, cy, radius) {
+        // Globe atmosphere
+        const halo = ctx.createRadialGradient(
+          cx, cy, radius * 0.7,
+          cx, cy, radius * 1.55
+        );
+
+        halo.addColorStop(0, "rgba(79,143,239,0.22)");
+        halo.addColorStop(1, "rgba(79,143,239,0)");
+
+        ctx.fillStyle = halo;
         ctx.beginPath();
-        ctx.arc(n.x, n.y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#3B82F6";
+        ctx.arc(cx, cy, radius * 1.55, 0, TAU);
         ctx.fill();
-      }
-    }
-    
 
-      let lastTime = performance.now();
+        // Globe surface
+        const globe = ctx.createRadialGradient(
+          cx - radius * 0.35,
+          cy - radius * 0.4,
+          radius * 0.05,
+          cx, cy, radius
+        );
+
+        globe.addColorStop(0, "#829DBB");
+        globe.addColorStop(0.5, "#456C9A");
+        globe.addColorStop(1, "#1C3657");
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, TAU);
+        ctx.fillStyle = globe;
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, TAU);
+        ctx.clip();
+
+        // Longitude lines
+        for (let i = 0; i < 5; i++) {
+          const width = Math.abs(Math.cos(time * 0.35 + i * 0.55));
+
+          ctx.beginPath();
+          ctx.ellipse(
+            cx, cy,
+            Math.max(2, radius * width),
+            radius,
+            0, 0, TAU
+          );
+
+          ctx.strokeStyle = "rgba(232,237,245,0.32)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        // Latitude lines
+        for (let i = -2; i <= 2; i++) {
+          ctx.beginPath();
+          ctx.ellipse(
+            cx,
+            cy + i * radius * 0.3,
+            radius * Math.sqrt(1 - Math.pow(i * 0.3, 2)),
+            radius * 0.12,
+            0, 0, TAU
+          );
+
+          ctx.strokeStyle = "rgba(232,237,245,0.25)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        // Stylized continents
+        ctx.fillStyle = "#9FB8B4";
+        ctx.globalAlpha = 0.7;
+
+        ctx.beginPath();
+        ctx.moveTo(cx - radius * 0.72, cy - radius * 0.32);
+        ctx.lineTo(cx - radius * 0.48, cy - radius * 0.7);
+        ctx.lineTo(cx - radius * 0.15, cy - radius * 0.55);
+        ctx.lineTo(cx + radius * 0.02, cy - radius * 0.2);
+        ctx.lineTo(cx - radius * 0.25, cy + radius * 0.05);
+        ctx.lineTo(cx - radius * 0.42, cy + radius * 0.55);
+        ctx.lineTo(cx - radius * 0.68, cy + radius * 0.22);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx + radius * 0.1, cy - radius * 0.55);
+        ctx.lineTo(cx + radius * 0.5, cy - radius * 0.65);
+        ctx.lineTo(cx + radius * 0.75, cy - radius * 0.3);
+        ctx.lineTo(cx + radius * 0.5, cy + radius * 0.02);
+        ctx.lineTo(cx + radius * 0.68, cy + radius * 0.38);
+        ctx.lineTo(cx + radius * 0.3, cy + radius * 0.65);
+        ctx.lineTo(cx + radius * 0.05, cy + radius * 0.2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalAlpha = 1;
+        ctx.restore();
+
+        // Globe border
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, TAU);
+        ctx.strokeStyle = C.light;
+        ctx.lineWidth = 1.8;
+        glow(C.blue, 14);
+        ctx.stroke();
+        clearGlow();
+      }
+
+      function drawTribunal(cx, cy, size) {
+        const top = cy - size * 0.9;
+        const bottom = cy + size * 0.85;
+
+        ctx.save();
+
+        // Pediment
+        ctx.beginPath();
+        ctx.moveTo(cx - size * 1.05, top + size * 0.2);
+        ctx.lineTo(cx, top - size * 0.35);
+        ctx.lineTo(cx + size * 1.05, top + size * 0.2);
+        ctx.closePath();
+
+        const stone = ctx.createLinearGradient(
+          cx - size, top,
+          cx + size, bottom
+        );
+
+        stone.addColorStop(0, "#F1E5CC");
+        stone.addColorStop(0.5, "#C5C9CE");
+        stone.addColorStop(1, "#8C99A8");
+
+        ctx.fillStyle = stone;
+        ctx.fill();
+        ctx.strokeStyle = C.paleGold;
+        ctx.lineWidth = 1.5;
+        glow(C.gold, 9);
+        ctx.stroke();
+        clearGlow();
+
+        // Entablature
+        ctx.fillStyle = "#BFC8D2";
+        ctx.fillRect(
+          cx - size * 1.02,
+          top + size * 0.2,
+          size * 2.04,
+          size * 0.17
+        );
+
+        // Classical columns
+        const positions = [-0.76, -0.26, 0.26, 0.76];
+
+        for (const p of positions) {
+          const x = cx + size * p;
+          const colTop = top + size * 0.42;
+          const colBottom = bottom - size * 0.12;
+          const colWidth = size * 0.15;
+
+          const column = ctx.createLinearGradient(
+            x - colWidth, 0,
+            x + colWidth, 0
+          );
+
+          column.addColorStop(0, "#8995A3");
+          column.addColorStop(0.3, "#F0E8D8");
+          column.addColorStop(0.7, "#D0D4D8");
+          column.addColorStop(1, "#7F8B99");
+
+          ctx.fillStyle = column;
+          ctx.fillRect(
+            x - colWidth / 2,
+            colTop,
+            colWidth,
+            colBottom - colTop
+          );
+
+          ctx.strokeStyle = "rgba(255,255,255,0.45)";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(
+            x - colWidth / 2,
+            colTop,
+            colWidth,
+            colBottom - colTop
+          );
+
+          // Column capitals
+          ctx.fillStyle = "#E6BC72";
+          ctx.fillRect(
+            x - colWidth * 0.8,
+            colTop - 4,
+            colWidth * 1.6,
+            6
+          );
+
+          // Column base
+          ctx.fillRect(
+            x - colWidth * 0.8,
+            colBottom - 2,
+            colWidth * 1.6,
+            7
+          );
+        }
+
+        // Tribunal platform
+        ctx.fillStyle = "#B7C1CC";
+        ctx.fillRect(
+          cx - size * 1.15,
+          bottom - size * 0.08,
+          size * 2.3,
+          size * 0.16
+        );
+
+        ctx.fillStyle = "#8F9BA9";
+        ctx.fillRect(
+          cx - size * 1.25,
+          bottom + size * 0.08,
+          size * 2.5,
+          size * 0.13
+        );
+
+        ctx.restore();
+      }
+
+      function drawScales(cx, cy, size) {
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        const sway = Math.sin(time * 1.3) * 0.035;
+
+        // Central upright
+        ctx.beginPath();
+        ctx.moveTo(0, -size * 0.75);
+        ctx.lineTo(0, size * 0.65);
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 3;
+        glow(C.gold, 12);
+        ctx.stroke();
+        clearGlow();
+
+        // Top ornament
+        ctx.beginPath();
+        ctx.arc(0, -size * 0.8, size * 0.08, 0, TAU);
+        ctx.fillStyle = C.paleGold;
+        ctx.fill();
+
+        // Balance beam
+        ctx.save();
+        ctx.translate(0, -size * 0.56);
+        ctx.rotate(sway);
+
+        ctx.beginPath();
+        ctx.moveTo(-size * 0.8, 0);
+        ctx.lineTo(size * 0.8, 0);
+        ctx.strokeStyle = C.gold;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Left and right suspension
+        for (const side of [-1, 1]) {
+          const x = side * size * 0.68;
+
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x - size * 0.18, size * 0.42);
+          ctx.lineTo(x + size * 0.18, size * 0.42);
+          ctx.closePath();
+
+          ctx.strokeStyle = C.paleGold;
+          ctx.lineWidth = 1.7;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.ellipse(
+            x, size * 0.45,
+            size * 0.27, size * 0.07,
+            0, 0, TAU
+          );
+
+          ctx.strokeStyle = C.gold;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        ctx.restore();
+
+        // Central base
+        ctx.beginPath();
+        ctx.moveTo(-size * 0.4, size * 0.66);
+        ctx.lineTo(size * 0.4, size * 0.66);
+        ctx.lineTo(size * 0.27, size * 0.53);
+        ctx.lineTo(-size * 0.27, size * 0.53);
+        ctx.closePath();
+        ctx.fillStyle = C.gold;
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawEnergyRings(cx, cy, radius) {
+        for (let i = 0; i < 3; i++) {
+          const phase = (time * 0.16 + i / 3) % 1;
+          const r = radius * (1.35 + phase * 0.75);
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, TAU);
+          ctx.strokeStyle = `rgba(230,188,114,${(1 - phase) * 0.25})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      function drawScene(dt) {
+        drawBackground();
+
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+
+        const scale = Math.min(w / 900, h / 650, 1.1);
+        const radius = 52 * scale;
+
+        drawEnergyRings(cx, cy, radius);
+        drawJurisdictionNetwork(cx, cy, radius);
+
+        // Main globe
+        drawGlobe(cx, cy, radius);
+
+        // International tribunal
+        drawTribunal(
+          cx,
+          cy + radius * 1.45,
+          radius * 0.92
+        );
+
+        // Scales of justice
+        drawScales(
+          cx + radius * 1.6,
+          cy - radius * 1.05,
+          radius * 0.48
+        );
+
+        // Orbital jurisdiction boundaries
+        drawOrbit(
+          cx, cy,
+          radius * 2.1,
+          radius * 1.32,
+          time * 0.08,
+          "rgba(174,184,197,0.25)",
+          [4, 8]
+        );
+
+        drawOrbit(
+          cx, cy,
+          radius * 1.8,
+          radius * 1.8,
+          -time * 0.06,
+          "rgba(79,143,239,0.2)"
+        );
+
+        drawParticles(dt);
+      }
+
+      function update(dt) {
+        time += dt;
+      }
+
       function renderLoop(now) {
         if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
+
+        const dt = Math.min((now - lastTime) / 1000, 0.05);
         lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
+
+        if (!reducedMotion) {
+          update(dt);
+        }
+
+        drawScene(dt);
+
+        if (!reducedMotion) {
           requestAnimationFrame(renderLoop);
         }
       }
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+      function start() {
+        if (isPaused) return;
+        lastTime = performance.now();
+        requestAnimationFrame(renderLoop);
+      }
+
+      window.addEventListener("resize", resize);
+
+      window.addEventListener("message", (e) => {
+        if (e.data === "pause") {
+          isPaused = true;
+        }
+
+        if (e.data === "play" && isPaused) {
+          isPaused = false;
+          start();
+        }
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        isPaused = document.hidden;
+        if (!isPaused) start();
+      });
+
+      resize();
+      start();
     })();
   </script>
 </body>
+
 </html>

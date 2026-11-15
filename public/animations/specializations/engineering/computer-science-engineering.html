@@ -1,19 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Computer Science Engineering Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #070D18; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #dce2ed;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
+    (function () {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
       let w = canvas.width = window.innerWidth;
@@ -47,110 +66,110 @@
         }
       });
 
-      
-    const tokens = ['{ }', '0101', '&&', '=>', 'null', 'void', '0x7F', '<T>', 'return', 'ptr*'];
-    const columns = [];
-    const treeNodes = [];
-    let pulseProgress = 0;
 
-    function init(w, h) {
-      columns.length = 0;
-      const colCount = Math.floor(w / 40);
-      for (let i = 0; i < colCount; i++) {
-        columns.push({
-          x: i * 40 + 10,
-          y: Math.random() * h,
-          speed: 20 + Math.random() * 35,
-          text: tokens[Math.floor(Math.random() * tokens.length)],
-          alpha: 0.15 + Math.random() * 0.3
-        });
-      }
+      const tokens = ['{ }', '0101', '&&', '=>', 'null', 'void', '0x7F', '<T>', 'return', 'ptr*'];
+      const columns = [];
+      const treeNodes = [];
+      let pulseProgress = 0;
 
-      treeNodes.length = 0;
-      const levels = 4;
-      for (let lvl = 0; lvl < levels; lvl++) {
-        const count = Math.pow(2, lvl);
-        const y = h * 0.2 + (lvl * (h * 0.55 / levels));
-        for (let j = 0; j < count; j++) {
-          const x = (w / (count + 1)) * (j + 1);
-          treeNodes.push({ x, y, lvl, idx: j, active: false });
+      function init(w, h) {
+        columns.length = 0;
+        const colCount = Math.floor(w / 40);
+        for (let i = 0; i < colCount; i++) {
+          columns.push({
+            x: i * 40 + 10,
+            y: Math.random() * h,
+            speed: 20 + Math.random() * 35,
+            text: tokens[Math.floor(Math.random() * tokens.length)],
+            alpha: 0.15 + Math.random() * 0.3
+          });
+        }
+
+        treeNodes.length = 0;
+        const levels = 4;
+        for (let lvl = 0; lvl < levels; lvl++) {
+          const count = Math.pow(2, lvl);
+          const y = h * 0.2 + (lvl * (h * 0.55 / levels));
+          for (let j = 0; j < count; j++) {
+            const x = (w / (count + 1)) * (j + 1);
+            treeNodes.push({ x, y, lvl, idx: j, active: false });
+          }
         }
       }
-    }
 
-    function onResize(w, h) { init(w, h); }
+      function onResize(w, h) { init(w, h); }
 
-    function update(dt) {
-      for (const col of columns) {
-        col.y += col.speed * dt;
-        if (col.y > h + 20) {
-          col.y = -20;
-          col.text = tokens[Math.floor(Math.random() * tokens.length)];
+      function update(dt) {
+        for (const col of columns) {
+          col.y += col.speed * dt;
+          if (col.y > h + 20) {
+            col.y = -20;
+            col.text = tokens[Math.floor(Math.random() * tokens.length)];
+          }
         }
-      }
-      pulseProgress = (pulseProgress + dt * 0.8) % 3;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-
-      // Background grid
-      ctx.strokeStyle = "rgba(0, 240, 255, 0.04)";
-      ctx.lineWidth = 1;
-      const gridSize = 32;
-      for (let x = 0; x < w; x += gridSize) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      }
-      for (let y = 0; y < h; y += gridSize) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        pulseProgress = (pulseProgress + dt * 0.8) % 3;
       }
 
-      // Code stream columns
-      ctx.font = "11px 'JetBrains Mono', 'Fira Code', monospace";
-      for (const col of columns) {
-        ctx.fillStyle = "rgba(0, 240, 255, " + col.alpha + ")";
-        ctx.fillText(col.text, col.x, col.y);
-      }
+      function draw(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h);
 
-      // Binary tree connections
-      for (let i = 0; i < treeNodes.length; i++) {
-        const leftIdx = 2 * i + 1;
-        const rightIdx = 2 * i + 2;
-        const curr = treeNodes[i];
-        if (leftIdx < treeNodes.length) {
-          const left = treeNodes[leftIdx];
+        // Background grid
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.04)";
+        ctx.lineWidth = 1;
+        const gridSize = 32;
+        for (let x = 0; x < w; x += gridSize) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let y = 0; y < h; y += gridSize) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+
+        // Code stream columns
+        ctx.font = "11px 'JetBrains Mono', 'Fira Code', monospace";
+        for (const col of columns) {
+          ctx.fillStyle = "rgba(0, 240, 255, " + col.alpha + ")";
+          ctx.fillText(col.text, col.x, col.y);
+        }
+
+        // Binary tree connections
+        for (let i = 0; i < treeNodes.length; i++) {
+          const leftIdx = 2 * i + 1;
+          const rightIdx = 2 * i + 2;
+          const curr = treeNodes[i];
+          if (leftIdx < treeNodes.length) {
+            const left = treeNodes[leftIdx];
+            ctx.beginPath();
+            ctx.moveTo(curr.x, curr.y);
+            ctx.lineTo(left.x, left.y);
+            ctx.strokeStyle = "rgba(121, 40, 202, 0.25)";
+            ctx.stroke();
+          }
+          if (rightIdx < treeNodes.length) {
+            const right = treeNodes[rightIdx];
+            ctx.beginPath();
+            ctx.moveTo(curr.x, curr.y);
+            ctx.lineTo(right.x, right.y);
+            ctx.strokeStyle = "rgba(121, 40, 202, 0.25)";
+            ctx.stroke();
+          }
+        }
+
+        // Binary tree nodes & traversal pulse
+        const activeLevel = Math.floor(pulseProgress);
+        const frac = pulseProgress - activeLevel;
+        for (let i = 0; i < treeNodes.length; i++) {
+          const n = treeNodes[i];
+          const isLevel = n.lvl === activeLevel;
           ctx.beginPath();
-          ctx.moveTo(curr.x, curr.y);
-          ctx.lineTo(left.x, left.y);
-          ctx.strokeStyle = "rgba(121, 40, 202, 0.25)";
-          ctx.stroke();
-        }
-        if (rightIdx < treeNodes.length) {
-          const right = treeNodes[rightIdx];
-          ctx.beginPath();
-          ctx.moveTo(curr.x, curr.y);
-          ctx.lineTo(right.x, right.y);
-          ctx.strokeStyle = "rgba(121, 40, 202, 0.25)";
-          ctx.stroke();
+          ctx.arc(n.x, n.y, isLevel ? 5.5 : 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = isLevel ? "#00F0FF" : "rgba(121, 40, 202, 0.7)";
+          ctx.shadowColor = isLevel ? "#00F0FF" : "transparent";
+          ctx.shadowBlur = isLevel ? 12 : 0;
+          ctx.fill();
+          ctx.shadowBlur = 0;
         }
       }
 
-      // Binary tree nodes & traversal pulse
-      const activeLevel = Math.floor(pulseProgress);
-      const frac = pulseProgress - activeLevel;
-      for (let i = 0; i < treeNodes.length; i++) {
-        const n = treeNodes[i];
-        const isLevel = n.lvl === activeLevel;
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, isLevel ? 5.5 : 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = isLevel ? "#00F0FF" : "rgba(121, 40, 202, 0.7)";
-        ctx.shadowColor = isLevel ? "#00F0FF" : "transparent";
-        ctx.shadowBlur = isLevel ? 12 : 0;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-    }
-    
 
       let lastTime = performance.now();
       function renderLoop(now) {
@@ -169,4 +188,5 @@
     })();
   </script>
 </body>
+
 </html>

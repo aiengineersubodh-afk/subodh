@@ -1,113 +1,335 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Biomedical Engineering Systems Animation</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #07101B; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #572EBD
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%
+    }
   </style>
 </head>
+
 <body>
   <canvas id="canvas"></canvas>
   <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let w, h, dpr, time = 0, last = performance.now(), paused = false;
+      let particles = [], neurons = [], stars = [];
+      const TAU = Math.PI * 2;
+      const C = {
+        bg: "#572EBD",
+        deep: "#21134C",
+        indigo: "#30206B",
+        cyan: "#55E8FF",
+        mint: "#72E6B5",
+        gold: "#FFD68A",
+        white: "#F4F0FF",
+        purple: "#A98BFF"
+      };
+      const rand = (a, b) => Math.random() * (b - a) + a;
       function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        w = innerWidth; h = innerHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        canvas.style.width = w + "px"; canvas.style.height = h + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        particles = Array.from({ length: Math.min(110, Math.floor(w * h / 8500)) }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(1, 2.7),
+          speed: rand(8, 23), phase: rand(0, TAU),
+          color: Math.random() > .5 ? C.cyan : C.gold
+        }));
+        neurons = Array.from({ length: 19 }, (_, i) => ({
+          a: i * TAU / 19, r: rand(.85, 1.2), phase: rand(0, TAU)
+        }));
+        stars = Array.from({ length: 55 }, () => ({
+          x: rand(0, w), y: rand(0, h), r: rand(.5, 1.5), phase: rand(0, TAU)
+        }));
       }
-      window.addEventListener('resize', resize);
+      function glow(color, blur) { ctx.shadowColor = color; ctx.shadowBlur = blur }
+      function noGlow() { ctx.shadowBlur = 0 }
+      function line(x1, y1, x2, y2, color, width = 1) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+      }
+      function background() {
+        ctx.fillStyle = C.bg; ctx.fillRect(0, 0, w, h);
+        const g = ctx.createRadialGradient(w * .5, h * .48, 20, w * .5, h * .5, Math.max(w, h) * .8);
+        g.addColorStop(0, "rgba(190,165,255,.13)");
+        g.addColorStop(.55, "rgba(35,15,80,.08)");
+        g.addColorStop(1, "rgba(17,9,48,.34)");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
-          }
+        // Technical grid
+        ctx.strokeStyle = "rgba(220,210,255,.055)";
+        ctx.lineWidth = .7;
+        for (let x = 0; x < w; x += 48)line(x, 0, x, h, "rgba(220,210,255,.05)");
+        for (let y = 0; y < h; y += 48)line(0, y, w, y, "rgba(220,210,255,.05)");
+
+        for (const s of stars) {
+          ctx.globalAlpha = .12 + .22 * (.5 + .5 * Math.sin(time + s.phase));
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU);
+          ctx.fillStyle = C.white; ctx.fill();
         }
+        ctx.globalAlpha = 1;
+      }
+      function orbit(cx, cy, r) {
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r * (1.35 + i * .2), r * (.8 + i * .14), -.18, 0, TAU);
+          ctx.strokeStyle = `rgba(85,232,255,${.18 - i * .03})`;
+          ctx.lineWidth = 1;
+          ctx.setLineDash(i % 2 ? [4, 9] : []);
+          ctx.lineDashOffset = -time * (8 + i * 3);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+      function drawBrain(cx, cy, r) {
+        const pulse = 1 + Math.sin(time * 1.4) * .025;
+        ctx.save(); ctx.translate(cx, cy); ctx.scale(pulse, pulse);
+        const halo = ctx.createRadialGradient(0, 0, r * .5, 0, 0, r * 1.8);
+        halo.addColorStop(0, "rgba(85,232,255,.23)");
+        halo.addColorStop(1, "rgba(85,232,255,0)");
+        ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(0, 0, r * 1.8, 0, TAU); ctx.fill();
+
+        // Brain silhouette
+        ctx.beginPath();
+        ctx.moveTo(0, -r * .83);
+        ctx.bezierCurveTo(-r * .38, -r * 1.12, -r * .95, -r * .73, -r * .82, -r * .2);
+        ctx.bezierCurveTo(-r * 1.15, r * .12, -r * .78, r * .65, -r * .42, r * .68);
+        ctx.bezierCurveTo(-r * .2, r * 1.05, 0, r * .76, 0, r * .72);
+        ctx.bezierCurveTo(r * .2, r * 1.05, r * .42, r * .72, r * .42, r * .68);
+        ctx.bezierCurveTo(r * .8, r * .65, r * 1.15, r * .12, r * .82, -r * .2);
+        ctx.bezierCurveTo(r * .95, -r * .73, r * .38, -r * 1.12, 0, -r * .83);
+        const brain = ctx.createLinearGradient(-r, -r, r, r);
+        brain.addColorStop(0, "#7D68D5");
+        brain.addColorStop(.5, "#3D327E");
+        brain.addColorStop(1, "#29205E");
+        ctx.fillStyle = brain; ctx.fill();
+        ctx.strokeStyle = C.cyan; ctx.lineWidth = 2;
+        glow(C.cyan, 17); ctx.stroke(); noGlow();
+
+        // Brain hemispheres
+        ctx.beginPath(); ctx.moveTo(0, -r * .75); ctx.bezierCurveTo(-r * .12, -r * .2, -r * .12, r * .3, 0, r * .75);
+        ctx.strokeStyle = C.gold; ctx.lineWidth = 1.7; ctx.stroke();
+
+        // Neural folds
+        for (let i = 0; i < 5; i++) {
+          const y = -r * .55 + i * r * .25;
+          ctx.beginPath();
+          ctx.moveTo(-r * .68, y);
+          ctx.bezierCurveTo(-r * .38, y - r * .23, -r * .15, y + r * .16, -r * .06, y - r * .04);
+          ctx.strokeStyle = "rgba(85,232,255,.55)";
+          ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(r * .06, y - r * .04);
+          ctx.bezierCurveTo(r * .2, y + r * .16, r * .42, y - r * .23, r * .68, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      function drawNeuralConnections(cx, cy, r) {
+        const pts = neurons.map(n => ({
+          x: cx + Math.cos(n.a + time * .08) * r * 1.9 * n.r,
+          y: cy + Math.sin(n.a + time * .08) * r * 1.35 * n.r
+        }));
+        for (let i = 0; i < pts.length; i++) {
+          const a = pts[i], b = pts[(i + 1) % pts.length];
+          ctx.beginPath(); ctx.moveTo(a.x, a.y);
+          ctx.quadraticCurveTo(cx, cy, b.x, b.y);
+          ctx.strokeStyle = "rgba(85,232,255,.24)";
+          ctx.lineWidth = 1.2; ctx.stroke();
+
+          const p = (time * .24 + i * .13) % 1;
+          const px = a.x + (b.x - a.x) * p;
+          const py = a.y + (b.y - a.y) * p;
+          ctx.beginPath(); ctx.arc(px, py, 3, 0, TAU);
+          ctx.fillStyle = C.gold; glow(C.gold, 12); ctx.fill(); noGlow();
+
+          ctx.beginPath(); ctx.arc(a.x, a.y, 3.5, 0, TAU);
+          ctx.fillStyle = C.cyan; glow(C.cyan, 12); ctx.fill(); noGlow();
+        }
+      }
+      function drawChip(cx, cy, size) {
+        const pulse = 1 + Math.sin(time * 2) * .035;
+        ctx.save(); ctx.translate(cx, cy); ctx.scale(pulse, pulse);
+        const s = size;
+        ctx.fillStyle = "rgba(22,17,66,.92)";
+        ctx.strokeStyle = C.gold; ctx.lineWidth = 2;
+        glow(C.gold, 16);
+        ctx.beginPath(); ctx.roundRect(-s * .5, -s * .5, s, s, 10);
+        ctx.fill(); ctx.stroke(); noGlow();
+
+        // Inner circuit pattern
+        ctx.strokeStyle = C.cyan; ctx.lineWidth = 1.3;
+        for (let i = -1; i <= 1; i++) {
+          line(-s * .32, i * s * .18, s * .32, i * s * .18, "rgba(85,232,255,.48)", 1);
+          line(i * s * .18, -s * .32, i * s * .18, s * .32, "rgba(85,232,255,.48)", 1);
+        }
+        ctx.beginPath(); ctx.arc(0, 0, s * .2, 0, TAU);
+        ctx.fillStyle = "rgba(85,232,255,.18)"; ctx.fill();
+        ctx.strokeStyle = C.cyan; ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, s * .075, 0, TAU);
+        ctx.fillStyle = C.gold; glow(C.gold, 12); ctx.fill(); noGlow();
+
+        // Chip pins
+        for (let i = -2; i <= 2; i++) {
+          const p = i * s * .13;
+          line(-s * .5, p, -s * .7, p, C.gold, 2);
+          line(s * .5, p, s * .7, p, C.gold, 2);
+          line(p, -s * .5, p, -s * .7, C.gold, 2);
+          line(p, s * .5, p, s * .7, C.gold, 2);
+        }
+        ctx.restore();
+      }
+      function drawWave(x1, x2, cy, amplitude, color, frequency, phase, width) {
+        ctx.beginPath();
+        for (let x = x1; x <= x2; x += 3) {
+          const u = (x - x1) / (x2 - x1);
+          const envelope = Math.sin(Math.PI * u) * .35 + .65;
+          const y = cy + Math.sin(u * frequency * TAU - time * 2 + phase) * amplitude * envelope;
+          if (x === x1) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = color; ctx.lineWidth = width;
+        glow(color, 10); ctx.stroke(); noGlow();
+      }
+      function drawPulseWave(cx, cy, r) {
+        const x1 = cx - r * 3.5, x2 = cx - r * 1.05;
+        ctx.beginPath();
+        const points = [
+          [0, 0], [.12, 0], [.19, -.08], [.23, .07], [.29, -.42],
+          [.34, .62], [.39, -.15], [.45, 0], [1, 0]
+        ];
+        for (let i = 0; i < points.length; i++) {
+          const x = x1 + (x2 - x1) * points[i][0];
+          const y = cy + points[i][1] * r * .6;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = C.cyan; ctx.lineWidth = 2;
+        glow(C.cyan, 12); ctx.stroke(); noGlow();
+      }
+      function drawBionicHand(cx, cy, r) {
+        ctx.save(); ctx.translate(cx, cy);
+        ctx.strokeStyle = C.mint; ctx.lineWidth = 3;
+        ctx.lineCap = "round"; ctx.lineJoin = "round";
+        glow(C.mint, 12);
+
+        // Palm
+        ctx.beginPath();
+        ctx.moveTo(-r * .3, -r * .05);
+        ctx.lineTo(-r * .28, r * .5);
+        ctx.quadraticCurveTo(0, r * .72, r * .28, r * .5);
+        ctx.lineTo(r * .3, -r * .05);
+        ctx.stroke();
+
+        // Fingers
+        const fingers = [
+          [-.27, -.02, -.39, -.56, -.32, -.79],
+          [-.12, -.1, -.16, -.72, -.08, -.98],
+          [.04, -.1, .04, -.77, .12, -1.02],
+          [.2, -.07, .27, -.66, .35, -.86]
+        ];
+        for (const f of fingers) {
+          ctx.beginPath();
+          ctx.moveTo(f[0] * r, f[1] * r);
+          ctx.lineTo(f[2] * r, f[3] * r);
+          ctx.lineTo(f[4] * r, f[5] * r);
+          ctx.stroke();
+          ctx.beginPath(); ctx.arc(f[2] * r, f[3] * r, 3, 0, TAU);
+          ctx.fillStyle = C.gold; ctx.fill();
+        }
+        ctx.beginPath();
+        ctx.moveTo(-r * .25, r * .12);
+        ctx.lineTo(-r * .62, -r * .18);
+        ctx.lineTo(-r * .72, -r * .04);
+        ctx.lineTo(-r * .35, r * .42);
+        ctx.stroke();
+
+        // Wrist and mechanical joints
+        ctx.beginPath(); ctx.roundRect(-r * .23, r * .55, r * .46, r * .25, 5);
+        ctx.stroke();
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath(); ctx.arc(0, r * (.61 + i * .07), 3, 0, TAU);
+          ctx.fillStyle = C.gold; ctx.fill();
+        }
+        noGlow(); ctx.restore();
+      }
+      function drawSignalBridge(cx, cy, r) {
+        for (let i = 0; i < 7; i++) {
+          const x = cx - r * 1.05 + i * r * .35;
+          const y = cy + Math.sin(time * 1.8 + i * .9) * r * .09;
+          ctx.beginPath(); ctx.arc(x, y, 2.5, 0, TAU);
+          ctx.fillStyle = i % 2 ? C.gold : C.cyan;
+          glow(i % 2 ? C.gold : C.cyan, 10); ctx.fill(); noGlow();
+        }
+      }
+      function drawParticles(dt) {
+        for (const p of particles) {
+          p.y -= p.speed * dt;
+          p.x += Math.sin(time + p.phase) * 7 * dt;
+          if (p.y < -10) { p.y = h + 10; p.x = rand(0, w) }
+          ctx.globalAlpha = .25 + .4 * (.5 + .5 * Math.sin(time + p.phase));
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU);
+          ctx.fillStyle = p.color; glow(p.color, 9); ctx.fill(); noGlow();
+          ctx.globalAlpha = 1;
+        }
+      }
+      function draw(dt) {
+        background();
+        const scale = Math.min(w / 1100, h / 750, 1.1);
+        const r = Math.min(52 * scale, 65);
+        const cx = w * .5, cy = h * .48;
+
+        orbit(cx, cy, r);
+        drawNeuralConnections(cx, cy, r);
+        drawPulseWave(cx, cy, r);
+        drawWave(cx + r * 1.05, cx + r * 3.1, cy, r * .3, C.mint, 2.5, .8, 2);
+        drawSignalBridge(cx, cy, r);
+        drawBrain(cx - r * 1.75, cy, r);
+        drawChip(cx, cy, r * .9);
+        drawBionicHand(cx + r * 1.85, cy, r * .92);
+        drawParticles(dt);
+      }
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      function render(now) {
+        if (paused) return;
+        const dt = Math.min((now - last) / 1000, .05);
+        last = now; time += dt; draw(dt);
+        if (!reduced) requestAnimationFrame(render);
+      }
+      function start() { if (paused) return; last = performance.now(); requestAnimationFrame(render) }
+      addEventListener("resize", resize);
+      addEventListener("message", e => {
+        if (e.data === "pause") paused = true;
+        if (e.data === "play" && paused) { paused = false; start() }
       });
-
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
+      document.addEventListener("visibilitychange", () => {
+        paused = document.hidden; if (!paused) start();
       });
-
-      
-    let t = 0;
-
-    function init(w, h) {}
-    function onResize(w, h) {}
-
-    function update(dt) {
-      t += dt * 1.5;
-    }
-
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-
-      // Brain-Machine Interface (BMI) Neural Spikes to Bionic Signal
-      // Neural cortical spike burst on left
-      ctx.strokeStyle = "#00F0FF";
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      for (let x = w * 0.1; x < w * 0.45; x += 3) {
-        const spike = (Math.sin(x * 0.2 + t * 4) > 0.8) ? (Math.random() * -30) : 0;
-        const y = cy + spike;
-        if (x === w * 0.1) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      // Decoder Microchip Filter in center
-      ctx.fillStyle = "#0F1E36";
-      ctx.fillRect(cx - 18, cy - 18, 36, 36);
-      ctx.strokeStyle = "#2563EB";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(cx - 18, cy - 18, 36, 36);
-
-      // Decoded Smooth Bionic Actuator Kinematic Waveform on right
-      ctx.strokeStyle = "#10B981";
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      for (let x = cx + 18; x < w * 0.9; x += 4) {
-        const y = cy + Math.sin((x - cx) * 0.04 + t * 2) * 22;
-        if (x === cx + 18) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    }
-    
-
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
-        lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
-        }
-      }
-
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+      resize(); start();
     })();
   </script>
 </body>
+
 </html>

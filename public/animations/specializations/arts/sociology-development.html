@@ -1,135 +1,415 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sociology and Development Animation</title>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #0B101D; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    canvas { display: block; width: 100%; height: 100%; }
-  </style>
-</head>
-<body>
-  <canvas id="canvas"></canvas>
-  <script>
-    (function() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let isPaused = false;
-      let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        if (typeof onResize === 'function') onResize(w, h);
-      }
-      window.addEventListener('resize', resize);
-
-      window.addEventListener('message', (e) => {
-        if (e.data === 'pause') isPaused = true;
-        if (e.data === 'play') {
-          if (isPaused) {
-            isPaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(renderLoop);
-          }
-        }
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        isPaused = document.hidden;
-        if (!isPaused) {
-          lastTime = performance.now();
-          requestAnimationFrame(renderLoop);
-        }
-      });
-
-      
-    const clusters = [];
-
-    function init(w, h) {
-      clusters.length = 0;
-      // 3 Community Clusters
-      const centers = [
-        { cx: w * 0.3, cy: h * 0.4, color: "#F59E0B" },
-        { cx: w * 0.7, cy: h * 0.45, color: "#0EA5E9" },
-        { cx: w * 0.5, cy: h * 0.72, color: "#F43F5E" }
-      ];
-
-      for (const c of centers) {
-        const nodes = [];
-        for (let i = 0; i < 7; i++) {
-          nodes.push({
-            x: c.cx + (Math.random() - 0.5) * 60,
-            y: c.cy + (Math.random() - 0.5) * 50,
-            color: c.color
-          });
-        }
-        clusters.push(nodes);
-      }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    function onResize(w, h) { init(w, h); }
-    function update(dt) {}
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #F8F5EE;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-    function draw(ctx, w, h) {
-      ctx.clearRect(0, 0, w, h);
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
 
-      // Intra-community social ties
-      ctx.lineWidth = 1;
-      for (const group of clusters) {
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-        for (let i = 0; i < group.length; i++) {
-          for (let j = i + 1; j < group.length; j++) {
-            ctx.beginPath();
-            ctx.moveTo(group[i].x, group[i].y);
-            ctx.lineTo(group[j].x, group[j].y);
-            ctx.stroke();
+<body>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let w, h, dpr;
+      let time = 0;
+      let lastTime = 0;
+      let animationId = null;
+      let isPaused = false;
+
+      const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      const palette = [
+        "#E99A18",
+        "#0284C7",
+        "#E74463"
+      ];
+
+      const clusters = [];
+      const particles = [];
+
+      const random = (min, max) =>
+        Math.random() * (max - min) + min;
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        w = window.innerWidth;
+        h = window.innerHeight;
+
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        init();
+      }
+
+      function init() {
+        clusters.length = 0;
+        particles.length = 0;
+
+        const centers = [
+          { x: w * 0.27, y: h * 0.37, color: palette[0] },
+          { x: w * 0.73, y: h * 0.37, color: palette[1] },
+          { x: w * 0.50, y: h * 0.72, color: palette[2] }
+        ];
+
+        centers.forEach((center, groupIndex) => {
+          const nodes = [];
+
+          const count = 9;
+
+          for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count;
+
+            const radius = random(30, 75);
+
+            nodes.push({
+              angle,
+              radius,
+              speed: random(0.08, 0.18) *
+                (Math.random() > 0.5 ? 1 : -1),
+              size: random(4, 6),
+              phase: random(0, Math.PI * 2),
+              x: center.x + Math.cos(angle) * radius,
+              y: center.y + Math.sin(angle) * radius
+            });
           }
+
+          clusters.push({
+            x: center.x,
+            y: center.y,
+            color: center.color,
+            nodes,
+            phase: random(0, Math.PI * 2),
+            groupIndex
+          });
+        });
+
+        // Social interaction particles
+        for (let i = 0; i < 28; i++) {
+          particles.push({
+            group: Math.floor(random(0, 3)),
+            from: Math.floor(random(0, 9)),
+            to: Math.floor(random(0, 9)),
+            progress: Math.random(),
+            speed: random(0.12, 0.32),
+            size: random(1.5, 2.5)
+          });
         }
       }
 
-      // Bridging social capital ties between communities
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(clusters[0][0].x, clusters[0][0].y);
-      ctx.lineTo(clusters[1][0].x, clusters[1][0].y);
-      ctx.lineTo(clusters[2][0].x, clusters[2][0].y);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.setLineDash([]);
+      function update(dt) {
+        time += dt;
 
-      // Individuals / Sociometric nodes
-      for (const group of clusters) {
-        for (const n of group) {
+        clusters.forEach((group) => {
+          group.nodes.forEach((node) => {
+            node.angle += node.speed * dt;
+
+            const breathing =
+              Math.sin(time * 0.7 + node.phase) * 3;
+
+            const radius = node.radius + breathing;
+
+            node.x = group.x + Math.cos(node.angle) * radius;
+            node.y = group.y + Math.sin(node.angle) * radius;
+          });
+        });
+
+        particles.forEach((p) => {
+          p.progress += p.speed * dt;
+
+          if (p.progress >= 1) {
+            p.progress = 0;
+            p.from = Math.floor(random(0, 9));
+            p.to = (p.from + Math.floor(random(1, 9))) % 9;
+          }
+        });
+      }
+
+      function drawBackground() {
+        ctx.clearRect(0, 0, w, h);
+
+        // Soft atmospheric glow
+        clusters.forEach((group) => {
+          const gradient = ctx.createRadialGradient(
+            group.x, group.y, 5,
+            group.x, group.y, Math.min(w, h) * 0.24
+          );
+
+          gradient.addColorStop(0, group.color + "13");
+          gradient.addColorStop(1, group.color + "00");
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, w, h);
+        });
+      }
+
+      function drawConnections(group) {
+        const nodes = group.nodes;
+
+        // Connections inside each community
+        nodes.forEach((a, i) => {
+          nodes.forEach((b, j) => {
+            if (j <= i) return;
+
+            const distance = Math.hypot(
+              a.x - b.x,
+              a.y - b.y
+            );
+
+            if (distance < 125) {
+              const opacity =
+                (1 - distance / 125) * 0.34;
+
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+
+              ctx.strokeStyle = group.color +
+                Math.floor(opacity * 255)
+                  .toString(16).padStart(2, "0");
+
+              ctx.lineWidth = 1.3;
+              ctx.stroke();
+            }
+          });
+        });
+      }
+
+      function drawBridges() {
+        // Connections between separate communities
+        for (let i = 0; i < clusters.length; i++) {
+          const next = (i + 1) % clusters.length;
+
+          const a = clusters[i];
+          const b = clusters[next];
+
+          const nodeA = a.nodes[0];
+          const nodeB = b.nodes[3];
+
           ctx.beginPath();
-          ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
-          ctx.fillStyle = n.color;
+          ctx.moveTo(nodeA.x, nodeA.y);
+          ctx.lineTo(nodeB.x, nodeB.y);
+
+          ctx.strokeStyle = "rgba(71, 85, 105, 0.23)";
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 7]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Animated bridge particles
+          const progress = (time * 0.18 + i * 0.33) % 1;
+
+          const px = nodeA.x + (nodeB.x - nodeA.x) * progress;
+          const py = nodeA.y + (nodeB.y - nodeA.y) * progress;
+
+          ctx.beginPath();
+          ctx.arc(px, py, 3, 0, Math.PI * 2);
+          ctx.fillStyle = "#64748B";
           ctx.fill();
         }
       }
-    }
-    
 
-      let lastTime = performance.now();
-      function renderLoop(now) {
-        if (isPaused) return;
-        const dt = Math.min((now - lastTime) / 1000, 0.1);
+      function drawParticles() {
+        particles.forEach((p) => {
+          const group = clusters[p.group];
+
+          const a = group.nodes[p.from];
+          const b = group.nodes[p.to];
+
+          const progress = p.progress;
+
+          const x = a.x + (b.x - a.x) * progress;
+          const y = a.y + (b.y - a.y) * progress;
+
+          ctx.beginPath();
+          ctx.arc(x, y, p.size, 0, Math.PI * 2);
+
+          ctx.fillStyle = group.color;
+          ctx.shadowColor = group.color;
+          ctx.shadowBlur = 9;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+      }
+
+      function drawNodes(group) {
+        group.nodes.forEach((node) => {
+          const pulse =
+            1 + Math.sin(time * 2 + node.phase) * 0.15;
+
+          // Outer glow
+          ctx.beginPath();
+          ctx.arc(
+            node.x,
+            node.y,
+            node.size * 2.4 * pulse,
+            0,
+            Math.PI * 2
+          );
+
+          ctx.fillStyle = group.color + "22";
+          ctx.fill();
+
+          // Main node
+          ctx.beginPath();
+          ctx.arc(
+            node.x,
+            node.y,
+            node.size * pulse,
+            0,
+            Math.PI * 2
+          );
+
+          ctx.fillStyle = group.color;
+          ctx.shadowColor = group.color;
+          ctx.shadowBlur = 12;
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+
+          // Small bright center
+          ctx.beginPath();
+          ctx.arc(
+            node.x - 1,
+            node.y - 1,
+            1.5,
+            0,
+            Math.PI * 2
+          );
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fill();
+        });
+      }
+
+      function drawGroupCenters() {
+        clusters.forEach((group) => {
+          const pulse =
+            1 + Math.sin(time * 1.5 + group.phase) * 0.08;
+
+          ctx.beginPath();
+          ctx.arc(
+            group.x,
+            group.y,
+            15 * pulse,
+            0,
+            Math.PI * 2
+          );
+
+          ctx.fillStyle = group.color + "20";
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(
+            group.x,
+            group.y,
+            5.5 * pulse,
+            0,
+            Math.PI * 2
+          );
+
+          ctx.fillStyle = group.color;
+          ctx.fill();
+        });
+      }
+
+      function draw() {
+        drawBackground();
+
+        clusters.forEach(drawConnections);
+
+        drawBridges();
+        drawParticles();
+
+        clusters.forEach(drawNodes);
+        drawGroupCenters();
+      }
+
+      function render(now) {
+        if (isPaused) {
+          animationId = null;
+          return;
+        }
+
+        const dt = Math.min((now - lastTime) / 1000, 0.05);
         lastTime = now;
-        if (typeof update === 'function') update(dt);
-        if (typeof draw === 'function') draw(ctx, w, h);
-        if (!prefersReducedMotion) {
-          requestAnimationFrame(renderLoop);
+
+        if (!reducedMotion) {
+          update(dt);
+        }
+
+        draw();
+
+        animationId = requestAnimationFrame(render);
+      }
+
+      function start() {
+        if (animationId !== null) return;
+
+        isPaused = false;
+        lastTime = performance.now();
+
+        animationId = requestAnimationFrame(render);
+      }
+
+      function stop() {
+        isPaused = true;
+
+        if (animationId !== null) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
         }
       }
 
-      if (typeof init === 'function') init(w, h);
-      requestAnimationFrame(renderLoop);
+      window.addEventListener("resize", resize);
+
+      window.addEventListener("message", (event) => {
+        if (event.data === "pause") stop();
+        if (event.data === "play") start();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) stop();
+        else start();
+      });
+
+      resize();
+      start();
+
     })();
   </script>
 </body>
+
 </html>
