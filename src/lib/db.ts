@@ -1901,7 +1901,12 @@ export function getEnrichedInternships(onlyPublic = true): EnrichedInternship[] 
     .filter((i) => !onlyPublic || (i.status === "Open" && i.moderation_status === "approved"))
     .map((internship) => {
       const scholar = db.phd_scholar_profiles.find((s) => s.id === internship.scholar_profile_id)!;
-      const scholarUser = scholar ? db.profiles.find((p) => p.id === scholar.profile_id)! : undefined!;
+      const rawUser = scholar ? db.profiles.find((p) => p.id === scholar.profile_id) : undefined;
+      const scholarUser = rawUser
+        ? onlyPublic
+          ? sanitizePublicScholarProfile(rawUser)
+          : (sanitizeProfile(rawUser) as Profile)
+        : (undefined as unknown as Profile);
       const domain = db.academic_domains.find((d) => d.id === internship.domain_id);
       const specialization = db.specializations.find((sp) => sp.id === internship.specialization_id);
       return {
@@ -1925,9 +1930,15 @@ export function getEnrichedApplications(): EnrichedApplication[] {
     .map((application) => {
       const internship = db.internships.find((i) => i.id === application.internship_id)!;
       const scholar = db.phd_scholar_profiles.find((s) => s.id === application.scholar_profile_id)!;
-      const scholarUser = scholar ? db.profiles.find((p) => p.id === scholar.profile_id)! : undefined!;
+      const rawScholarUser = scholar ? db.profiles.find((p) => p.id === scholar.profile_id) : undefined;
+      const scholarUser = rawScholarUser
+        ? (sanitizeProfile(rawScholarUser) as Profile)
+        : (undefined as unknown as Profile);
       const student = db.student_profiles.find((st) => st.id === application.student_profile_id)!;
-      const studentUser = student ? db.profiles.find((p) => p.id === student.profile_id)! : undefined!;
+      const rawStudentUser = student ? db.profiles.find((p) => p.id === student.profile_id) : undefined;
+      const studentUser = rawStudentUser
+        ? (sanitizeProfile(rawStudentUser) as Profile)
+        : (undefined as unknown as Profile);
       return {
         application,
         internship,

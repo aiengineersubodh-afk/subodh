@@ -1,0 +1,660 @@
+{
+  "totalCyclesRequired": 570,
+  "totalCyclesCompleted": 570,
+  "totalCyclesFailed": 0,
+  "durationSec": 608,
+  "domainSummaries": [
+    {
+      "domainName": "Engineering",
+      "domainId": "dom-engineering",
+      "specializations": [
+        {
+          "specializationName": "Computer Science Engineering",
+          "specializationId": "spec-engineering-computer-science-engineering",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Artificial Intelligence and Machine Learning",
+          "specializationId": "spec-engineering-artificial-intelligence-and-machine-learning",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Data Science",
+          "specializationId": "spec-engineering-data-science",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Cybersecurity",
+          "specializationId": "spec-engineering-cybersecurity",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Electronics and Communication",
+          "specializationId": "spec-engineering-electronics-and-communication",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Electrical Engineering",
+          "specializationId": "spec-engineering-electrical-engineering",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Mechanical Engineering",
+          "specializationId": "spec-engineering-mechanical-engineering",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Civil Engineering",
+          "specializationId": "spec-engineering-civil-engineering",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Chemical Engineering",
+          "specializationId": "spec-engineering-chemical-engineering",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Biotechnology",
+          "specializationId": "spec-engineering-biotechnology",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Information Technology",
+          "specializationId": "spec-engineering-information-technology",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Robotics and Automation",
+          "specializationId": "spec-engineering-robotics-and-automation",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 120,
+      "successfulDomainCycles": 120,
+      "failedDomainCycles": 0
+    },
+    {
+      "domainName": "Medical and Healthcare",
+      "domainId": "dom-medical",
+      "specializations": [
+        {
+          "specializationName": "General Medicine",
+          "specializationId": "spec-medical-general-medicine",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Surgery",
+          "specializationId": "spec-medical-surgery",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Pharmacology",
+          "specializationId": "spec-medical-pharmacology",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Microbiology",
+          "specializationId": "spec-medical-microbiology",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Biotechnology",
+          "specializationId": "spec-medical-biotechnology",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Neuroscience",
+          "specializationId": "spec-medical-neuroscience",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Public Health",
+          "specializationId": "spec-medical-public-health",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Medical Imaging",
+          "specializationId": "spec-medical-medical-imaging",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Bioinformatics",
+          "specializationId": "spec-medical-bioinformatics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 90,
+      "successfulDomainCycles": 90,
+      "failedDomainCycles": 0
+    },
+    {
+      "domainName": "Science",
+      "domainId": "dom-science",
+      "specializations": [
+        {
+          "specializationName": "Physics",
+          "specializationId": "spec-science-physics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Chemistry",
+          "specializationId": "spec-science-chemistry",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Mathematics",
+          "specializationId": "spec-science-mathematics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Biology",
+          "specializationId": "spec-science-biology",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Statistics",
+          "specializationId": "spec-science-statistics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Environmental Science",
+          "specializationId": "spec-science-environmental-science",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 60,
+      "successfulDomainCycles": 60,
+      "failedDomainCycles": 0
+    },
+    {
+      "domainName": "Management",
+      "domainId": "dom-management",
+      "specializations": [
+        {
+          "specializationName": "Finance",
+          "specializationId": "spec-management-finance",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Marketing",
+          "specializationId": "spec-management-marketing",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Human Resource Management",
+          "specializationId": "spec-management-human-resource-management",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Operations",
+          "specializationId": "spec-management-operations",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Business Analytics",
+          "specializationId": "spec-management-business-analytics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 50,
+      "successfulDomainCycles": 50,
+      "failedDomainCycles": 0
+    },
+    {
+      "domainName": "Commerce",
+      "domainId": "dom-commerce",
+      "specializations": [
+        {
+          "specializationName": "Accounting and Auditing",
+          "specializationId": "spec-commerce-accounting-and-auditing",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "International Trade",
+          "specializationId": "spec-commerce-international-trade",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Econometrics",
+          "specializationId": "spec-commerce-econometrics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Corporate Governance",
+          "specializationId": "spec-commerce-corporate-governance",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Banking and FinTech",
+          "specializationId": "spec-commerce-banking-and-fintech",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 50,
+      "successfulDomainCycles": 50,
+      "failedDomainCycles": 0
+    },
+    {
+      "domainName": "Arts and Humanities",
+      "domainId": "dom-arts",
+      "specializations": [
+        {
+          "specializationName": "Cognitive Psychology",
+          "specializationId": "spec-arts-cognitive-psychology",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Computational Linguistics",
+          "specializationId": "spec-arts-computational-linguistics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Sociology and Development",
+          "specializationId": "spec-arts-sociology-and-development",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Public Policy",
+          "specializationId": "spec-arts-public-policy",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Modern History and Archives",
+          "specializationId": "spec-arts-modern-history-and-archives",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 50,
+      "successfulDomainCycles": 50,
+      "failedDomainCycles": 0
+    },
+    {
+      "domainName": "Law",
+      "domainId": "dom-law",
+      "specializations": [
+        {
+          "specializationName": "Intellectual Property Law",
+          "specializationId": "spec-law-intellectual-property-law",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Cyber and Technology Law",
+          "specializationId": "spec-law-cyber-and-technology-law",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Constitutional Law",
+          "specializationId": "spec-law-constitutional-law",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Environmental Law",
+          "specializationId": "spec-law-environmental-law",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "International Arbitration",
+          "specializationId": "spec-law-international-arbitration",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 50,
+      "successfulDomainCycles": 50,
+      "failedDomainCycles": 0
+    },
+    {
+      "domainName": "Agriculture",
+      "domainId": "dom-agriculture",
+      "specializations": [
+        {
+          "specializationName": "Precision Agronomy",
+          "specializationId": "spec-agriculture-precision-agronomy",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Plant Breeding and Genetics",
+          "specializationId": "spec-agriculture-plant-breeding-and-genetics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Soil and Water Engineering",
+          "specializationId": "spec-agriculture-soil-and-water-engineering",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Horticulture Science",
+          "specializationId": "spec-agriculture-horticulture-science",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Agricultural Economics",
+          "specializationId": "spec-agriculture-agricultural-economics",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 50,
+      "successfulDomainCycles": 50,
+      "failedDomainCycles": 0
+    },
+    {
+      "domainName": "Interdisciplinary Research",
+      "domainId": "dom-interdisciplinary",
+      "specializations": [
+        {
+          "specializationName": "Climate Systems and Sustainability",
+          "specializationId": "spec-interdisciplinary-climate-systems-and-sustainability",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Quantum Information Science",
+          "specializationId": "spec-interdisciplinary-quantum-information-science",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Computational Social Science",
+          "specializationId": "spec-interdisciplinary-computational-social-science",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "Biomedical Engineering Systems",
+          "specializationId": "spec-interdisciplinary-biomedical-engineering-systems",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        },
+        {
+          "specializationName": "AI Ethics and Governance",
+          "specializationId": "spec-interdisciplinary-ai-ethics-and-governance",
+          "requiredCycles": 10,
+          "successfulCycles": 10,
+          "failedCycles": 0,
+          "defectsFound": 0,
+          "fixesImplemented": 0,
+          "finalStatus": "PASSED"
+        }
+      ],
+      "totalDomainCycles": 50,
+      "successfulDomainCycles": 50,
+      "failedDomainCycles": 0
+    }
+  ],
+  "defectRegister": []
+}

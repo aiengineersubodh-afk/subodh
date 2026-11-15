@@ -1,0 +1,33 @@
+{
+  "verifiedAt": "2026-11-15T09:16:48.734Z",
+  "status": "PASSED",
+  "browser": "Google Chrome (Headless)",
+  "consoleErrorsCount": 1,
+  "networkErrorsCount": 0,
+  "screenshots": [
+    "/screenshots/real-browser/01-login-page.png",
+    "/screenshots/real-browser/02-login-scholar-filled.png",
+    "/screenshots/real-browser/03-scholar-dashboard-overview.png",
+    "/screenshots/real-browser/04-scholar-publish-modal-open.png",
+    "/screenshots/real-browser/05-scholar-publish-modal-filled.png",
+    "/screenshots/real-browser/06-scholar-internship-published-dashboard.png",
+    "/screenshots/real-browser/07-explore-page.png",
+    "/screenshots/real-browser/08-explore-engineering-selected.png",
+    "/screenshots/real-browser/09-explore-spec-filtered-internships.png",
+    "/screenshots/real-browser/10-internship-details-scholar-view.png",
+    "/screenshots/real-browser/11-student-internship-view.png",
+    "/screenshots/real-browser/12-student-application-modal-open.png",
+    "/screenshots/real-browser/13-student-application-filled.png",
+    "/screenshots/real-browser/14-student-application-submitted.png",
+    "/screenshots/real-browser/15-scholar-applications-tab.png",
+    "/screenshots/real-browser/16-all-domains-rendered.png",
+    "/screenshots/real-browser/17-medical-domain.png",
+    "/screenshots/real-browser/18-science-domain.png",
+    "/screenshots/real-browser/19-management-domain.png",
+    "/screenshots/real-browser/20-commerce-domain.png",
+    "/screenshots/real-browser/21-arts-domain.png",
+    "/screenshots/real-browser/22-law-domain.png",
+    "/screenshots/real-browser/23-agriculture-domain.png",
+    "/screenshots/real-browser/24-interdisciplinary-domain.png"
+  ]
+}

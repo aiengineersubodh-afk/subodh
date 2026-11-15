@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "STARSKY — Connecting Research Minds. Creating Opportunities.",
   description:
     "STARSKY is a research collaboration and internship discovery platform connecting PhD scholars with undergraduate and postgraduate students across academic disciplines.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

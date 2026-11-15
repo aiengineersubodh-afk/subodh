@@ -1,0 +1,515 @@
+[
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-computer-science-engineering",
+    "specName": "Computer Science Engineering",
+    "expectedCount": 6,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 6 internship(s) (\"convolutional neural network\", \"hackerRank coding\", \"generative ai and agentic ai\", \"Computer Vision Research Intern\", \"Machine Learning Research Intern\", \"Deep Learning Research Intern\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-artificial-intelligence-and-machine-learning",
+    "specName": "Artificial Intelligence and Machine Learning",
+    "expectedCount": 3,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 3 internship(s) (\"deep learning,generative AI\", \"New Research Internship\", \"generative AI\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-data-science",
+    "specName": "Data Science",
+    "expectedCount": 1,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 1 internship(s) (\"Research Intern — Graph Neural Networks for Materials & Molecular Discovery\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-cybersecurity",
+    "specName": "Cybersecurity",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-electronics-and-communication",
+    "specName": "Electronics and Communication",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-electrical-engineering",
+    "specName": "Electrical Engineering",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-mechanical-engineering",
+    "specName": "Mechanical Engineering",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-civil-engineering",
+    "specName": "Civil Engineering",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-chemical-engineering",
+    "specName": "Chemical Engineering",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-biotechnology",
+    "specName": "Biotechnology",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-information-technology",
+    "specName": "Information Technology",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-engineering",
+    "domainName": "Engineering",
+    "specId": "spec-engineering-robotics-and-automation",
+    "specName": "Robotics and Automation",
+    "expectedCount": 1,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 1 internship(s) (\"Autonomous Quadrotor Swarm Simulation & ROS2 Control Intern\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-general-medicine",
+    "specName": "General Medicine",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-surgery",
+    "specName": "Surgery",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-pharmacology",
+    "specName": "Pharmacology",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-microbiology",
+    "specName": "Microbiology",
+    "expectedCount": 1,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 1 internship(s) (\"gen ai\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-biotechnology",
+    "specName": "Biotechnology",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-neuroscience",
+    "specName": "Neuroscience",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-public-health",
+    "specName": "Public Health",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-medical-imaging",
+    "specName": "Medical Imaging",
+    "expectedCount": 1,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 1 internship(s) (\"3D Brain MRI Biomarker Segmentation & Clinical Radiomics Research Intern\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-medical",
+    "domainName": "Medical and Healthcare",
+    "specId": "spec-medical-bioinformatics",
+    "specName": "Bioinformatics",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-science",
+    "domainName": "Science",
+    "specId": "spec-science-physics",
+    "specName": "Physics",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-science",
+    "domainName": "Science",
+    "specId": "spec-science-chemistry",
+    "specName": "Chemistry",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-science",
+    "domainName": "Science",
+    "specId": "spec-science-mathematics",
+    "specName": "Mathematics",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-science",
+    "domainName": "Science",
+    "specId": "spec-science-biology",
+    "specName": "Biology",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-science",
+    "domainName": "Science",
+    "specId": "spec-science-statistics",
+    "specName": "Statistics",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-science",
+    "domainName": "Science",
+    "specId": "spec-science-environmental-science",
+    "specName": "Environmental Science",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-management",
+    "domainName": "Management",
+    "specId": "spec-management-finance",
+    "specName": "Finance",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-management",
+    "domainName": "Management",
+    "specId": "spec-management-marketing",
+    "specName": "Marketing",
+    "expectedCount": 4,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 4 internship(s) (\"subodh tech marketing\", \"trading technology\", \"teading market\", \"tech marketing\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-management",
+    "domainName": "Management",
+    "specId": "spec-management-human-resource-management",
+    "specName": "Human Resource Management",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-management",
+    "domainName": "Management",
+    "specId": "spec-management-operations",
+    "specName": "Operations",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-management",
+    "domainName": "Management",
+    "specId": "spec-management-business-analytics",
+    "specName": "Business Analytics",
+    "expectedCount": 1,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 1 internship(s) (\"Causal Machine Learning & Econometric Modeling Research Intern\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-commerce",
+    "domainName": "Commerce",
+    "specId": "spec-commerce-accounting-and-auditing",
+    "specName": "Accounting and Auditing",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-commerce",
+    "domainName": "Commerce",
+    "specId": "spec-commerce-international-trade",
+    "specName": "International Trade",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-commerce",
+    "domainName": "Commerce",
+    "specId": "spec-commerce-econometrics",
+    "specName": "Econometrics",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-commerce",
+    "domainName": "Commerce",
+    "specId": "spec-commerce-corporate-governance",
+    "specName": "Corporate Governance",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-commerce",
+    "domainName": "Commerce",
+    "specId": "spec-commerce-banking-and-fintech",
+    "specName": "Banking and FinTech",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-arts",
+    "domainName": "Arts and Humanities",
+    "specId": "spec-arts-cognitive-psychology",
+    "specName": "Cognitive Psychology",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-arts",
+    "domainName": "Arts and Humanities",
+    "specId": "spec-arts-computational-linguistics",
+    "specName": "Computational Linguistics",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-arts",
+    "domainName": "Arts and Humanities",
+    "specId": "spec-arts-sociology-and-development",
+    "specName": "Sociology and Development",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-arts",
+    "domainName": "Arts and Humanities",
+    "specId": "spec-arts-public-policy",
+    "specName": "Public Policy",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-arts",
+    "domainName": "Arts and Humanities",
+    "specId": "spec-arts-modern-history-and-archives",
+    "specName": "Modern History and Archives",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-law",
+    "domainName": "Law",
+    "specId": "spec-law-intellectual-property-law",
+    "specName": "Intellectual Property Law",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-law",
+    "domainName": "Law",
+    "specId": "spec-law-cyber-and-technology-law",
+    "specName": "Cyber and Technology Law",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-law",
+    "domainName": "Law",
+    "specId": "spec-law-constitutional-law",
+    "specName": "Constitutional Law",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-law",
+    "domainName": "Law",
+    "specId": "spec-law-environmental-law",
+    "specName": "Environmental Law",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-law",
+    "domainName": "Law",
+    "specId": "spec-law-international-arbitration",
+    "specName": "International Arbitration",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-agriculture",
+    "domainName": "Agriculture",
+    "specId": "spec-agriculture-precision-agronomy",
+    "specName": "Precision Agronomy",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-agriculture",
+    "domainName": "Agriculture",
+    "specId": "spec-agriculture-plant-breeding-and-genetics",
+    "specName": "Plant Breeding and Genetics",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-agriculture",
+    "domainName": "Agriculture",
+    "specId": "spec-agriculture-soil-and-water-engineering",
+    "specName": "Soil and Water Engineering",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-agriculture",
+    "domainName": "Agriculture",
+    "specId": "spec-agriculture-horticulture-science",
+    "specName": "Horticulture Science",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-agriculture",
+    "domainName": "Agriculture",
+    "specId": "spec-agriculture-agricultural-economics",
+    "specName": "Agricultural Economics",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-interdisciplinary",
+    "domainName": "Interdisciplinary Research",
+    "specId": "spec-interdisciplinary-climate-systems-and-sustainability",
+    "specName": "Climate Systems and Sustainability",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-interdisciplinary",
+    "domainName": "Interdisciplinary Research",
+    "specId": "spec-interdisciplinary-quantum-information-science",
+    "specName": "Quantum Information Science",
+    "expectedCount": 2,
+    "browserStatus": "PASS",
+    "displayDetail": "Rendered 2 internship(s) (\"quantum with math\", \"theory of quantum\") [Banner: Verified]"
+  },
+  {
+    "domainId": "dom-interdisciplinary",
+    "domainName": "Interdisciplinary Research",
+    "specId": "spec-interdisciplinary-computational-social-science",
+    "specName": "Computational Social Science",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-interdisciplinary",
+    "domainName": "Interdisciplinary Research",
+    "specId": "spec-interdisciplinary-biomedical-engineering-systems",
+    "specName": "Biomedical Engineering Systems",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  },
+  {
+    "domainId": "dom-interdisciplinary",
+    "domainName": "Interdisciplinary Research",
+    "specId": "spec-interdisciplinary-ai-ethics-and-governance",
+    "specName": "AI Ethics and Governance",
+    "expectedCount": 0,
+    "browserStatus": "PASS",
+    "displayDetail": "Empty State Confirmed: '0 Open Research Internships' / 'No Matching Open Internships'"
+  }
+]
