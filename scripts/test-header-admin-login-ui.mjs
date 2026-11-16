@@ -6,6 +6,10 @@ import assert from "assert";
 const BASE_URL = "http://localhost:3000";
 const SCREENSHOT_DIR = path.resolve("public/screenshots/header-admin-login");
 
+const envFile = fs.existsSync(".env.local") ? fs.readFileSync(".env.local", "utf-8") : "";
+const adminEmail = process.env.STARSKY_ADMIN_EMAIL || envFile.match(/STARSKY_ADMIN_EMAIL=(.*)/)?.[1]?.trim() || "admin@starsky.edu";
+const adminPassword = process.env.STARSKY_ADMIN_PASSWORD || envFile.match(/STARSKY_ADMIN_PASSWORD=(.*)/)?.[1]?.trim() || "Admin@2026";
+
 if (!fs.existsSync(SCREENSHOT_DIR)) {
   fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 }
@@ -321,8 +325,8 @@ async function runTests() {
     await delay(500);
 
     // Enter existing Admin credentials
-    await adminPage.type('input[type="email"]', "admin@starsky.edu");
-    await adminPage.type('input[type="password"]', "Admin@2026");
+    await adminPage.type('input[type="email"]', adminEmail);
+    await adminPage.type('input[type="password"]', adminPassword);
     await adminPage.click('button[type="submit"]');
 
     // Wait for redirect to Admin Dashboard

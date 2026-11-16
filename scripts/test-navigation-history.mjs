@@ -233,8 +233,10 @@ async function main() {
     // TEST D: Direct URL Access & Back
     // =========================================================================
     console.log("\n▶ [Test D] Verifying Direct URL Access...");
-    const directCtx = await browser.createBrowserContext();
-    const directPage = await directCtx.newPage();
+    const directPage = await browser.newPage();
+    const directClient = await directPage.target().createCDPSession();
+    await directClient.send("Network.clearBrowserCookies");
+    await directClient.send("Network.clearBrowserCache");
     await directPage.setViewport({ width: 1440, height: 900 });
 
     await directPage.setCookie({
@@ -268,15 +270,17 @@ async function main() {
     await directPage.waitForFunction(() => document.body.innerText.includes("Computer Science Engineering"), { timeout: 15000 });
     console.log("  ✓ Back from Scholar Profile restored specialization directly without needing Home first.");
 
-    await directCtx.close();
+    await directPage.close();
     results.testD = "PASS";
 
     // =========================================================================
     // TEST E: Other Website Sections
     // =========================================================================
     console.log("\n▶ [Test E] Verifying Other Website Sections...");
-    const ctxE = await browser.createBrowserContext();
-    const pageE = await ctxE.newPage();
+    const pageE = await browser.newPage();
+    const clientE = await pageE.target().createCDPSession();
+    await clientE.send("Network.clearBrowserCookies");
+    await clientE.send("Network.clearBrowserCache");
     await pageE.setViewport({ width: 1440, height: 900 });
 
     await pageE.setCookie({
@@ -414,7 +418,7 @@ async function main() {
     assert.ok(pageE.url().includes("tab=internships"), "Forward must restore My Internships tab");
     console.log("    ✓ Forward restored My Internships tab: " + pageE.url());
 
-    await ctxE.close();
+    await pageE.close();
     results.testE = "PASS";
 
   } finally {

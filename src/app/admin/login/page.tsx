@@ -52,26 +52,6 @@ export default function AdminLoginPage() {
         </div>
 
         <div className="p-7 space-y-5">
-          {/* Demo Admin Fill Button */}
-          <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#2563EB]/30 flex items-center justify-between gap-2 text-xs">
-            <div>
-              <span className="font-bold text-[#202124] block">
-                Demo Super Admin Credentials
-              </span>
-              <span className="text-[#666666]">admin@starsky.edu / Admin@2026</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("admin@starsky.edu");
-                setPassword("Admin@2026");
-              }}
-              className="px-3 py-1.5 rounded-lg bg-[#2563EB] text-white font-semibold hover:bg-[#1D4ED8] shrink-0"
-            >
-              Auto-Fill
-            </button>
-          </div>
-
           {error && (
             <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-medium">
               {error}

@@ -32,6 +32,7 @@ import {
   UserSubscription,
   WebsiteSettings,
 } from "@/types/database";
+import { ensureAdminBootstrapped } from "@/lib/admin-bootstrap";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_FILE = path.join(DATA_DIR, "starsky-db.json");
@@ -1678,6 +1679,11 @@ function ensureDbMigrations(store: DatabaseStore): DatabaseStore {
   }
 
   if (migrateLegacyStudentProjects(store, now)) {
+    mutated = true;
+  }
+
+  // Ensure Admin profile reflects environment variables (STARSKY_ADMIN_EMAIL / STARSKY_ADMIN_PASSWORD)
+  if (ensureAdminBootstrapped(store)) {
     mutated = true;
   }
 

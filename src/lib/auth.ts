@@ -15,10 +15,9 @@ import {
   readDb,
   sanitizeProfile,
 } from "@/lib/db";
+import { getSessionSecret, SESSION_COOKIE_NAME } from "@/lib/session-token";
 
-const SESSION_COOKIE_NAME = "starsky_session_token";
-const SECRET =
-  process.env.STARSKY_SESSION_SECRET || "starsky-enterprise-hmac-signing-secret-key-2026";
+export { SESSION_COOKIE_NAME };
 
 interface SessionPayload {
   profileId: string;
@@ -34,9 +33,10 @@ export function createSignedToken(profileId: string, role: AccountRole): string 
     iat: Date.now(),
     exp: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 days
   };
+  const secret = getSessionSecret();
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const signature = crypto
-    .createHmac("sha256", SECRET)
+    .createHmac("sha256", secret)
     .update(encoded)
     .digest("base64url");
   return `${encoded}.${signature}`;
@@ -47,8 +47,9 @@ export function verifySignedToken(token: string): SessionPayload | null {
     const parts = token.split(".");
     if (parts.length !== 2) return null;
     const [encoded, signature] = parts;
+    const secret = getSessionSecret();
     const expectedSig = crypto
-      .createHmac("sha256", SECRET)
+      .createHmac("sha256", secret)
       .update(encoded)
       .digest("base64url");
     if (signature !== expectedSig) return null;
@@ -130,5 +131,3 @@ export async function getSessionContext(): Promise<SessionContext | null> {
     unreadNotificationsCount,
   };
 }
-
-export { SESSION_COOKIE_NAME };

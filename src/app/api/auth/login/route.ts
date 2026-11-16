@@ -3,6 +3,7 @@ import { loginSchema } from "@/lib/validations";
 import { hashPassword, logActivity, readDb, sanitizeProfile, writeDb } from "@/lib/db";
 import { createSignedToken, SESSION_COOKIE_NAME } from "@/lib/auth";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { ensureAdminBootstrapped, syncAdminToSupabaseAuth } from "@/lib/admin-bootstrap";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,14 +20,55 @@ export async function POST(req: NextRequest) {
     const isAdminPortal = Boolean(body.adminPortal);
 
     const db = readDb();
-    const profile = db.profiles.find(
+    let profile = db.profiles.find(
       (p) => p.email.toLowerCase() === email.toLowerCase() && !p.deleted_at
     );
 
     let authPassed = false;
 
-    // 1. Try Supabase Auth verification if configured
-    if (isSupabaseConfigured()) {
+    // Check environment-configured Admin credentials bootstrap & authentication
+    const envAdminEmail = process.env.STARSKY_ADMIN_EMAIL?.trim();
+    const envAdminPassword = process.env.STARSKY_ADMIN_PASSWORD?.trim();
+
+    if (
+      envAdminEmail &&
+      envAdminPassword &&
+      email.trim().toLowerCase() === envAdminEmail.toLowerCase() &&
+      (password === envAdminPassword || password.trim() === envAdminPassword)
+    ) {
+      // 1. Guarantee Admin is bootstrapped and up-to-date in database store
+      if (ensureAdminBootstrapped(db)) {
+        writeDb(db);
+      }
+
+      // Re-fetch profile to ensure accurate state
+      profile =
+        db.profiles.find(
+          (p) => p.email.toLowerCase() === envAdminEmail.toLowerCase() && !p.deleted_at
+        ) || db.profiles.find((p) => p.role === "admin" && !p.deleted_at);
+
+      if (profile) {
+        authPassed = true;
+
+        // Sync to Supabase Auth in background if Supabase is active
+        if (isSupabaseConfigured()) {
+          syncAdminToSupabaseAuth(
+            envAdminEmail,
+            envAdminPassword,
+            profile.id,
+            profile.full_name
+          ).catch((e) => {
+            console.warn(
+              "[Admin Supabase Sync Background]",
+              e instanceof Error ? e.message : String(e)
+            );
+          });
+        }
+      }
+    }
+
+    // 1. Try Supabase Auth verification if configured (for non-env-admin or general accounts)
+    if (!authPassed && isSupabaseConfigured()) {
       const supabase = getSupabaseClient();
       if (supabase) {
         try {

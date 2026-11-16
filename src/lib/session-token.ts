@@ -1,9 +1,15 @@
 export type AccountRole = "student" | "scholar" | "admin";
 
 export const SESSION_COOKIE_NAME = "starsky_session_token";
-export const SESSION_SECRET =
-  process.env.STARSKY_SESSION_SECRET ||
-  "starsky-enterprise-hmac-signing-secret-key-2026";
+
+export function getSessionSecret(): string {
+  return (
+    process.env.STARSKY_SESSION_SECRET ||
+    "starsky-enterprise-hmac-signing-secret-key-2026"
+  );
+}
+
+export const SESSION_SECRET = getSessionSecret();
 
 export interface SessionPayload {
   profileId: string;
@@ -52,9 +58,10 @@ export async function createSignedTokenAsync(
   const enc = new TextEncoder();
   const encodedPayload = base64UrlEncode(enc.encode(jsonStr));
 
+  const secret = getSessionSecret();
   const key = await crypto.subtle.importKey(
     "raw",
-    enc.encode(SESSION_SECRET),
+    enc.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"]
@@ -83,9 +90,10 @@ export async function verifySignedTokenAsync(
     const [encodedPayload, signature] = parts;
 
     const enc = new TextEncoder();
+    const secret = getSessionSecret();
     const key = await crypto.subtle.importKey(
       "raw",
-      enc.encode(SESSION_SECRET),
+      enc.encode(secret),
       { name: "HMAC", hash: "SHA-256" },
       false,
       ["sign"]

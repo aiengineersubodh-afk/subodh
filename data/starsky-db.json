@@ -3,7 +3,7 @@
     {
       "id": "usr-admin-1",
       "email": "admin@starsky.edu",
-      "password_hash": "9e07d83b2e4765f756105b636049289281e73392795f2c80e4fd310bb1f71d46",
+      "password_hash": "be605bc3dc1311ab90904f09816cc5f466a0a006b540b59281e3bb9841ebab68",
       "full_name": "Dr. Vikramaditya Sen",
       "avatar_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
       "phone": "+91 98450 11223",
@@ -16,7 +16,7 @@
       "email_verified": true,
       "onboarding_completed": true,
       "created_at": "2026-11-07T21:32:45.450Z",
-      "updated_at": "2026-11-07T21:32:45.450Z"
+      "updated_at": "2026-11-16T09:05:09.207Z"
     },
     {
       "id": "usr-scholar-1",
@@ -1138,6 +1138,42 @@
       "created_at": "2026-11-16T07:11:40.774Z",
       "updated_at": "2026-11-16T07:11:51.741Z",
       "gender": ""
+    },
+    {
+      "id": "usr-student-5dae0983",
+      "email": "onboarding.student.1794818775773@starsky.edu",
+      "password_hash": "c8875d450200b58edef91ed9e0a79f2ea7dec0835eff8625bb2c549a2d3021a0",
+      "full_name": "Aditi Banerjee 1794818775773",
+      "avatar_url": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80",
+      "phone": "+91 9830012345",
+      "country": "India",
+      "state": "West Bengal",
+      "city": "Kolkata",
+      "role": "student",
+      "status": "active",
+      "email_verified": true,
+      "onboarding_completed": true,
+      "created_at": "2026-11-16T08:46:39.946Z",
+      "updated_at": "2026-11-16T08:47:42.120Z",
+      "gender": "Prefer not to say"
+    },
+    {
+      "id": "usr-scholar-43a37b35",
+      "email": "onboarding.scholar.1794818775773@starsky.edu",
+      "password_hash": "bc31212072eaca5aa306fc3a2db0abd2d0fbf15de2cbe3e73179f3ba508f772e",
+      "full_name": "Dr. Arvind Mukhopadhyay 1794818775773",
+      "avatar_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "phone": "+91 9845011223",
+      "country": "India",
+      "state": "Karnataka",
+      "city": "Bengaluru",
+      "role": "scholar",
+      "status": "active",
+      "email_verified": true,
+      "onboarding_completed": false,
+      "created_at": "2026-11-16T08:48:01.835Z",
+      "updated_at": "2026-11-16T08:48:27.393Z",
+      "gender": ""
     }
   ],
   "student_profiles": [
@@ -1976,6 +2012,42 @@
       "onboarding_step": 6,
       "created_at": "2026-11-16T07:11:15.659Z",
       "updated_at": "2026-11-16T07:11:35.935Z"
+    },
+    {
+      "id": "stu-5c8379d2",
+      "profile_id": "usr-student-5dae0983",
+      "college_university": "Jadavpur University",
+      "degree": "B.Tech",
+      "department": "Arts and Humanities — Modern History and Archives",
+      "domain_id": "dom-arts",
+      "specialization_id": "spec-arts-modern-history-and-archives",
+      "academic_domain_id": "dom-arts",
+      "specialization": "Modern History and Archives",
+      "current_year_semester": "3rd Year",
+      "graduation_year": 2027,
+      "academic_interests": [
+        "Pre-Modern Manuscript Preservation",
+        "Modern History"
+      ],
+      "preferred_domains": [
+        "Arts and Humanities"
+      ],
+      "skills": [
+        "Archival Cataloging"
+      ],
+      "programming_languages": [],
+      "previous_projects": "",
+      "projects": [],
+      "research_experience": "",
+      "certifications": [],
+      "resume_url": "/uploads/document-usr-student-5dae0983-2dd075b8.pdf",
+      "linkedin_url": "",
+      "github_url": "",
+      "portfolio_url": "",
+      "bio": "",
+      "onboarding_step": 6,
+      "created_at": "2026-11-16T08:47:16.032Z",
+      "updated_at": "2026-11-16T08:47:42.120Z"
     }
   ],
   "phd_scholar_profiles": [
@@ -2721,7 +2793,7 @@
       "personal_website_url": "http://localhost:3000/onboarding/scholar",
       "internship_availability": true,
       "verification_status": "approved",
-      "profile_views": 67,
+      "profile_views": 73,
       "is_featured": false,
       "onboarding_step": 6,
       "created_at": "2026-11-15T00:49:43.472Z",
@@ -3526,6 +3598,44 @@
       "onboarding_step": 3,
       "created_at": "2026-11-16T07:11:45.359Z",
       "updated_at": "2026-11-16T07:11:51.741Z"
+    },
+    {
+      "id": "sch-aa471aa7",
+      "profile_id": "usr-scholar-43a37b35",
+      "university_institution": "NIMHANS Bengaluru",
+      "department": "Medical and Healthcare — Medical Imaging",
+      "highest_qualification": "M.Tech",
+      "research_field": "Medical and Healthcare",
+      "specialization": "Medical Imaging",
+      "domain_id": "dom-medical",
+      "specialization_id": "spec-medical-medical-imaging",
+      "enrollment_year": 2023,
+      "expected_completion_year": 2027,
+      "current_research_topic": "Deep Volumetric Neuroimaging Reconstruction",
+      "biography": "",
+      "current_research_description": "",
+      "research_methodologies": "",
+      "projects_summary": "",
+      "laboratory_experience": "",
+      "teaching_mentoring_experience": "",
+      "research_achievements": "",
+      "education_summary": "M.Tech • Ph.D. Scholar (2023–2027), NIMHANS Bengaluru",
+      "research_interests": [],
+      "technical_skills": [],
+      "research_tools": [],
+      "certifications": [],
+      "google_scholar_url": "",
+      "orcid_id": "",
+      "linkedin_url": "",
+      "github_url": "",
+      "personal_website_url": "",
+      "internship_availability": true,
+      "verification_status": "pending",
+      "profile_views": 0,
+      "is_featured": false,
+      "onboarding_step": 3,
+      "created_at": "2026-11-16T08:48:20.820Z",
+      "updated_at": "2026-11-16T08:48:27.393Z"
     }
   ],
   "academic_domains": [
@@ -5723,6 +5833,281 @@
     }
   ],
   "activity_logs": [
+    {
+      "id": "log-87079afc",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:09:08.401Z"
+    },
+    {
+      "id": "log-ad9bcfd9",
+      "actor_profile_id": "usr-scholar-1",
+      "actor_name": "Ananya Raghavan",
+      "actor_role": "scholar",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-scholar-1",
+      "details": "Ananya Raghavan (scholar) signed in.",
+      "created_at": "2026-11-16T09:09:07.127Z"
+    },
+    {
+      "id": "log-050e8953",
+      "actor_profile_id": "usr-student-1",
+      "actor_name": "Aarav Sharma",
+      "actor_role": "student",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-student-1",
+      "details": "Aarav Sharma (student) signed in.",
+      "created_at": "2026-11-16T09:09:06.373Z"
+    },
+    {
+      "id": "log-d35858bb",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:09:05.697Z"
+    },
+    {
+      "id": "log-1a02cf62",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:09:05.251Z"
+    },
+    {
+      "id": "log-2f61ec75",
+      "actor_profile_id": "usr-scholar-1",
+      "actor_name": "Ananya Raghavan",
+      "actor_role": "scholar",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-scholar-1",
+      "details": "Ananya Raghavan (scholar) signed in.",
+      "created_at": "2026-11-16T09:07:51.272Z"
+    },
+    {
+      "id": "log-8625596f",
+      "actor_profile_id": "usr-student-1",
+      "actor_name": "Aarav Sharma",
+      "actor_role": "student",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-student-1",
+      "details": "Aarav Sharma (student) signed in.",
+      "created_at": "2026-11-16T09:07:46.939Z"
+    },
+    {
+      "id": "log-d4b96369",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:07:40.215Z"
+    },
+    {
+      "id": "log-926fdec0",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:06:31.773Z"
+    },
+    {
+      "id": "log-1a1fc776",
+      "actor_profile_id": "usr-scholar-1",
+      "actor_name": "Ananya Raghavan",
+      "actor_role": "scholar",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-scholar-1",
+      "details": "Ananya Raghavan (scholar) signed in.",
+      "created_at": "2026-11-16T09:06:29.760Z"
+    },
+    {
+      "id": "log-3bb02939",
+      "actor_profile_id": "usr-student-1",
+      "actor_name": "Aarav Sharma",
+      "actor_role": "student",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-student-1",
+      "details": "Aarav Sharma (student) signed in.",
+      "created_at": "2026-11-16T09:06:28.102Z"
+    },
+    {
+      "id": "log-a0cbfa04",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:06:27.035Z"
+    },
+    {
+      "id": "log-dc4cc36f",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:06:26.864Z"
+    },
+    {
+      "id": "log-9c87e495",
+      "actor_profile_id": "usr-scholar-1",
+      "actor_name": "Ananya Raghavan",
+      "actor_role": "scholar",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-scholar-1",
+      "details": "Ananya Raghavan (scholar) signed in.",
+      "created_at": "2026-11-16T09:06:05.803Z"
+    },
+    {
+      "id": "log-139300b9",
+      "actor_profile_id": "usr-student-1",
+      "actor_name": "Aarav Sharma",
+      "actor_role": "student",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-student-1",
+      "details": "Aarav Sharma (student) signed in.",
+      "created_at": "2026-11-16T09:06:04.633Z"
+    },
+    {
+      "id": "log-bd71c0e0",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:06:03.708Z"
+    },
+    {
+      "id": "log-e0ff4510",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:06:03.050Z"
+    },
+    {
+      "id": "log-9ead42e1",
+      "actor_profile_id": "usr-student-1",
+      "actor_name": "Aarav Sharma",
+      "actor_role": "student",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-student-1",
+      "details": "Aarav Sharma (student) signed in.",
+      "created_at": "2026-11-16T09:05:41.660Z"
+    },
+    {
+      "id": "log-421ffa5b",
+      "actor_profile_id": "usr-admin-1",
+      "actor_name": "Dr. Vikramaditya Sen",
+      "actor_role": "admin",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-admin-1",
+      "details": "Dr. Vikramaditya Sen (admin) signed in.",
+      "created_at": "2026-11-16T09:05:23.968Z"
+    },
+    {
+      "id": "log-f9fdb910",
+      "actor_profile_id": "usr-student-1",
+      "actor_name": "Aarav Sharma",
+      "actor_role": "student",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-student-1",
+      "details": "Aarav Sharma (student) signed in.",
+      "created_at": "2026-11-16T08:48:35.559Z"
+    },
+    {
+      "id": "log-6c6b3728",
+      "actor_profile_id": "usr-scholar-43a37b35",
+      "actor_name": "Dr. Arvind Mukhopadhyay 1794818775773",
+      "actor_role": "scholar",
+      "action": "Registered as PhD Scholar",
+      "entity_type": "profiles",
+      "entity_id": "usr-scholar-43a37b35",
+      "details": "New scholar account created (onboarding.scholar.1794818775773@starsky.edu).",
+      "created_at": "2026-11-16T08:48:03.979Z"
+    },
+    {
+      "id": "log-1c867eba",
+      "actor_profile_id": "usr-student-5dae0983",
+      "actor_name": "Aditi Banerjee 1794818775773",
+      "actor_role": "student",
+      "action": "Updated Student Profile",
+      "entity_type": "student_profiles",
+      "entity_id": "stu-5c8379d2",
+      "details": "Aditi Banerjee 1794818775773 (Jadavpur University) completed student profile (0 projects).",
+      "created_at": "2026-11-16T08:47:42.131Z"
+    },
+    {
+      "id": "log-a9583e56",
+      "actor_profile_id": "usr-student-5dae0983",
+      "actor_name": "Aditi Banerjee 1794818775773",
+      "actor_role": "student",
+      "action": "Registered as Student",
+      "entity_type": "profiles",
+      "entity_id": "usr-student-5dae0983",
+      "details": "New student account created (onboarding.student.1794818775773@starsky.edu).",
+      "created_at": "2026-11-16T08:46:43.690Z"
+    },
+    {
+      "id": "log-5b427011",
+      "actor_profile_id": "usr-scholar-1",
+      "actor_name": "Ananya Raghavan",
+      "actor_role": "scholar",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-scholar-1",
+      "details": "Ananya Raghavan (scholar) signed in.",
+      "created_at": "2026-11-16T08:45:24.380Z"
+    },
+    {
+      "id": "log-c1a45a33",
+      "actor_profile_id": "usr-student-1",
+      "actor_name": "Aarav Sharma",
+      "actor_role": "student",
+      "action": "User Login",
+      "entity_type": "profiles",
+      "entity_id": "usr-student-1",
+      "details": "Aarav Sharma (student) signed in.",
+      "created_at": "2026-11-16T08:43:39.907Z"
+    },
     {
       "id": "log-19ad7358",
       "actor_profile_id": "usr-student-1",
@@ -13027,6 +13412,36 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-4ba4f7a7",
+      "recipient_profile_id": "usr-admin-1",
+      "title": "New PhD Scholar Registration",
+      "message": "Dr. Arvind Mukhopadhyay 1794818775773 (onboarding.scholar.1794818775773@starsky.edu) registered as a PhD Scholar.",
+      "type": "warning",
+      "link_url": "/admin/scholars",
+      "is_read": false,
+      "created_at": "2026-11-16T08:48:03.979Z"
+    },
+    {
+      "id": "notif-1b233a02",
+      "recipient_profile_id": "usr-scholar-43a37b35",
+      "title": "Welcome to STARSKY!",
+      "message": "Complete your PhD Scholar research profile to publish internships and mentor students.",
+      "type": "info",
+      "link_url": "/onboarding/scholar",
+      "is_read": false,
+      "created_at": "2026-11-16T08:48:03.978Z"
+    },
+    {
+      "id": "notif-e30b8b71",
+      "recipient_profile_id": "usr-student-5dae0983",
+      "title": "Welcome to STARSKY!",
+      "message": "Complete your Student academic profile to explore researchers and apply for internships.",
+      "type": "info",
+      "link_url": "/onboarding/student",
+      "is_read": false,
+      "created_at": "2026-11-16T08:46:43.689Z"
+    },
     {
       "id": "notif-64df86a7",
       "recipient_profile_id": "usr-admin-1",
