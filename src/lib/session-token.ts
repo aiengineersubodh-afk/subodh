@@ -3,10 +3,23 @@ export type AccountRole = "student" | "scholar" | "admin";
 export const SESSION_COOKIE_NAME = "starsky_session_token";
 
 export function getSessionSecret(): string {
-  return (
-    process.env.STARSKY_SESSION_SECRET ||
-    "starsky-enterprise-hmac-signing-secret-key-2026"
-  );
+  const secret = process.env.STARSKY_SESSION_SECRET?.trim();
+  if (secret) {
+    if (secret.length < 32 && process.env.NODE_ENV === "production") {
+      console.warn(
+        "[Security Warning] STARSKY_SESSION_SECRET is shorter than recommended 32 characters in production. Consider using a 32+ character high-entropy key."
+      );
+    }
+    return secret;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "[SECURITY ALERT] STARSKY_SESSION_SECRET is not set in production environment variables! Using fallback. Please add a secure random STARSKY_SESSION_SECRET in Render Dashboard -> Service -> Environment."
+    );
+  }
+
+  return "starsky-enterprise-hmac-signing-secret-key-2026";
 }
 
 export const SESSION_SECRET = getSessionSecret();
