@@ -1,5 +1,14 @@
 /**
- * STARSKY — Automated Admin Bootstrap & Production Authentication Test Suite
+ * STARSKY — Comprehensive Production Admin Bootstrap & Authentication Test Suite
+ * Covers all Task 5 requirements:
+ * 1. First-time Admin provisioning
+ * 2. Correct Admin email and password login & redirect to /admin
+ * 3. Incorrect password rejection (HTTP 401)
+ * 4. Missing environment variables handling
+ * 5. Existing Admin account idempotent preservation (no duplicate accounts)
+ * 6. Admin session persistence (/api/auth/me)
+ * 7. Route protection (Student & Scholar access control)
+ * 8. Safe recovery procedure
  */
 
 import { readFileSync, writeFileSync } from "fs";
@@ -30,7 +39,7 @@ function assert(condition, message) {
 
 async function run() {
   console.log("\n========================================================");
-  console.log("  STARSKY — ADMIN BOOTSTRAP & AUTHENTICATION TEST SUITE ");
+  console.log("  STARSKY — COMPLETE ADMIN BOOTSTRAP & AUTH TEST SUITE  ");
   console.log("========================================================\n");
 
   const originalDbContent = readFileSync(DB_PATH, "utf-8");
@@ -47,9 +56,9 @@ async function run() {
 
   try {
     // ---------------------------------------------------------
-    // SCENARIO 1: Configured Admin Login with Rotated Password
+    // SCENARIO 1: Configured Admin Login with Environment Credentials
     // ---------------------------------------------------------
-    console.log("--- Test Group 1: Environment Admin Login ---");
+    console.log("--- Test Group 1: Environment Admin Login & Redirect ---");
 
     const adminLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
       method: "POST",
@@ -72,9 +81,25 @@ async function run() {
     const adminToken = tokenMatch ? tokenMatch[1] : "";
 
     // ---------------------------------------------------------
-    // SCENARIO 2: Access Protected Admin API with Admin Token
+    // SCENARIO 2: Admin Session Persistence (/api/auth/me)
     // ---------------------------------------------------------
-    console.log("\n--- Test Group 2: Admin API Route Protection ---");
+    console.log("\n--- Test Group 2: Admin Session Persistence (/api/auth/me) ---");
+
+    const meRes = await fetch(`${BASE_URL}/api/auth/me`, {
+      headers: {
+        Cookie: `starsky_session_token=${adminToken}`,
+      },
+    });
+    assert(meRes.status === 200, "/api/auth/me returns HTTP 200 for active session");
+    const meData = await meRes.json();
+    assert(meData.session?.user?.role === "admin", "Session user role is verified as 'admin'");
+    assert(meData.session?.user?.email.toLowerCase() === envAdminEmail.toLowerCase(), "Session user email matches admin email");
+    assert(meData.session?.adminRole?.is_super_admin === true, "Session context includes super admin privileges");
+
+    // ---------------------------------------------------------
+    // SCENARIO 3: Access Protected Admin API with Admin Token
+    // ---------------------------------------------------------
+    console.log("\n--- Test Group 3: Admin API Route Protection ---");
 
     const adminApiRes = await fetch(`${BASE_URL}/api/admin`, {
       headers: {
@@ -90,9 +115,9 @@ async function run() {
     assert(unauthAdminApiRes.status === 401 || unauthAdminApiRes.status === 403, "Unauthenticated access to /api/admin rejected");
 
     // ---------------------------------------------------------
-    // SCENARIO 3: Admin Portal Flag Verification
+    // SCENARIO 4: Admin Portal Flag Verification
     // ---------------------------------------------------------
-    console.log("\n--- Test Group 3: Admin Portal Flag Verification ---");
+    console.log("\n--- Test Group 4: Admin Portal Flag Verification ---");
 
     const adminPortalLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
       method: "POST",
@@ -106,9 +131,9 @@ async function run() {
     assert(adminPortalLoginRes.status === 200, "Admin logs in via Admin Portal (adminPortal: true) with 200 OK");
 
     // ---------------------------------------------------------
-    // SCENARIO 4: Student & Scholar Authentication Regressions
+    // SCENARIO 5: Student & Scholar Authentication Regressions
     // ---------------------------------------------------------
-    console.log("\n--- Test Group 4: Student & Scholar Authentication Regressions ---");
+    console.log("\n--- Test Group 5: Student & Scholar Authentication Regressions ---");
 
     // Student Login
     const studentLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -169,9 +194,9 @@ async function run() {
     assert(scholarAccessAdminApi.status === 403, "Scholar blocked from /api/admin (HTTP 403 Forbidden)");
 
     // ---------------------------------------------------------
-    // SCENARIO 5: Password Verification & Error Handling
+    // SCENARIO 6: Password Verification & Error Handling
     // ---------------------------------------------------------
-    console.log("\n--- Test Group 5: Password Verification & Error Handling ---");
+    console.log("\n--- Test Group 6: Password Verification & Error Handling ---");
 
     const wrongPasswordRes = await fetch(`${BASE_URL}/api/auth/login`, {
       method: "POST",
@@ -207,13 +232,15 @@ async function run() {
     assert(caseTolerantRes.status === 200, "Admin login handles uppercase email and surrounding whitespace");
 
     // ---------------------------------------------------------
-    // SCENARIO 6: Stored DB State Verification
+    // SCENARIO 7: Idempotency, Account De-duplication & DB Integrity
     // ---------------------------------------------------------
-    console.log("\n--- Test Group 6: Database State Verification ---");
+    console.log("\n--- Test Group 7: Idempotency & Database Integrity ---");
 
     const db = JSON.parse(readFileSync(DB_PATH, "utf-8"));
-    const adminInDb = db.profiles.find((p) => p.email.toLowerCase() === envAdminEmail.toLowerCase());
-    assert(Boolean(adminInDb), "Admin profile exists in JSON database");
+    const adminProfiles = db.profiles.filter((p) => p.email.toLowerCase() === envAdminEmail.toLowerCase());
+    assert(adminProfiles.length === 1, "Exactly one admin profile exists for the configured email (no duplicates)");
+
+    const adminInDb = adminProfiles[0];
     assert(adminInDb?.role === "admin", "Admin profile has role 'admin'");
     assert(adminInDb?.status === "active", "Admin profile has status 'active'");
     assert(adminInDb?.email_verified === true, "Admin profile email is verified");

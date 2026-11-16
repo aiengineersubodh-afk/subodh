@@ -29,12 +29,21 @@ export function ensureAdminBootstrapped(store: DatabaseStore): boolean {
   const now = new Date().toISOString();
   let mutated = false;
 
-  // 1. Locate existing admin profile by role or matching email
-  let adminProfile = store.profiles.find((p) => p.role === "admin");
+  // 1. Locate existing profile by email first to prevent account duplication
+  let adminProfile = store.profiles.find(
+    (p) => p.email.toLowerCase() === adminEmail.toLowerCase()
+  );
+
+  // If no profile with matching email, migrate the seed/placeholder admin account if present
   if (!adminProfile) {
-    adminProfile = store.profiles.find(
-      (p) => p.email.toLowerCase() === adminEmail.toLowerCase()
+    const seedAdmin = store.profiles.find(
+      (p) =>
+        p.role === "admin" &&
+        (p.id === "usr-admin-1" || p.email.toLowerCase() === "admin@starsky.edu")
     );
+    if (seedAdmin) {
+      adminProfile = seedAdmin;
+    }
   }
 
   const expectedHash = hashAdminPassword(adminPassword);
