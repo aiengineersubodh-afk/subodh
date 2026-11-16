@@ -1,7 +1,6 @@
 "use client";
 
 import React, { Suspense, useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
@@ -15,10 +14,6 @@ import {
   Loader2,
   Lock,
   Mail,
-  Phone,
-  ShieldCheck,
-  Sparkles,
-  UserCheck,
   UserPlus,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -61,8 +56,21 @@ function AuthGatewayContent({ initialTab = "login" }: AuthGatewayProps) {
         !redirectUrl.startsWith("/login") &&
         !redirectUrl.startsWith("/register")
       ) {
-        router.push(redirectUrl);
-        return;
+        const isTargetingAdmin =
+          redirectUrl.startsWith("/admin") && redirectUrl !== "/admin/login";
+        const isTargetingScholar = redirectUrl.startsWith("/dashboard/scholar");
+        const isTargetingStudent = redirectUrl.startsWith("/dashboard/student");
+
+        if (isTargetingAdmin && session.user.role !== "admin") {
+          // not authorized for admin
+        } else if (isTargetingScholar && session.user.role !== "scholar") {
+          // not authorized for scholar
+        } else if (isTargetingStudent && session.user.role !== "student") {
+          // not authorized for student
+        } else {
+          router.push(redirectUrl);
+          return;
+        }
       }
 
       if (session.user.role === "admin") {
@@ -231,129 +239,23 @@ function AuthGatewayContent({ initialTab = "login" }: AuthGatewayProps) {
     }
   };
 
-  const quickFillDemo = (demoEmail: string, demoPass: string) => {
-    setLoginEmail(demoEmail);
-    setLoginPassword(demoPass);
-    setLoginError("");
-    setAccountNotFound(false);
-    setActiveTab("login");
-  };
-
   return (
     <div
       data-hydrated={mounted ? "true" : "false"}
       className="min-h-[90vh] bg-[#F7F8FA] py-10 px-4 sm:px-6 lg:px-8 flex items-center justify-center"
     >
-      <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-12 bg-white rounded-2xl border border-[#E5E7EB] shadow-md overflow-hidden">
-        {/* =================================================================== */}
-        {/* LEFT BRAND PANEL (Charcoal & Orange Aesthetic)                      */}
-        {/* =================================================================== */}
-        <div className="lg:col-span-5 bg-[#202124] text-white p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
-          {/* Subtle Orange Glow Ambient Decor */}
-          <div className="absolute -top-24 -left-24 w-60 h-60 bg-[#F97316]/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 w-60 h-60 bg-[#2563EB]/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="space-y-6 relative z-10">
-            {/* Platform Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold text-white">
-              <Sparkles className="w-3.5 h-3.5 text-[#F97316]" />
-              <span>STARSKY Academic Gateway</span>
-            </div>
-
-            {/* Brand Title */}
-            <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-                <span>STARSKY</span>
-              </h1>
-              <p className="text-xs text-[#F97316] font-semibold tracking-wide uppercase mt-1">
-                Connecting Research Minds. Creating Opportunities.
-              </p>
-            </div>
-
-            {/* Platform Value Proposition */}
-            <p className="text-xs text-gray-300 leading-relaxed">
-              India&apos;s premier research collaboration network connecting doctoral scholars with
-              undergraduate and postgraduate students across all 9 academic domains.
+      <div className="max-w-xl w-full bg-white rounded-2xl border border-[#E5E7EB] shadow-md p-6 sm:p-10">
+        <div>
+          {/* Header: Welcome to STARSKY */}
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#202124] tracking-tight">
+              Welcome to STARSKY
+            </h2>
+            <p className="text-xs sm:text-sm text-[#666666] mt-1.5 leading-relaxed">
+              Connect with researchers, explore academic opportunities, and discover your next
+              research journey.
             </p>
-
-            {/* Key Platform Highlights */}
-            <div className="space-y-2.5 pt-2 text-xs text-gray-300">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#F97316] shrink-0" />
-                <span>Verified PhD Researchers & Mentors</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#F97316] shrink-0" />
-                <span>Curated Research Internships across 57 Specializations</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#F97316] shrink-0" />
-                <span>Paper Co-authorship & Lab Fellowship Opportunities</span>
-              </div>
-            </div>
           </div>
-
-          {/* Quick Demo Accounts Box for Evaluators */}
-          <div className="mt-8 pt-6 border-t border-white/15 space-y-3 relative z-10">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                Evaluation Test Accounts
-              </p>
-              <span className="text-[10px] text-gray-400">One-click fill</span>
-            </div>
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => quickFillDemo("aarav.sharma@nitk.edu.in", "Student@2026")}
-                className="w-full text-left p-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors flex items-center justify-between text-xs"
-              >
-                <div>
-                  <span className="font-semibold block text-white">Student: Aarav Sharma (NITK)</span>
-                  <span className="text-[11px] text-gray-400">aarav.sharma@nitk.edu.in</span>
-                </div>
-                <UserCheck className="w-4 h-4 text-[#F97316]" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => quickFillDemo("ananya.raghavan@iisc.ac.in", "Scholar@2026")}
-                className="w-full text-left p-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors flex items-center justify-between text-xs"
-              >
-                <div>
-                  <span className="font-semibold block text-white">PhD Scholar: Dr. Ananya (IISc)</span>
-                  <span className="text-[11px] text-gray-400">ananya.raghavan@iisc.ac.in</span>
-                </div>
-                <GraduationCap className="w-4 h-4 text-[#F97316]" />
-              </button>
-            </div>
-
-            <div className="pt-2 text-center sm:text-left">
-              <Link
-                href="/admin/login"
-                className="text-[11px] text-gray-400 hover:text-[#F97316] transition-colors inline-flex items-center gap-1 font-medium"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#F97316]" />
-                <span>Sign in via Admin Portal →</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* =================================================================== */}
-        {/* RIGHT INTERACTIVE GATEWAY PANEL (Login / Register Switcher)         */}
-        {/* =================================================================== */}
-        <div className="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center">
-          <div className="max-w-md w-full mx-auto">
-            {/* Header Required by Prompt: Welcome to STARSKY */}
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#202124] tracking-tight">
-                Welcome to STARSKY
-              </h2>
-              <p className="text-xs sm:text-sm text-[#666666] mt-1.5 leading-relaxed">
-                Connect with researchers, explore academic opportunities, and discover your next
-                research journey.
-              </p>
-            </div>
 
             {/* TWO PROMINENT ACTIONS (Gateway Mode Selector) */}
             <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#F7F8FA] rounded-xl border border-[#E5E7EB] mt-6">
@@ -777,7 +679,6 @@ function AuthGatewayContent({ initialTab = "login" }: AuthGatewayProps) {
                 </p>
               </div>
             )}
-          </div>
         </div>
       </div>
 

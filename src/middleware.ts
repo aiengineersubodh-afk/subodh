@@ -71,6 +71,26 @@ export async function middleware(req: NextRequest) {
         !redirectParam.startsWith("/login") &&
         !redirectParam.startsWith("/register")
       ) {
+        const isTargetingAdmin =
+          redirectParam.startsWith("/admin") && redirectParam !== "/admin/login";
+        const isTargetingScholar = redirectParam.startsWith("/dashboard/scholar");
+        const isTargetingStudent = redirectParam.startsWith("/dashboard/student");
+
+        if (isTargetingAdmin && payload.role !== "admin") {
+          const userDashboard =
+            payload.role === "scholar" ? "/dashboard/scholar" : "/dashboard/student";
+          return NextResponse.redirect(new URL(userDashboard, req.url));
+        }
+        if (isTargetingScholar && payload.role !== "scholar") {
+          const userDashboard =
+            payload.role === "admin" ? "/admin" : "/dashboard/student";
+          return NextResponse.redirect(new URL(userDashboard, req.url));
+        }
+        if (isTargetingStudent && payload.role !== "student") {
+          const userDashboard =
+            payload.role === "admin" ? "/admin" : "/dashboard/scholar";
+          return NextResponse.redirect(new URL(userDashboard, req.url));
+        }
         return NextResponse.redirect(new URL(redirectParam, req.url));
       }
 

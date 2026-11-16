@@ -360,6 +360,7 @@ async function main() {
 
     // Click My Applications
     await pageE.waitForSelector('button[data-tab="applications"]', { timeout: 15000 });
+    await delay(1200);
     await pageE.click('button[data-tab="applications"]');
     await waitForPath(pageE, "tab=applications");
     console.log("    Switched to My Applications tab: " + pageE.url());
@@ -398,6 +399,7 @@ async function main() {
 
     // Click My Internships
     await pageE.waitForSelector('button[data-tab="internships"]', { timeout: 15000 });
+    await delay(1200);
     await pageE.click('button[data-tab="internships"]');
     await waitForPath(pageE, "tab=internships");
     console.log("    Switched to My Internships tab: " + pageE.url());

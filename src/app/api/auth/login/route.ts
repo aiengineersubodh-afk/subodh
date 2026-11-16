@@ -123,7 +123,23 @@ export async function POST(req: NextRequest) {
         : "/onboarding/student";
     }
 
-    const redirectUrl = requestedRedirect || defaultDashboardUrl;
+    let redirectUrl = defaultDashboardUrl;
+    if (requestedRedirect) {
+      const isTargetingAdmin =
+        requestedRedirect.startsWith("/admin") && requestedRedirect !== "/admin/login";
+      const isTargetingScholar = requestedRedirect.startsWith("/dashboard/scholar");
+      const isTargetingStudent = requestedRedirect.startsWith("/dashboard/student");
+
+      if (isTargetingAdmin) {
+        redirectUrl = profile.role === "admin" ? requestedRedirect : defaultDashboardUrl;
+      } else if (isTargetingScholar) {
+        redirectUrl = profile.role === "scholar" ? requestedRedirect : defaultDashboardUrl;
+      } else if (isTargetingStudent) {
+        redirectUrl = profile.role === "student" ? requestedRedirect : defaultDashboardUrl;
+      } else {
+        redirectUrl = requestedRedirect;
+      }
+    }
 
     const rememberMe = Boolean(parsed.data.remember_me);
     const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7;

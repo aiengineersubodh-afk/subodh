@@ -13,7 +13,6 @@ import {
   LogOut,
   Menu,
   Search,
-  ShieldCheck,
   Sparkles,
   User,
   X,
@@ -82,27 +81,11 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-[#222326] border-b border-[#33353A]">
       {/* Top Institutional Status Bar */}
       <div className="bg-[#F7F8FA] border-b border-[#E5E7EB] px-4 sm:px-6 lg:px-8 py-1.5 text-xs text-[#666666]">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-[#2563EB]" />
             <span className="font-medium text-[#202124]">{siteName}</span>
             <span className="hidden sm:inline text-[#666666]">— {tagline}</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/explore?tab=domains"
-              className="hover:text-[#2563EB] transition-colors font-medium"
-            >
-              Browse Open Internships
-            </Link>
-            <span className="text-[#E5E7EB]">|</span>
-            <Link
-              href="/admin/login"
-              className="hover:text-[#2563EB] transition-colors flex items-center gap-1"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" />
-              <span>Admin Portal</span>
-            </Link>
           </div>
         </div>
       </div>
