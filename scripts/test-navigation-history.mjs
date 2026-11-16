@@ -10,6 +10,10 @@ if (!fs.existsSync(SCREENSHOT_DIR)) {
   fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 }
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function waitForPath(page, targetSnippet, timeoutMs = 20000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -184,9 +188,12 @@ async function main() {
 
     // Test specific requirement: "click Back three times. Click Forward once. Confirm only one next step is restored."
     await page.goBack(); // -> Scholar
+    await delay(600);
     await page.goBack(); // -> CSE
+    await delay(600);
     await page.goBack(); // -> Engineering
-    assert.ok(page.url().includes("domain=dom-engineering") && !page.url().includes("spec="), "Must be at Engineering after 3 backs");
+    await delay(600);
+    assert.ok(page.url().includes("domain=dom-engineering") && !page.url().includes("spec="), "Must be at Engineering after 3 backs. URL: " + page.url());
     console.log("  Clicked Back 3 times -> At Engineering: " + page.url());
 
     await page.goForward(); // -> CSE

@@ -36,6 +36,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { TagInput } from "@/components/TagInput";
 import { FileUploadField } from "@/components/FileUploadField";
+import { InternationalPhoneInput, validateInternationalPhone } from "@/components/PhoneInput";
 import PremiumUpgradeModal from "@/components/PremiumUpgradeModal";
 import {
   InternshipApplicationAction,
@@ -376,6 +377,11 @@ export default function ScholarProfileDetailsPage() {
       setSubmitError(
         "Please add at least one research interest and one technical skill."
       );
+      return;
+    }
+    const phoneVal = validateInternationalPhone(studentPhone, session?.user?.country);
+    if (!phoneVal.isValid) {
+      setSubmitError(phoneVal.error || "Please enter a valid phone number.");
       return;
     }
     setReviewStep(true);
@@ -1414,15 +1420,12 @@ export default function ScholarProfileDetailsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#202124] mb-1">
-                      Phone Number <span className="text-[#2563EB]">*</span>
-                    </label>
-                    <input
-                      type="tel"
+                    <InternationalPhoneInput
+                      label="Phone Number"
                       required
                       value={studentPhone}
-                      onChange={(e) => setStudentPhone(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs"
+                      onChange={setStudentPhone}
+                      countryPreference={session?.user?.country || "India"}
                     />
                   </div>
                 </div>

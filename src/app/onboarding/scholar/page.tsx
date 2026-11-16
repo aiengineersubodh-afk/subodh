@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -30,6 +30,8 @@ import { TagInput } from "@/components/TagInput";
 import { FileUploadField } from "@/components/FileUploadField";
 import { AcademicDomain, Specialization } from "@/types/database";
 import { CascadingAcademicSelector } from "@/components/CascadingAcademicSelector";
+import { InternationalPhoneInput, validateInternationalPhone } from "@/components/PhoneInput";
+import { getAcademicInterestSuggestions } from "@/lib/academic-interests";
 
 const STEPS = [
   {
@@ -128,6 +130,10 @@ export default function ScholarOnboardingPage() {
   const [domainId, setDomainId] = useState("dom-engineering");
   const [specializationId, setSpecializationId] = useState("");
   const [currentResearchTopic, setCurrentResearchTopic] = useState("");
+
+  const dynamicInterestSuggestions = useMemo(() => {
+    return getAcademicInterestSuggestions(domainId, specializationId);
+  }, [domainId, specializationId]);
 
   // Step 3: Research Profile
   const [biography, setBiography] = useState("");
@@ -555,8 +561,9 @@ export default function ScholarOnboardingPage() {
 
     if (step === 1) {
       if (!fullName.trim()) errors.fullName = "Full Name is required.";
-      if (!phone.trim() || phone.trim().length < 7)
-        errors.phone = "Please enter a valid phone number.";
+      const phoneValidation = validateInternationalPhone(phone, country);
+      if (!phoneValidation.isValid)
+        errors.phone = phoneValidation.error || "Please enter a valid phone number.";
       if (!country.trim()) errors.country = "Country is required.";
       if (!state.trim()) errors.state = "State / Province is required.";
       if (!city.trim()) errors.city = "City is required.";
@@ -966,26 +973,17 @@ export default function ScholarOnboardingPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
-                      Phone Number <span className="text-[#2563EB]">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => {
-                        setPhone(e.target.value);
-                        if (fieldErrors.phone) setFieldErrors({ ...fieldErrors, phone: "" });
-                      }}
-                      placeholder="+91 98450 11223"
-                      className={`w-full px-3.5 py-2.5 rounded-lg border text-sm ${
-                        fieldErrors.phone ? "border-red-500 bg-red-50/20" : "border-[#E5E7EB]"
-                      }`}
-                    />
-                    {fieldErrors.phone && (
-                      <p className="text-xs text-red-600 mt-1">{fieldErrors.phone}</p>
-                    )}
-                  </div>
+                  <InternationalPhoneInput
+                    label="Phone Number"
+                    required
+                    value={phone}
+                    onChange={(val) => {
+                      setPhone(val);
+                      if (fieldErrors.phone) setFieldErrors({ ...fieldErrors, phone: "" });
+                    }}
+                    countryPreference={country || "India"}
+                    error={fieldErrors.phone}
+                  />
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
@@ -1267,16 +1265,7 @@ export default function ScholarOnboardingPage() {
                         setFieldErrors({ ...fieldErrors, researchInterests: "" });
                     }}
                     placeholder="Type a research interest and press Enter..."
-                    suggestions={[
-                      "Multimodal Learning",
-                      "Visual SLAM",
-                      "Clinical Biostatistics",
-                      "Causal Inference",
-                      "Quantum Information",
-                      "Bioinformatics",
-                      "Medical Imaging",
-                      "Computational Neuroscience",
-                    ]}
+                    suggestions={dynamicInterestSuggestions}
                   />
                   {fieldErrors.researchInterests && (
                     <p className="text-xs text-red-600 mt-1">{fieldErrors.researchInterests}</p>

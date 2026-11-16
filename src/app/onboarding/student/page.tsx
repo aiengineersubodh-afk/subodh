@@ -25,6 +25,8 @@ import { FileUploadField } from "@/components/FileUploadField";
 import { AcademicDomain, Specialization } from "@/types/database";
 import { CascadingAcademicSelector } from "@/components/CascadingAcademicSelector";
 import { getGraduationYearRange } from "@/lib/validations";
+import { InternationalPhoneInput, validateInternationalPhone } from "@/components/PhoneInput";
+import { getAcademicInterestSuggestions } from "@/lib/academic-interests";
 
 const STUDENT_STEPS = [
   { number: 1, shortLabel: "Personal", title: "Personal Information" },
@@ -130,6 +132,10 @@ export default function StudentOnboardingPage() {
     if (!gradYearSearch.trim()) return availableGradYears;
     return availableGradYears.filter((yr) => String(yr).includes(gradYearSearch.trim()));
   }, [availableGradYears, gradYearSearch]);
+
+  const dynamicInterestSuggestions = useMemo(() => {
+    return getAcademicInterestSuggestions(domainId, specializationId);
+  }, [domainId, specializationId]);
 
   // Load Academic Domains & Specializations
   useEffect(() => {
@@ -387,8 +393,9 @@ export default function StudentOnboardingPage() {
       if (fullName.trim().length < 2) {
         errs.fullName = "Full Name is required (minimum 2 characters).";
       }
-      if (phone.trim().length < 7) {
-        errs.phone = "Please enter a valid phone number.";
+      const phoneValidation = validateInternationalPhone(phone, country);
+      if (!phoneValidation.isValid) {
+        errs.phone = phoneValidation.error || "Please enter a valid phone number.";
       }
       if (country.trim().length < 2) {
         errs.country = "Country is required.";
@@ -783,21 +790,23 @@ export default function StudentOnboardingPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
-                    Phone Number <span className="text-[#2563EB]">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#E5E7EB] text-sm focus:outline-none focus:border-[#2563EB]"
-                  />
-                  {fieldErrors.phone && (
-                    <p className="text-xs text-red-600 mt-1">{fieldErrors.phone}</p>
-                  )}
-                </div>
+                <InternationalPhoneInput
+                  label="Phone Number"
+                  required
+                  value={phone}
+                  onChange={(val) => {
+                    setPhone(val);
+                    if (fieldErrors.phone) {
+                      setFieldErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.phone;
+                        return copy;
+                      });
+                    }
+                  }}
+                  countryPreference={country || "India"}
+                  error={fieldErrors.phone}
+                />
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-[#202124] mb-1.5">
@@ -1032,16 +1041,7 @@ export default function StudentOnboardingPage() {
                   required
                   values={academicInterests}
                   onChange={setAcademicInterests}
-                  suggestions={[
-                    "Artificial Intelligence",
-                    "Machine Learning",
-                    "Data Science",
-                    "Computer Vision",
-                    "Medical Imaging",
-                    "Bioinformatics",
-                    "Robotics",
-                    "Cybersecurity",
-                  ]}
+                  suggestions={dynamicInterestSuggestions}
                 />
                 {fieldErrors.academicInterests && (
                   <p className="text-xs text-red-600 mt-1">{fieldErrors.academicInterests}</p>

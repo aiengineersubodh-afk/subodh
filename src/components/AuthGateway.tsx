@@ -22,6 +22,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { InternationalPhoneInput, validateInternationalPhone } from "@/components/PhoneInput";
 
 interface AuthGatewayProps {
   initialTab?: "login" | "register";
@@ -164,6 +165,13 @@ function AuthGatewayContent({ initialTab = "login" }: AuthGatewayProps) {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setRegError("");
+
+    const phoneValidation = validateInternationalPhone(regPhone, regCountry);
+    if (!phoneValidation.isValid) {
+      setRegError(phoneValidation.error || "Please enter a valid phone number.");
+      return;
+    }
+
     setRegLoading(true);
 
     try {
@@ -691,20 +699,17 @@ function AuthGatewayContent({ initialTab = "login" }: AuthGatewayProps) {
                   {/* Phone & State/City Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-[#202124] mb-1">
-                        Phone Number <span className="text-[#F97316]">*</span>
-                      </label>
-                      <div className="relative">
-                        <Phone className="w-4 h-4 text-[#666666] absolute left-3 top-2.5" />
-                        <input
-                          type="tel"
-                          required
-                          value={regPhone}
-                          onChange={(e) => setRegPhone(e.target.value)}
-                          placeholder="+91 98765 43210"
-                          className="w-full pl-9 pr-3.5 py-2 rounded-lg border border-[#E5E7EB] text-xs text-[#202124] focus:outline-none focus:border-[#F97316]"
-                        />
-                      </div>
+                      <InternationalPhoneInput
+                        label="Phone Number"
+                        required
+                        value={regPhone}
+                        onChange={(val) => {
+                          setRegPhone(val);
+                          if (regError) setRegError("");
+                        }}
+                        countryPreference={regCountry || "India"}
+                        theme="orange"
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-[#202124] mb-1">

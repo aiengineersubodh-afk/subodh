@@ -32,6 +32,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { InternationalPhoneInput } from "@/components/PhoneInput";
 import {
   AcademicDomain,
   ActivityLog,
@@ -2670,12 +2671,11 @@ function AdminPanelContent() {
                 />
               </div>
               <div>
-                <label className="font-bold block mb-1">Phone</label>
-                <input
-                  type="text"
+                <InternationalPhoneInput
+                  label="Phone"
                   value={editingUser.phone}
-                  onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB]"
+                  onChange={(val) => setEditingUser({ ...editingUser, phone: val })}
+                  countryPreference="India"
                 />
               </div>
               <div>

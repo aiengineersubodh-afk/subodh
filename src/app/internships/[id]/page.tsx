@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -28,6 +28,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { TagInput } from "@/components/TagInput";
 import { FileUploadField } from "@/components/FileUploadField";
+import { InternationalPhoneInput, validateInternationalPhone } from "@/components/PhoneInput";
 import {
   InternshipApplicationAction,
   ViewApplicationModal,
@@ -37,6 +38,8 @@ import {
 export default function InternshipDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const shouldAutoOpen = searchParams.get("apply") === "true";
   const internshipId = String(params.id || "");
   const { session, refreshSession } = useAuth();
 
@@ -120,9 +123,20 @@ export default function InternshipDetailsPage() {
 
   const existingApp = data ? studentApplications[data.internship.id] : null;
 
+  useEffect(() => {
+    if (!loading && data && shouldAutoOpen && session && session.user.role === "student") {
+      if (!existingApp || existingApp.application.status === "Withdrawn") {
+        setSubmitError("");
+        setSubmitSuccess(false);
+        setReviewStep(false);
+        setApplyModalOpen(true);
+      }
+    }
+  }, [loading, data, shouldAutoOpen, session, existingApp]);
+
   const handleOpenApplyModal = () => {
     if (!session) {
-      window.location.href = `/login`;
+      router.push(`/login?redirect=${encodeURIComponent(`/internships/${internshipId}?apply=true`)}`);
       return;
     }
     if (session.user.role !== "student") {
@@ -162,6 +176,11 @@ export default function InternshipDetailsPage() {
       setSubmitError(
         "Please add at least one research interest and one technical skill."
       );
+      return;
+    }
+    const phoneVal = validateInternationalPhone(studentPhone, session?.user?.country);
+    if (!phoneVal.isValid) {
+      setSubmitError(phoneVal.error || "Please enter a valid phone number.");
       return;
     }
     setReviewStep(true);
@@ -264,7 +283,11 @@ export default function InternshipDetailsPage() {
             <ArrowLeft className="w-4 h-4" /> Back to Open Internships
           </Link>
           <Link
-            href={`/scholars/${scholar.id}`}
+            href={
+              session
+                ? `/scholars/${scholar.id}`
+                : `/login?redirect=${encodeURIComponent(`/scholars/${scholar.id}`)}`
+            }
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:underline"
           >
             <span>View Full PhD Scholar Profile</span>
@@ -406,7 +429,11 @@ export default function InternshipDetailsPage() {
               </div>
 
               <Link
-                href={`/scholars/${scholar.id}`}
+                href={
+                  session
+                    ? `/scholars/${scholar.id}`
+                    : `/login?redirect=${encodeURIComponent(`/scholars/${scholar.id}`)}`
+                }
                 className="px-4 py-2.5 rounded-xl bg-[#202124] text-white text-xs font-semibold hover:bg-black transition-colors shrink-0 self-start sm:self-center inline-flex items-center gap-1.5"
               >
                 <span>View Full PhD Scholar Profile</span>
@@ -679,15 +706,12 @@ export default function InternshipDetailsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#202124] mb-1">
-                      Phone Number <span className="text-[#2563EB]">*</span>
-                    </label>
-                    <input
-                      type="tel"
+                    <InternationalPhoneInput
+                      label="Phone Number"
                       required
                       value={studentPhone}
-                      onChange={(e) => setStudentPhone(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-xs"
+                      onChange={setStudentPhone}
+                      countryPreference={session?.user?.country || "India"}
                     />
                   </div>
                 </div>

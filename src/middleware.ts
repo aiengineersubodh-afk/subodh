@@ -86,16 +86,19 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 5. Protected Website Pages (Home, Explore, Scholars, Internships, Dashboards, Admin, etc.)
-  if (!payload) {
-    // Unauthenticated visitor -> Redirect to Authentication Gateway with destination preservation
+  // 5. Protected Website Pages (Scholars, Dashboards, Admin, Onboarding)
+  const isProtectedPage =
+    pathname.startsWith("/scholars") ||
+    pathname.startsWith("/dashboard") ||
+    (pathname.startsWith("/admin") && pathname !== "/admin/login") ||
+    pathname.startsWith("/onboarding");
+
+  if (isProtectedPage && !payload) {
+    // Unauthenticated visitor attempting to access protected route -> Redirect to Gateway with destination
     const loginUrl = new URL("/login", req.url);
-    if (pathname !== "/") {
-      loginUrl.searchParams.set("redirect", `${pathname}${search}`);
-    }
+    loginUrl.searchParams.set("redirect", `${pathname}${search}`);
 
     const res = NextResponse.redirect(loginUrl);
-    // If a tampered or expired cookie was present, clear it cleanly
     if (token) {
       res.cookies.delete(SESSION_COOKIE_NAME);
     }
@@ -103,28 +106,35 @@ export async function middleware(req: NextRequest) {
   }
 
   // 6. Role-Based Route Guards for Authenticated Users
-  // Protect /admin routes from non-admin users
-  if (pathname.startsWith("/admin") && payload.role !== "admin") {
-    const userDashboard =
-      payload.role === "scholar" ? "/dashboard/scholar" : "/dashboard/student";
-    return NextResponse.redirect(new URL(userDashboard, req.url));
+  if (payload) {
+    // Protect /admin routes from non-admin users
+    if (pathname.startsWith("/admin") && payload.role !== "admin") {
+      const userDashboard =
+        payload.role === "scholar" ? "/dashboard/scholar" : "/dashboard/student";
+      return NextResponse.redirect(new URL(userDashboard, req.url));
+    }
+
+    // Protect /dashboard/scholar from non-scholar users
+    if (pathname.startsWith("/dashboard/scholar") && payload.role !== "scholar") {
+      const userDashboard =
+        payload.role === "admin" ? "/admin" : "/dashboard/student";
+      return NextResponse.redirect(new URL(userDashboard, req.url));
+    }
+
+    // Protect /dashboard/student from non-student users
+    if (pathname.startsWith("/dashboard/student") && payload.role !== "student") {
+      const userDashboard =
+        payload.role === "admin" ? "/admin" : "/dashboard/scholar";
+      return NextResponse.redirect(new URL(userDashboard, req.url));
+    }
   }
 
-  // Protect /dashboard/scholar from non-scholar users
-  if (pathname.startsWith("/dashboard/scholar") && payload.role !== "scholar") {
-    const userDashboard =
-      payload.role === "admin" ? "/admin" : "/dashboard/student";
-    return NextResponse.redirect(new URL(userDashboard, req.url));
+  // Allow public pages (/, /explore, /about, /contact, /careers, /internships/:id)
+  const res = NextResponse.next();
+  if (token && !payload) {
+    res.cookies.delete(SESSION_COOKIE_NAME);
   }
-
-  // Protect /dashboard/student from non-student users
-  if (pathname.startsWith("/dashboard/student") && payload.role !== "student") {
-    const userDashboard =
-      payload.role === "admin" ? "/admin" : "/dashboard/scholar";
-    return NextResponse.redirect(new URL(userDashboard, req.url));
-  }
-
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {

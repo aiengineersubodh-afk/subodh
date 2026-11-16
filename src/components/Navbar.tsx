@@ -66,6 +66,7 @@ export function Navbar() {
     { href: "/about", label: "About Us" },
     { href: "/explore?tab=scholars", label: "Researchers", tab: "scholars" },
     { href: "/contact", label: "Contact Us" },
+    { href: "/careers", label: "Careers" },
   ];
 
   const dashboardHref =
@@ -88,28 +89,20 @@ export function Navbar() {
             <span className="hidden sm:inline text-[#666666]">— {tagline}</span>
           </div>
           <div className="flex items-center gap-4">
-            {session ? (
-              <>
-                <Link
-                  href="/explore?tab=internships"
-                  className="hover:text-[#2563EB] transition-colors font-medium"
-                >
-                  Browse Open Internships
-                </Link>
-                <span className="text-[#E5E7EB]">|</span>
-                <Link
-                  href="/admin/login"
-                  className="hover:text-[#2563EB] transition-colors flex items-center gap-1"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" />
-                  <span>Admin Portal</span>
-                </Link>
-              </>
-            ) : (
-              <span className="text-xs text-[#666666] font-medium">
-                Academic Authentication Gateway
-              </span>
-            )}
+            <Link
+              href="/explore?tab=domains"
+              className="hover:text-[#2563EB] transition-colors font-medium"
+            >
+              Browse Open Internships
+            </Link>
+            <span className="text-[#E5E7EB]">|</span>
+            <Link
+              href="/admin/login"
+              className="hover:text-[#2563EB] transition-colors flex items-center gap-1"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span>Admin Portal</span>
+            </Link>
           </div>
         </div>
       </div>
@@ -132,39 +125,32 @@ export function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          {session ? (
-            <nav className="hidden lg:flex items-center gap-7">
-              {navLinks.map((item) => {
-                const isActive =
-                  item.href === "/"
-                    ? pathname === "/"
-                    : item.tab
-                    ? pathname.startsWith("/explore") && currentTab === item.tab
-                    : pathname.startsWith(item.href);
+          {/* Desktop Navigation Links (Always visible for all visitors) */}
+          <nav className="hidden lg:flex items-center gap-6">
+            {navLinks.map((item) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : item.tab
+                  ? pathname.startsWith("/explore") && currentTab === item.tab
+                  : pathname.startsWith(item.href);
 
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => handleNavLinkClick(item.tab)}
-                    className={`text-sm font-medium transition-colors py-2 border-b-2 cursor-pointer ${
-                      isActive
-                        ? "border-[#2563EB] text-white font-semibold"
-                        : "border-transparent text-gray-300 hover:text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-          ) : (
-            <div className="hidden lg:flex items-center gap-2 text-xs text-gray-400">
-              <span className="w-2 h-2 rounded-full bg-[#F97316]" />
-              <span>Research Collaboration & Internship Platform</span>
-            </div>
-          )}
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => handleNavLinkClick(item.tab)}
+                  className={`text-sm font-medium transition-colors py-2 border-b-2 cursor-pointer ${
+                    isActive
+                      ? "border-[#2563EB] text-white font-semibold"
+                      : "border-transparent text-gray-300 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
 
           {/* Right Auth / User Controls */}
           <div className="hidden lg:flex items-center gap-3">
@@ -313,33 +299,31 @@ export function Navbar() {
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#222326] border-b border-[#33353A] px-4 pt-3 pb-6 space-y-3">
-          {session && (
-            <div className="space-y-1">
-              {navLinks.map((item) => {
-                const isActive =
-                  item.href === "/"
-                    ? pathname === "/"
-                    : item.tab
-                    ? pathname.startsWith("/explore") && currentTab === item.tab
-                    : pathname.startsWith(item.href);
+          <div className="space-y-1">
+            {navLinks.map((item) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : item.tab
+                  ? pathname.startsWith("/explore") && currentTab === item.tab
+                  : pathname.startsWith(item.href);
 
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => handleNavLinkClick(item.tab)}
-                    className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-white/10 text-white font-semibold border-l-2 border-[#2563EB]"
-                        : "text-white hover:bg-white/10"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => handleNavLinkClick(item.tab)}
+                  className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-white/10 text-white font-semibold border-l-2 border-[#2563EB]"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
           <div className="pt-3 border-t border-[#33353A] flex flex-col gap-2">
             {session ? (
               <>

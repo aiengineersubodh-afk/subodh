@@ -638,7 +638,11 @@ export default function HomePage() {
                   </span>
 
                   <Link
-                    href={`/scholars/${scholar.id}`}
+                    href={
+                      session
+                        ? `/scholars/${scholar.id}`
+                        : `/login?redirect=${encodeURIComponent(`/scholars/${scholar.id}`)}`
+                    }
                     className="px-3.5 py-1.5 rounded-lg bg-[#202124] text-white text-xs font-semibold hover:bg-[#2563EB] transition-colors"
                   >
                     View Profile
@@ -741,7 +745,11 @@ export default function HomePage() {
                     </div>
                     <InternshipApplicationAction
                       existingApplication={studentApplications[internship.id]}
-                      applyHref={`/scholars/${scholar.id}?apply=${internship.id}`}
+                      applyHref={
+                        session
+                          ? `/scholars/${scholar.id}?apply=${internship.id}`
+                          : `/login?redirect=${encodeURIComponent(`/internships/${internship.id}?apply=true`)}`
+                      }
                       applyLabel="Apply for This Position"
                       onViewApplication={(app) => setViewingApplication(app)}
                     />

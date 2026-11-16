@@ -381,6 +381,10 @@ function ExploreContent() {
     scholarId: string,
     scholarName: string
   ) => {
+    if (!session) {
+      router.push(`/login?redirect=${encodeURIComponent(`/scholars/${scholarId}?contact=true`)}`);
+      return;
+    }
     if (!isPremiumUnlocked) {
       openPremiumModal(`Direct Scholar Contact with ${scholarName}`);
       return;
@@ -389,8 +393,12 @@ function ExploreContent() {
   };
 
   const toggleSaveScholar = async (scholarId: string) => {
-    if (!session || session.user.role !== "student") {
+    if (!session) {
       router.push("/login?redirect=" + encodeURIComponent("/explore" + window.location.search));
+      return;
+    }
+    if (session.user.role !== "student") {
+      alert("Only registered students can bookmark researcher profiles.");
       return;
     }
     const res = await fetch("/api/saved-scholars", {
@@ -623,23 +631,10 @@ function ExploreContent() {
                 </span>
               </div>
 
-              {isPremiumUnlocked ? (
-                <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-500/20 backdrop-blur-xs border border-emerald-400/40 text-[11px] font-semibold text-emerald-300">
-                  <Crown className="w-3.5 h-3.5 text-[#2563EB]" />
-                  STARSKY Premium Unlocked
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    openPremiumModal("Full PhD Scholar Directory Access")
-                  }
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-xs border border-[#2563EB]/40 text-[11px] font-semibold text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition-colors shadow-xs"
-                >
-                  <Lock className="w-3 h-3" />
-                  Free Preview ({freeScholarLimit} of {totalApprovedScholarsCount}) • Upgrade
-                </button>
-              )}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/20 backdrop-blur-xs border border-emerald-400/40 text-[11px] font-semibold text-emerald-300">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                Verified PhD Scholar Directory
+              </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight text-white leading-[1.12] drop-shadow-xs">
@@ -1148,18 +1143,8 @@ function ExploreContent() {
                       <strong className="text-[#202124]">
                         {filteredScholars.length}
                       </strong>{" "}
-                      unlocked PhD{" "}
+                      verified PhD{" "}
                       {filteredScholars.length === 1 ? "scholar" : "scholars"}
-                      {!isPremiumUnlocked && lockedScholarsCount > 0 && (
-                        <span>
-                          {" "}
-                          (plus{" "}
-                          <strong className="text-[#2563EB]">
-                            {lockedScholarsCount} Premium-locked
-                          </strong>{" "}
-                          verified scholars)
-                        </span>
-                      )}
                     </p>
                     {selectedSpecId && (
                       <button
@@ -1181,8 +1166,7 @@ function ExploreContent() {
                         />
                       ))}
                     </div>
-                  ) : paginatedScholars.length === 0 &&
-                    lockedScholarPreviews.length === 0 ? (
+                  ) : paginatedScholars.length === 0 ? (
                     <div className="card-corporate p-12 text-center space-y-3">
                       <GraduationCap className="w-10 h-10 text-[#2563EB] mx-auto" />
                       <h3 className="text-lg font-bold text-[#202124]">
@@ -1301,7 +1285,11 @@ function ExploreContent() {
                                   </button>
 
                                   <Link
-                                    href={`/scholars/${scholar.id}`}
+                                    href={
+                                      session
+                                        ? `/scholars/${scholar.id}`
+                                        : `/login?redirect=${encodeURIComponent(`/scholars/${scholar.id}`)}`
+                                    }
                                     className="px-5 py-2.5 rounded-lg bg-[#2563EB] text-white text-xs font-semibold hover:bg-[#1D4ED8] transition-colors"
                                   >
                                     View Profile
@@ -1377,96 +1365,6 @@ function ExploreContent() {
                             </div>
                           );
                         }
-                      )}
-
-                      {/* PREMIUM UNLOCK SECTION (Displayed after the first 5 approved PhD Scholar profiles for Free Users) */}
-                      {!isPremiumUnlocked && lockedScholarsCount > 0 && (
-                        <div className="space-y-5 pt-4">
-                          {/* Locked Preview Cards */}
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {lockedScholarPreviews.map((preview, idx) => (
-                              <div
-                                key={preview.id}
-                                onClick={() =>
-                                  openPremiumModal(
-                                    `View ${preview.specialization} Scholar Profile (${preview.university_institution})`
-                                  )
-                                }
-                                className="rounded-xl border border-[#E5E7EB] bg-[#F7F8FA] p-5 relative overflow-hidden cursor-pointer group hover:border-[#2563EB] transition-all"
-                              >
-                                <div className="flex items-center justify-between mb-3">
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-[#E5E7EB] text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
-                                    <Lock className="w-3 h-3" />
-                                    Locked Profile #{freeScholarLimit + idx + 1}
-                                  </span>
-                                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                                    Verified Scholar
-                                  </span>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                  <div className="h-4 w-40 rounded bg-gray-200/90 blur-[2px] select-none" />
-                                  <p className="text-xs font-bold text-[#202124] line-clamp-1 pt-1">
-                                    {preview.university_institution}
-                                  </p>
-                                  <p className="text-[11px] text-[#666666] line-clamp-1">
-                                    {preview.department}
-                                  </p>
-                                  <p className="text-[11px] font-semibold text-[#2563EB] pt-1">
-                                    {preview.research_field} →{" "}
-                                    {preview.specialization}
-                                  </p>
-                                </div>
-
-                                <div className="mt-4 pt-3 border-t border-[#E5E7EB] flex items-center justify-between text-xs font-semibold text-[#202124] group-hover:text-[#2563EB]">
-                                  <span>Unlock Scholar Profile</span>
-                                  <Crown className="w-3.5 h-3.5 text-[#2563EB]" />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Main Premium Unlock Card */}
-                          <div className="rounded-2xl border-2 border-[#2563EB]/30 bg-gradient-to-br from-[#EFF6FF] via-white to-[#F7F8FA] p-8 sm:p-10 text-center shadow-sm space-y-5">
-                            <div className="w-14 h-14 rounded-2xl bg-[#2563EB] text-white flex items-center justify-center mx-auto shadow-md">
-                              <Lock className="w-7 h-7" />
-                            </div>
-
-                            <div className="space-y-2 max-w-2xl mx-auto">
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#2563EB]/30 text-xs font-bold uppercase tracking-wider text-[#2563EB]">
-                                <Crown className="w-3.5 h-3.5" />
-                                STARSKY Premium Directory Access
-                              </span>
-                              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#202124]">
-                                Unlock More Research Opportunities
-                              </h3>
-                              <p className="text-sm text-[#666666] leading-relaxed">
-                                You are currently viewing a preview of verified
-                                PhD scholars on STARSKY ({freeScholarLimit} of{" "}
-                                {totalApprovedScholarsCount} approved profiles).
-                                Upgrade to STARSKY Premium to unlock the full
-                                PhD scholar directory, explore researchers
-                                across all academic specializations, and connect
-                                directly with scholars.
-                              </p>
-                            </div>
-
-                            <div className="pt-2">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openPremiumModal(
-                                    "Unlock Full PhD Scholar Directory"
-                                  )
-                                }
-                                className="px-7 py-3.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-bold transition-colors shadow-sm inline-flex items-center gap-2"
-                              >
-                                <Crown className="w-4 h-4" />
-                                <span>Upgrade to Premium</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
                       )}
 
                       {/* Pagination Controls */}
@@ -1583,7 +1481,11 @@ function ExploreContent() {
                               <InternshipApplicationAction
                                 existingApplication={existingApp}
                                 checkingStatus={loading}
-                                applyHref={`/scholars/${scholar.id}?apply=${internship.id}`}
+                                applyHref={
+                                  session
+                                    ? `/scholars/${scholar.id}?apply=${internship.id}`
+                                    : `/login?redirect=${encodeURIComponent(`/internships/${internship.id}?apply=true`)}`
+                                }
                                 applyLabel="Apply for This Position"
                                 onViewApplication={(app) =>
                                   setViewingApplication(app)
@@ -1608,7 +1510,11 @@ function ExploreContent() {
 
                             <div className="pt-4 border-t border-[#E5E7EB] flex flex-wrap items-center justify-between gap-4 text-xs">
                               <Link
-                                href={`/scholars/${scholar.id}`}
+                                href={
+                                  session
+                                    ? `/scholars/${scholar.id}`
+                                    : `/login?redirect=${encodeURIComponent(`/scholars/${scholar.id}`)}`
+                                }
                                 className="flex items-center gap-2.5 group"
                               >
                                 <img

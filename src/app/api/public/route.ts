@@ -10,7 +10,7 @@ import {
   readDb,
   writeDb,
 } from "@/lib/db";
-import { LockedScholarPreview } from "@/types/database";
+import { EnrichedScholar, LockedScholarPreview } from "@/types/database";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -59,56 +59,12 @@ export async function GET(req: NextRequest) {
   }
 
   const allApprovedScholars = getEnrichedScholars(true);
-  const freeVisibleIds = new Set(
-    allApprovedScholars.slice(0, freeScholarLimit).map((item) => item.scholar.id)
-  );
 
   if (scholarId) {
-    const isOwnScholarProfile =
-      session?.user.role === "scholar" &&
-      session.scholarProfile?.id === scholarId;
-
-    const hasActiveOpenInternships = db.internships.some(
-      (i) =>
-        i.scholar_profile_id === scholarId &&
-        i.status === "Open" &&
-        i.moderation_status === "approved"
-    );
-
-    if (
-      !isPremiumUnlocked &&
-      !isOwnScholarProfile &&
-      !hasActiveOpenInternships &&
-      !freeVisibleIds.has(scholarId)
-    ) {
-      const targetItem = allApprovedScholars.find(
-        (item) => item.scholar.id === scholarId
-      );
-      const lockedPreview: LockedScholarPreview | null = targetItem
-        ? {
-            id: targetItem.scholar.id,
-            research_field: targetItem.scholar.research_field,
-            specialization: targetItem.scholar.specialization,
-            domain_id: targetItem.scholar.domain_id,
-            specialization_id: targetItem.scholar.specialization_id,
-            university_institution: targetItem.scholar.university_institution,
-            department: targetItem.scholar.department,
-            internship_availability: targetItem.scholar.internship_availability,
-            locked: true,
-          }
-        : null;
-
+    if (!session) {
       return NextResponse.json(
-        {
-          error:
-            "Unlock STARSKY Premium to view this verified PhD scholar profile and connect directly.",
-          requiresPremium: true,
-          isPremiumUnlocked: false,
-          lockedPreview,
-          subscriptionPlans: activePlans,
-          studentApplications,
-        },
-        { status: 403 }
+        { error: "Authentication required to view detailed PhD Scholar profiles." },
+        { status: 401 }
       );
     }
 
@@ -144,27 +100,9 @@ export async function GET(req: NextRequest) {
     .filter((s) => s.is_active)
     .sort((a, b) => a.display_order - b.display_order);
 
-  const visibleScholars = isPremiumUnlocked
-    ? allApprovedScholars
-    : allApprovedScholars.slice(0, freeScholarLimit);
-
-  const lockedScholars = isPremiumUnlocked
-    ? []
-    : allApprovedScholars.slice(freeScholarLimit);
-
-  const lockedScholarPreviews: LockedScholarPreview[] = lockedScholars.map(
-    ({ scholar }) => ({
-      id: scholar.id,
-      research_field: scholar.research_field,
-      specialization: scholar.specialization,
-      domain_id: scholar.domain_id,
-      specialization_id: scholar.specialization_id,
-      university_institution: scholar.university_institution,
-      department: scholar.department,
-      internship_availability: scholar.internship_availability,
-      locked: true,
-    })
-  );
+  const visibleScholars = allApprovedScholars;
+  const lockedScholars: EnrichedScholar[] = [];
+  const lockedScholarPreviews: LockedScholarPreview[] = [];
 
   const internships = getEnrichedInternships(true);
   const careers = db.career_listings.filter((c) => c.is_published);

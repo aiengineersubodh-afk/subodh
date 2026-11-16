@@ -357,7 +357,7 @@ export function CascadingAcademicSelector({
                   className="inline-flex items-center gap-1 text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] hover:underline"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Change Parent Domain</span>
+                  <span>Back</span>
                 </button>
               </div>
             )}

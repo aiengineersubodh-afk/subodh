@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { CheckCircle2, Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Info, Loader2, Mail, MapPin, Phone, Send } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ContactPage() {
-  const { settings } = useAuth();
+  const router = useRouter();
+  const { session, settings } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
@@ -13,12 +15,52 @@ export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [submittedMsg, setSubmittedMsg] = useState("");
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  // Restore draft if returning after login
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem("starsky_contact_draft");
+        if (raw) {
+          const draft = JSON.parse(raw);
+          if (draft.name) setName(draft.name);
+          if (draft.email) setEmail(draft.email);
+          if (draft.subject) setSubject(draft.subject);
+          if (draft.message) setMessage(draft.message);
+          sessionStorage.removeItem("starsky_contact_draft");
+          setDraftRestored(true);
+        } else if (session?.user) {
+          if (!name) setName(session.user.full_name || "");
+          if (!email) setEmail(session.user.email || "");
+        }
+      } catch (err) {
+        console.error("Failed to restore contact draft:", err);
+      }
+    }
+  }, [session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSubmittedMsg("");
+
+    // If unauthenticated, preserve draft in sessionStorage and redirect to login
+    if (!session) {
+      try {
+        sessionStorage.setItem(
+          "starsky_contact_draft",
+          JSON.stringify({ name, email, subject, message })
+        );
+      } catch (err) {
+        console.error("Failed to save contact draft:", err);
+      }
+      router.push(`/login?redirect=${encodeURIComponent("/contact")}`);
+      return;
+    }
+
     setSubmitting(true);
+    setDraftRestored(false);
 
     try {
       const res = await fetch("/api/contact", {
@@ -31,8 +73,8 @@ export default function ContactPage() {
         setError(data.error || "Failed to send message.");
       } else {
         setSubmittedMsg(data.message);
-        setName("");
-        setEmail("");
+        setName(session?.user?.full_name || "");
+        setEmail(session?.user?.email || "");
         setSubject("");
         setMessage("");
       }
@@ -133,6 +175,18 @@ export default function ContactPage() {
                     <div>
                       <p className="font-bold">Message Sent Successfully</p>
                       <p className="mt-0.5">{submittedMsg}</p>
+                    </div>
+                  </div>
+                )}
+
+                {draftRestored && (
+                  <div className="mt-5 p-4 rounded-lg bg-blue-50 border border-blue-200 flex items-start gap-3 text-blue-800 text-xs">
+                    <Info className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold">Message Draft Restored</p>
+                      <p className="mt-0.5">
+                        Your message draft has been safely restored. Click &quot;Submit Message&quot; below to send.
+                      </p>
                     </div>
                   </div>
                 )}
